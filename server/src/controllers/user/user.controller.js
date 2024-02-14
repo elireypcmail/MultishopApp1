@@ -2,6 +2,19 @@ import pool from '../../models/db.connect.js'
 
 const controller = {}
 
+controller.getUsers = async (req, res) => {
+  try {
+    const sql = `SELECT * FROM usuario LIMIT 5;`
+    const user = await pool.query(sql)
+
+    if (user.rows.length > 0) { res.status(200).send({ message: 'Usuarios cargados correctamente', data: user.rows }) } 
+    else { res.status(404).send({ message: 'No hay usuarios registrados' }) }
+  } catch (err) {
+    console.error(err)
+    res.status(500).send('Error al traer los datos')
+  }
+}
+
 controller.postUser = async (req, res) => {
   try {
     const data = req.body
