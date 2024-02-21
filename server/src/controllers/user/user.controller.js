@@ -36,27 +36,38 @@ controller.getUser = async (req, res) => {
 }
 
 controller.verifyToken = (req, res, next) => {
-  const usuarioId = req.headers['x-access-token']
-  const user   = services.generarToken(usuarioId)
-  console.log(usuarioId)
-
-  if (!user) {
-    return res.status(401).json({ mensaje: 'Token no proporcionado' })
-  }
-
-  jwt.verify(user, _var.TOKEN_KEY, (error, decoded) => {
-    if (error) {
-      if (error.name === 'TokenExpiredError') {
-        return res.status(401).json({ mensaje: 'Token expirado' })
-      } else {
-        return res.status(401).json({ mensaje: 'Token inválido' })
+  try {
+    const token = req.headers['x-access-token']
+    console.log(token)
+  
+    if (!token) return res.status(401).json({ mensaje: 'Token no proporcionado' })
+    
+    jwt.verify(token, _var.TOKEN_KEY, (err, decoded) => {
+      if (err) {
+        if (err.name === 'TokenExpiredError') {
+          return res.status(401).json({ mensaje: 'Token expirado' })
+        } else {
+          return res.status(401).json({ mensaje: 'Token inválido' })
+        }
       }
-    }
-    console.log(decoded)
+      
+      const tiempoRestante = decoded.expiraEn - Math.floor(Date.now() / 1000)
 
-    req.usuarioId = decoded.usuarioId
-    next()
-  })
+      if (tiempoRestante <= 120) {
+        console.log('El token expirará en:' + tiempoRestante)
+        return res.status(200).json({ mensaje: `El token expirará en ${tiempoRestante} segundos` })
+      } else if (tiempoRestante <= 0) {
+        console.log('El token a expirado')
+        return res.status(401).json({ mensaje: 'Token expirado' })
+      }
+
+      req.decodedToken = decoded
+      next()
+    })
+  } catch (err) {
+    console.error(err)
+    return res.status(500).json({ message: 'Error al verificar el token' })
+  }
 }
 
 controller.postUser = async (req, res) => {
@@ -88,6 +99,7 @@ controller.postUser = async (req, res) => {
       const userId = result.rows[0].id 
       const dataToken = { id: userId, user: data }
       const user = services.generarToken(userId)
+      console.log(user)
 
       return res.status(200).json({ message: "Usuario creado correctamente" })
     }

@@ -8,11 +8,11 @@ services.generarToken = (userId) => {
   try {
     const payload = {
       usuarioId: userId,
-      expiraEn: Math.floor(Date.now() / 1000) + (60 * 60)
+      expiraEn: Math.floor(Date.now() / 1000) + (5 * 60)
     }
 
     console.log(payload)
-    const token = jwt.sign(payload, _var.TOKEN_KEY)
+    const token = jwt.sign(payload, _var.TOKEN_KEY, { algorithm: 'HS256' })
     
     return token
   } catch (err) {
@@ -21,15 +21,6 @@ services.generarToken = (userId) => {
       status: 500,
       msg: 'Ha ocurrido un error al generar el token'
     }
-  }
-}
-
-services.obtenerUsuarioIdDesdeToken = (token) => {
-  try {
-    const decoded = jwt.verify(token, _var.TOKEN_KEY)
-    return decoded.usuarioId
-  } catch (error) {
-    return null
   }
 }
 
