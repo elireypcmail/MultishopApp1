@@ -14,9 +14,13 @@ const _var = {
   // ROUTES
   GET_ALL_USER: process.env.GET_ALL_USER,
   GET_ONE_USER: process.env.GET_ONE_USER,
+  VERIFY_TOKEN: process.env.VERIFY_TOKEN,
   CREATE_USER:  process.env.CREATE_USER,
   UPDATE_USER:  process.env.UPDATE_USER,
-  DELETE_USER:  process.env.DELETE_USER
+  DELETE_USER:  process.env.DELETE_USER,
+
+  // TOKEN KEY
+  TOKEN_KEY: process.env.TOKEN
 }
 
 export default _var

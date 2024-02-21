@@ -1,17 +1,23 @@
-import pool from '../../models/db.connect.js'
+import pool     from '../../models/db.connect.js'
+import services from '../../services/user.services.js'
+import jwt from 'jsonwebtoken'
+import _var from '../../../global/_var.js'
 
 const controller = {}
 
 controller.getUsers = async (req, res) => {
   try {
-    const sql = `SELECT * FROM usuario LIMIT 5;`
+    const sql  = `SELECT * FROM usuario LIMIT 5;`
     const user = await pool.query(sql)
 
-    if (user?.rows.length > 0) res.status(200).json({ message: 'Usuarios cargados correctamente', data: user.rows })
+    if (user?.rows.length > 0) res.status(200).json({ 
+      message: 'Usuarios cargados correctamente', 
+      data: user.rows 
+    })
     else res.status(404).json({ message: 'No hay usuarios registrados' })
   } catch (err) {
     console.error(err)
-    res.status(500).json({ message: 'Error al traer los datos'})
+    return res.status(500).json({ message: 'Error al traer los datos'})
   }
 }
 
@@ -19,14 +25,38 @@ controller.getUser = async (req, res) => {
   try {
     const { id } = req.params
 
-    const sql = `SELECT * FROM usuario WHERE id=$1`
+    const sql  = `SELECT * FROM usuario WHERE id=$1`
     const user = await pool.query(sql, [ id ])
     if (user?.rows.length == 0) res.status(404).json({ message: 'Usuario no encontrado' }) 
     else res.status(200).json({ message: 'Usuario encontrado', data: user?.rows[0] }) 
   } catch (err) {
     console.error(err)
-    res.status(500).json({ message: 'Error al traer los datos del usuario' })
+    return res.status(500).json({ message: 'Error al traer los datos del usuario' })
   }
+}
+
+controller.verifyToken = (req, res, next) => {
+  const usuarioId = req.headers['x-access-token']
+  const user   = services.generarToken(usuarioId)
+  console.log(usuarioId)
+
+  if (!user) {
+    return res.status(401).json({ mensaje: 'Token no proporcionado' })
+  }
+
+  jwt.verify(user, _var.TOKEN_KEY, (error, decoded) => {
+    if (error) {
+      if (error.name === 'TokenExpiredError') {
+        return res.status(401).json({ mensaje: 'Token expirado' })
+      } else {
+        return res.status(401).json({ mensaje: 'Token inválido' })
+      }
+    }
+    console.log(decoded)
+
+    req.usuarioId = decoded.usuarioId
+    next()
+  })
 }
 
 controller.postUser = async (req, res) => {
@@ -39,7 +69,7 @@ controller.postUser = async (req, res) => {
       return
     }
 
-    const sql = `INSERT INTO usuario(identificacion, nombre, telefonos, dispositivos, per_contacto, est_financiero, clave, instancia) VALUES($1, $2, $3, $4, $5, $6, $7, $8);`
+    const sql = `INSERT INTO usuario(identificacion, nombre, telefonos, dispositivos, per_contacto, est_financiero, clave, instancia) VALUES($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id;`
 
     const result = await bd.query(sql, 
       [
@@ -54,11 +84,17 @@ controller.postUser = async (req, res) => {
       ]
     )
     
-    if (result) res.status(200).json({ message: "Usuario creado correctamente" }) 
+    if (result.rowCount === 1 && result.rows[0].id) {
+      const userId = result.rows[0].id 
+      const dataToken = { id: userId, user: data }
+      const user = services.generarToken(userId)
+
+      return res.status(200).json({ message: "Usuario creado correctamente" })
+    }
     else res.status(200).json({ message: 'No se pudo crear el usuario' }) 
   } catch (err) {
     console.error(err)
-    res.status(500).json({ message: "Error al crear usuario" })
+    return res.status(500).json({ message: "Error al crear usuario" })
   }
 }
 
@@ -84,7 +120,7 @@ controller.updateUser = async (req, res) => {
     else res.status(404).json({ message: 'El usuario no existe' })
   } catch (err) {
     console.error(err)
-    res.status(500).json({ message: 'Error al editar los datos de este usuario' })
+    return res.status(500).json({ message: 'Error al editar los datos de este usuario' })
   }
 }
 
@@ -97,7 +133,7 @@ controller.deleteUser = async (req, res) => {
     res.status(200).json({ message: 'Se ha eliminado el usuario correctamente' })
   } catch (err) {
     console.error(err)
-    res.status(500).json({ message: 'Error al eliminar este usuario' })
+    return res.status(500).json({ message: 'Error al eliminar este usuario' })
   }
 }
 
