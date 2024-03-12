@@ -1,0 +1,97 @@
+.container .main{ grid-area: main; }
+
+.data{
+  width: 96%;
+  height: 82vh;
+  background: #fff;
+  margin-left: 30px;
+  border-radius: 17px;
+  border: 1px solid rgb(232, 232, 232);
+  -webkit-box-shadow: 0px 0px 20px 3px rgba(222, 222, 222);
+  -moz-box-shadow: 0px 0px 20px 3px rgba(222, 222, 222);
+  box-shadow: 0px 0px 20px 3px rgba(222, 222, 222); 
+  padding: 30px;
+}
+
+.user{
+  display: flex;
+  justify-content: center;
+  margin-top: 25px;
+}
+
+.form{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: 60px;
+}
+
+.create{
+  width: 80%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
+}
+
+.one, .two{
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  width: 35%;
+}
+
+.span{
+  width: 83%;
+
+  .title{ 
+    width: 83%;
+    font-family: font;
+    font-size: 16px;
+    color: #161616;
+  }
+
+  .input{
+    border: 1px solid rgb(232, 232, 232);
+    width: 83%;
+    height: 5vh;
+    border-radius: 10px;
+    margin-bottom: 39px;
+    padding: 11px;
+    outline: none;
+    background: #dfebf0;
+    color: #515151;
+  }
+}
+
+.btn{
+  background: #146C94;
+  width: 19%;
+  height: 5vh;
+  border-radius: 4px;
+  margin-top: 35px;
+  color: #fff;
+  font-family: font;
+}
+
+.multi{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 35px;
+
+  span{
+    font-size: 22px;
+    font-family: option;
+    margin-right: 8px;
+    color: #2c2c2c;
+  }
+
+  .mul{
+    width: 9%;
+    height: 6vh;
+    margin-right: 70px;
+  }
+}

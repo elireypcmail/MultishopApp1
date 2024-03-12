@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: font;
+  src: url('./font/Krub/Krub-Medium.ttf');
+}
+
+@font-face {
+  font-family: option;
+  src: url('./font//Krub/Krub-Regular.ttf');
+}
+
+@font-face {
+  font-family: text;
+  src: url('./font/Krub/Krub-ExtraLight.ttf');
+}
+
+@import 'home';
+@import 'navbar';
+@import 'menu';
+@import 'data';
+@import 'data2';
+@import 'profile';

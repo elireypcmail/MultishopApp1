@@ -1,0 +1,128 @@
+.profile{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 25px 19px 35px 19px;
+  width: 100%;
+  height: 67vh;
+  border: 1px solid rgba(0, 0, 0, 0.130);
+  border-radius: 10px;
+
+  .us{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    height: 62vh;
+    padding: 8px;
+    width:  90%;
+
+    .form-us{
+      display: flex;
+      flex-direction: column;
+      align-content: flex-start;
+      width: 100%;
+    }
+
+    .forms{
+      display: flex;
+      align-content: flex-start;
+      flex-direction: row;
+      width: 100%;
+      height: 46vh;
+
+      .user1, .user2{
+        display: flex;
+        flex-direction: column;
+      }
+    }
+  }
+
+  .pro{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 90%;
+    margin-bottom: 6px;
+
+    .name, .del{
+      display: flex;
+      align-items: center;
+
+      .del{ flex-direction: row-reverse; }
+
+      .us-pro{
+        margin-left: 18px;
+        font-size: 24px;
+        font-family: font;
+      }
+
+      .delete{
+        margin-left: 0;
+        margin-right: 15px;
+        font-family: option;
+      }
+    }
+  }
+}
+
+.us2{
+  width: 70%;  
+  border: 1px solid rgb(232, 232, 232);
+  height: 3.5vh;
+  border-radius: 7px;
+  margin-bottom: 18px;
+  padding: 11px;
+  outline: none;
+  background: #dfebf0;
+  color: #5b5a5a;
+  font-size: 15px;
+}
+
+.labels{
+  font-family: option;
+}
+
+.us1{
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.user1{
+  display: flex;
+  align-items: center;
+  width: 50%;
+}
+
+.user2{
+  display: flex;
+  align-items: center;
+  width: 50%;
+}
+
+.buttons{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
+
+  .btn1, .btn2{
+    width: 11%;
+    height: 4.5vh;
+    border-radius: 18px;
+  }
+
+  .btn1{
+    margin-right: 15px;
+    background: #5b5a5a;
+    color: #dfebf0;
+  }
+
+  .btn2{
+    background: rgba(20, 108, 148, 0.87);
+    color:#dfebf0
+  }
+}

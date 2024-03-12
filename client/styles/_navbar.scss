@@ -1,0 +1,44 @@
+.navbar{
+  grid-area: navbar;
+  margin: 10px 0 15px 15px;
+}
+
+.nav{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 98%;
+  background: rgb(255, 255, 255);
+  border-radius: 60px;
+  border: 1px solid rgb(232, 232, 232);
+  -webkit-box-shadow: 0px 0px 20px 2px rgba(222, 222, 222);
+  -moz-box-shadow: 0px 0px 20px 2px rgba(222, 222, 222);
+  box-shadow: 0px 0px 20px 2px rgba(222, 222, 222);
+  height: 11%;
+  padding: 20px;
+  padding-left: 50px;
+}
+
+.adm{
+  display: flex;
+  align-items: center;
+  width: 15%;
+}
+
+.admin{
+  width: 14%;
+  height: 3.2vh;
+  margin-left: 10px;
+}
+
+span{
+  margin-left: 60px;
+  color: #2f2f2f;
+  font-size: 16px;
+  font-family: font;
+}
+
+.noti{
+  width: 25%;
+  height: 28vh;
+}
