@@ -13,10 +13,10 @@ export default function UserProfile() {
                 <Profile />
                 <span className='us-pro'>Panificadora</span>
               </div>
-              <div className='del'>
-                <span className='delete'>Eliminar</span>
-                <Delete />
-              </div>
+              <button className='del'>
+                  <span className='delete'>Eliminar</span>
+                  <Delete />
+              </button>
             </div>
 
             <div className='us'>

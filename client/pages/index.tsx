@@ -1,9 +1,9 @@
-import HomePage from '@c/Home'
+import CustomerReg from '@c/Home'
 
 export default function Home() {
   return (
     <>
-      <HomePage />
+      <CustomerReg />
     </>
   )
 }

@@ -5,7 +5,7 @@ import Profile from './Profile'
 export default function Data () {
   return(
     <>
-      <Profile />
+      <DataHome />
     </>
   )
 }
