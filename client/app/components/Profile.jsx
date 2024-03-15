@@ -1,8 +1,12 @@
 import { Profile, Delete } from './Icons'
 import Image from 'next/image'
 import logo from '@p/multi2.jpg'
+import { useDisclosure } from "@nextui-org/react"
+import ModalDev from './Modal'
 
 export default function UserProfile() {
+  const {isOpen, onOpen, onClose} = useDisclosure()
+
   return(
     <>
       <div className="main">
@@ -36,24 +40,12 @@ export default function UserProfile() {
                       <input className='us2' type="tel" />
                     </span>
                     <span className='us1'>
-                      <label className='labels'>Telefono #2</label>
-                      <input className='us2' type="text" />
-                    </span>
-                    <span className='us1'>
-                      <label className='labels'>Dispositivo #1</label>
+                      <label className='labels'>Estatus financiero</label>
                       <input className='us2' type="text" />
                     </span>
                   </div>
 
                   <div className='user2'>
-                    <span className='us1'>
-                      <label className='labels'>Dispositivo #2</label>
-                      <input className='us2' type="text" />
-                    </span>
-                    <span className='us1'>
-                      <label className='labels'>Estatus financiero</label>
-                      <input className='us2' type="text" />
-                    </span>
                     <span className='us1'>
                       <label className='labels'>Dirección de instancia</label>
                       <input className='us2' type="text" />
@@ -62,14 +54,29 @@ export default function UserProfile() {
                       <label className='labels'>Estatus de seguridad</label>
                       <input className='us2' type="text" />
                     </span>
+                    <span className='us1'>
+                      <label className='labels'>Contraseña</label>
+                      <input className='us2' type="text" />
+                    </span>
+                    <span className='us1'>
+                      <label className='labels'>Dispositivos</label>
+                      <button type="button" className="btn4" onClick={onOpen}>
+                        Ver dispositivos
+                      </button>
+                      <ModalDev isOpen={isOpen} onClose={onClose} />
+                    </span>
                   </div>
-                  
-                  
                 </div>
+
                 <div className="buttons">
-                    <button type="button" className='btn1'>Cerrar</button>
+                  <div className='button1'>
                     <button type="button" className='btn2'>Guardar</button>
+                    <button type="button" className='btn3'>Cerrar</button>
                   </div>
+                  <div className="button2">
+                    <button type='button' className='btn5'>Ver movimientos</button>
+                  </div>
+                </div>
               </form>
             </div>
           </div>

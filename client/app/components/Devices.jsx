@@ -54,6 +54,7 @@ export default function DevicesTable({ filas, setFilas }) {
                     value={fila.niv_auth}
                     onChange={(e) => handleChange(e, index)}
                   >
+                    <option value="nivel1">Seleccione</option>
                     <option value="nivel1">Nivel 1</option>
                     <option value="nivel2">Nivel 2</option>
                     <option value="nivel3">Nivel 3</option>

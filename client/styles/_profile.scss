@@ -45,6 +45,7 @@
     justify-content: space-between;
     align-items: center;
     width: 90%;
+    margin-top: 15px;
     margin-bottom: 6px;
 
     .name, .del{
@@ -105,17 +106,27 @@
 
 .buttons{
   display: flex;
-  justify-content: center;
+  justify-content: space-evenly;
   align-items: center;
   margin-bottom: 10px;
+  width: 100%;
 
-  .btn1, .btn2{
-    width: 11%;
+  .button1, .button2{ width: 50%; }
+  .button1{ margin-left: 30px; }
+
+  .button2{
+    display: flex;
+    justify-content: flex-end;
+    margin-right: 18px;
+  }
+
+  .btn3, .btn2{
+    width: 20%;
     height: 4.5vh;
     border-radius: 18px;
   }
 
-  .btn1{
+  .btn3{
     margin-right: 15px;
     background: #5b5a5a;
     color: #dfebf0;
@@ -123,6 +134,25 @@
 
   .btn2{
     background: rgba(20, 108, 148, 0.87);
-    color:#dfebf0
+    color:#dfebf0;
+    margin-right: 9px;
   }
+
+}
+
+.btn4{
+  width: 70%;
+  height: 3.5vh;
+  background: #146C94;
+  border-radius: 4px;
+  color: #fff;
+  margin-bottom: 39px;
+}
+
+.btn5{
+  background: #146C94;
+  color: #fff;
+  height: 4.5vh;
+  width: 29%;
+  border-radius: 18px;
 }

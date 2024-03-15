@@ -1,9 +1,9 @@
+import DataClient from "@c/DataClient"
 import Navbar from "@c/Navbar"
 import Menu from "@c/Menu"
-import DataHome from "@c/DataHome"
 
-export default function HomePage() {
-  return (
+export default function Client() {
+  return(
     <>
       <div className='body'>
         <div className="container">
@@ -14,7 +14,7 @@ export default function HomePage() {
             <Menu />
           </div>
           <div className='main'>
-            <DataHome />
+            <DataClient />
           </div>
         </div>
       </div>
