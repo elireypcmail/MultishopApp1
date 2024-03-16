@@ -1,8 +1,16 @@
+import { RemoveDevice } from "./Icons"
+
 export default function DevicesTable({ filas, setFilas }) {
   const handleChange = (e, index) => {
     const { name, value } = e.target
     const nuevasFilas = [...filas]
     nuevasFilas[index][name] = value
+    setFilas(nuevasFilas)
+  }
+
+  const eliminarFila = (index) => {
+    const nuevasFilas = [...filas]
+    nuevasFilas.splice(index, 1)
     setFilas(nuevasFilas)
   }
 
@@ -23,6 +31,7 @@ export default function DevicesTable({ filas, setFilas }) {
             <th scope="col" className="px-6 py-3">
               Clave
             </th>
+            <th scope="col" className="px-6 py-3"></th>
           </tr>
         </thead>
         <tbody>
@@ -68,6 +77,11 @@ export default function DevicesTable({ filas, setFilas }) {
                     value={fila.clave}
                     onChange={(e) => { handleChange(e, index) }}
                   />
+                </td>
+                <td>
+                  <button className="remove" onClick={() => eliminarFila(index)}>
+                    <RemoveDevice />
+                  </button>
                 </td>
               </tr>
             ))

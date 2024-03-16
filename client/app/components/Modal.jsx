@@ -8,7 +8,7 @@ import {
 import { useState } from "react"
 import DevicesTable from "./Devices"
 
-export default function ModalDev({ isOpen, onClose}) {
+export default function ModalDev({ isOpen, onClose, eliminarFila}) {
   const [filas, setFilas] = useState([{ telefono: '', mac: '', niv_auth: '', clave: '' }])
 
   const agregarFila = () => {
@@ -28,7 +28,7 @@ export default function ModalDev({ isOpen, onClose}) {
           <>
             <ModalHeader className="flex flex-col gap-1">Modal Title</ModalHeader>
             <ModalBody>
-              <DevicesTable filas={filas} setFilas={setFilas} />
+              <DevicesTable filas={filas} setFilas={setFilas} eliminarFila={eliminarFila} />
             </ModalBody>
             <ModalFooter className="flex justify-between">
               <button className="text-white bg-blue-700 hover:bg-blue-800 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700" onClick={agregarFila}>

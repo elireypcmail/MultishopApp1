@@ -3,9 +3,22 @@ import Image from 'next/image'
 import logo from '@p/multi2.jpg'
 import { useDisclosure } from "@nextui-org/react"
 import ModalDev from './Modal'
+import ModalMov from './Movements'
+import { useState } from 'react'
 
 export default function UserProfile() {
   const {isOpen, onOpen, onClose} = useDisclosure()
+  const { Open, eOpen, eClose } = useDisclosure()
+
+  const [filas, setFilas] = useState([
+    { telefono: "", mac: "", niv_auth: "", clave: "" },
+  ])
+
+  const eliminarFila = (index) => {
+    const nuevasFilas = [...filas];
+    nuevasFilas.splice(index, 1);
+    setFilas(nuevasFilas);
+  }
 
   return(
     <>
@@ -63,7 +76,7 @@ export default function UserProfile() {
                       <button type="button" className="btn4" onClick={onOpen}>
                         Ver dispositivos
                       </button>
-                      <ModalDev isOpen={isOpen} onClose={onClose} />
+                      <ModalDev isOpen={isOpen} onClose={onClose} eliminarFila={eliminarFila} />
                     </span>
                   </div>
                 </div>
@@ -74,7 +87,8 @@ export default function UserProfile() {
                     <button type="button" className='btn3'>Cerrar</button>
                   </div>
                   <div className="button2">
-                    <button type='button' className='btn5'>Ver movimientos</button>
+                    <button type='button' className='btn5' onClick={eOpen}>Ver movimientos</button>
+                    <ModalMov Open={Open} eClose={eClose}  />
                   </div>
                 </div>
               </form>
