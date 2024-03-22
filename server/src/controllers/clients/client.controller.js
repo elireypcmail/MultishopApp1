@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken'
 import _var from '../../../global/_var.js'
 
 const controller = {}
+const bd = pool
 
 controller.getUsers = async (req, res) => {
   try {
@@ -74,7 +75,6 @@ controller.postUser = async (req, res) => {
   try {
     const data = req.body
 
-    const bd = pool
     if (!data?.identificacion || !data?.nombre) {
       res.status(400).json({ message: "Faltan datos del usuario" })
       return
@@ -116,7 +116,7 @@ controller.updateUser = async (req, res) => {
     const edit   = req.body
 
     const sql = `UPDATE usuario SET nombre=$1, telefonos=$2, dispositivos=$3, per_contacto=$4, est_financiero=$5, clave=$6 WHERE id=$7;`
-    const user = await pool.query(sql, 
+    const user = await bd.query(sql, 
       [ 
         edit?.nombre,
         edit?.telefonos,
@@ -141,7 +141,7 @@ controller.deleteUser = async (req, res) => {
     const { id } = req.params
 
     const sql  = `DELETE FROM usuario WHERE id =$1`
-    const user = await pool.query(sql, [ id ])
+    const user = await bd.query(sql, [ id ])
     res.status(200).json({ message: 'Se ha eliminado el usuario correctamente' })
   } catch (err) {
     console.error(err)
