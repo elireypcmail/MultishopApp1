@@ -304,6 +304,11 @@ get-intrinsic@^1.1.3, get-intrinsic@^1.2.3, get-intrinsic@^1.2.4:
     has-symbols "^1.0.3"
     hasown "^2.0.0"
 
+getmac@^6.6.0:
+  version "6.6.0"
+  resolved "https://registry.yarnpkg.com/getmac/-/getmac-6.6.0.tgz#fd7253bd6a6e80fb7614996cdb26f2c419cd0464"
+  integrity sha512-o1sq9o5QTfwUyWy7Dao1YGZOI9lN+xzEr9Ul36hyOxFrtuwgLG1ff7oiBEfRDxOrB3jJ2u4jKEs5KMSElyE0cQ==
+
 glob-parent@~5.1.2:
   version "5.1.2"
   resolved "https://registry.yarnpkg.com/glob-parent/-/glob-parent-5.1.2.tgz#869832c58034fe68a4093c17dc15e8340d8401c4"
