@@ -18,16 +18,10 @@ CREATE TABLE cliente(
   per_contacto VARCHAR(50) NOT NULL,
   est_financiero estado_financiero DEFAULT 'Activo'::estado_financiero,
   clave VARCHAR(100) NOT NULL,
-  instancia VARCHAR(250),
+  instancia TEXT,
+  suscripcion INT,
   createUser TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
-ALTER TABLE cliente
-DROP COLUMN est_financiero;
-
-ALTER TABLE cliente
-ADD COLUMN est_financiero BOOLEAN DEFAULT TRUE;
-
 
 DROP TABLE IF EXISTS dispositivo;
 CREATE TABLE dispositivo(
@@ -46,11 +40,11 @@ CREATE TABLE cliente_eliminado(
   identificacion VARCHAR(9) UNIQUE NOT NULL,
   nombre TEXT NOT NULL,
   telefonos VARCHAR(100) NOT NULL,
-  dispositivos VARCHAR(250),
   per_contacto VARCHAR(50) NOT NULL,
   est_financiero estado_financiero DEFAULT 'Activo'::estado_financiero,
   clave VARCHAR(100) NOT NULL,
-  instancia VARCHAR(250),
+  instancia TEXT,
+  suscripcion INT,
   userDelete TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -74,8 +68,19 @@ CREATE OR REPLACE FUNCTION clientes_eliminados_respaldo()
 RETURNS TRIGGER AS $$
 BEGIN
   INSERT INTO cliente_eliminado
-  (id, identificacion, nombre, telefonos, dispositivos, per_contacto, est_financiero, clave, instancia) 
-  VALUES (OLD.id, OLD.identificacion, OLD.nombre, OLD.telefonos, OLD.dispositivos, OLD.per_contacto, OLD.est_financiero, OLD.clave, OLD.instancia);
+  (id, identificacion, nombre, telefonos, dispositivos, per_contacto, est_financiero, clave, instancia, suscripcion) 
+  VALUES (
+    OLD.id, 
+    OLD.identificacion, 
+    OLD.nombre, 
+    OLD.telefonos, 
+    OLD.dispositivos, 
+    OLD.per_contacto, 
+    OLD.est_financiero, 
+    OLD.clave, 
+    OLD.instancia, 
+    OLD.suscripcion
+  );
   RETURN OLD;
 END;
 $$ LANGUAGE plpgsql;

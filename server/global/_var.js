@@ -23,8 +23,10 @@ const _var = {
   DELETE_USER:  process.env.DELETE_USER,
 
   // - Users
-  REG_USER: process.env.REG_USER,
-  LOG_USER: process.env.LOG_USER,
+  GET_USERS: process.env.GET_ADMINS,
+  REG_USER:  process.env.REG_USER,
+  LOG_USER:  process.env.LOG_USER,
+  DELETE_AD: process.env.DELETE_AD,
 
   // TOKEN KEY
   TOKEN_KEY: process.env.TOKEN

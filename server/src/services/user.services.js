@@ -4,11 +4,15 @@ import _var from '../../global/_var.js'
 const services = {}
 let message    = {}
 
-services.generarToken = (userId, tieneSuscripcion, dispositivos) => {
+services.generarToken = (userId, tieneSuscripcion, dispositivos, tiempoSuscripcion) => {
   try {
+    const tiempoEnSegundos = tiempoSuscripcion * 24 * 60 * 60
+    console.log(tiempoEnSegundos)
+    const expiraEn = Math.floor(Date.now() / 1000) + tiempoEnSegundos
+
     const payload = {
       usuarioId: userId,
-      expiraEn: Math.floor(Date.now() / 1000) + (24 * 60 * 60), // Token expira en 24 horas (ejemplo)
+      expiraEn: expiraEn, 
       suscripcionActiva: tieneSuscripcion,
       dispositivos: dispositivos
     }
@@ -57,9 +61,8 @@ services.verifyToken = (req, res, next) => {
 services.formatTime = (totalSeconds) => {
   const hours = Math.floor(totalSeconds / 3600)
   const minutes = Math.floor((totalSeconds % 3600) / 60)
-  const seconds = totalSeconds % 60
 
-  const formattedTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+  const formattedTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
   return formattedTime
 }
 
