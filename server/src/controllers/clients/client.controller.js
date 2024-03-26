@@ -136,12 +136,18 @@ controller.loginUser = async (req, res) => {
     const client = await pool.connect()
 
     const usuarioQuery = `
-      SELECT id, suscripcion, est_financiero FROM cliente
+      SELECT id, suscripcion, est_financiero, intento
+      FROM cliente
       WHERE identificacion = $1
     `
     const usuarioValues = [identificacion]
     const usuarioResult = await client.query(usuarioQuery, usuarioValues)
-    const { id: userId, suscripcion: tiempoSuscripcion, est_financiero: est_financiero } = usuarioResult.rows[0]
+    const { 
+      id: userId, 
+      suscripcion: tiempoSuscripcion, 
+      est_financiero: est_financiero,
+      intento: intentosFallidos 
+    } = usuarioResult.rows[0]
 
     const dispositivosQuery = `
       SELECT mac, rol, clave FROM dispositivo
@@ -150,7 +156,6 @@ controller.loginUser = async (req, res) => {
     const dispositivosValues = [userId]
     const dispositivosResult = await client.query(dispositivosQuery, dispositivosValues)
     const dispositivos = dispositivosResult.rows
-    const userRol = dispositivosResult.rows[0].rol
 
     const dispositivoValido = dispositivos.find(dispositivo => dispositivo.mac === macAddress)
 
@@ -159,6 +164,14 @@ controller.loginUser = async (req, res) => {
     }
 
     if (clave !== dispositivoValido.clave) {
+      if (intentosFallidos >= 3) {
+        await client.query('INSERT INTO notificacion (id_user, notify_type, id_dispositivo) VALUES ($1, $2, $3)', 
+          [userId, 'Se ha ingresado mal la contraseña más de 3 veces', dispositivoValido.mac]
+        )
+        return res.status(403).send({ "message": 'Intentos fallidos expirados. Comunícate con los administradores' })
+      }
+
+      await client.query('UPDATE cliente SET intento = intento + 1 WHERE id = $1', [userId])
       return res.status(403).send({ "message": 'Contraseña incorrecta' })
     }
 

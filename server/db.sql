@@ -17,6 +17,7 @@ CREATE TABLE cliente(
   telefono VARCHAR(100) NOT NULL,
   per_contacto VARCHAR(50) NOT NULL,
   est_financiero estado_financiero DEFAULT 'Activo'::estado_financiero,
+  intento INT DEFAULT 0,
   clave VARCHAR(100) NOT NULL,
   instancia TEXT,
   suscripcion INT,
@@ -62,6 +63,23 @@ CREATE TABLE users(
   username TEXT NOT NULL,
   email VARCHAR(80) UNIQUE NOT NULL,
   password VARCHAR(64) NOT NULL
+);
+
+DROP TABLE IF EXISTS notificacion;
+CREATE TABLE notificacion(
+  id serial PRIMARY KEY,
+  id_user INT NOT NULL,
+  notify_type text NOT NULL, -- tipo de notificación:
+  id_dispositivo VARCHAR(250),
+  fecha DATE NOT NULL DEFAULT CURRENT_DATE
+);
+
+CREATE TABLE auditoria (
+  id SERIAL PRIMARY KEY,
+  id_usuario INT NOT NULL,
+  accion TEXT NOT NULL,
+  id_dispositivo VARCHAR(250),
+  fecha DATE NOT NULL DEFAULT CURRENT_DATE
 );
 
 CREATE OR REPLACE FUNCTION clientes_eliminados_respaldo()
