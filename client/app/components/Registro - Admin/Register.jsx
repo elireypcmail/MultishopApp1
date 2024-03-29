@@ -1,4 +1,4 @@
-import { Customer } from "./Icons"
+import { Customer } from "../Icons"
 import Image from "next/image"
 import logo from '@p/multi2.jpg'
 

@@ -1,4 +1,4 @@
-import { Search } from "./Icons"
+import { Search } from "../Icons"
 import logo from '@p/multi2.jpg'
 import Image from "next/image"
 import { useRouter } from 'next/router'

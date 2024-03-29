@@ -1,4 +1,4 @@
-import { RemoveDevice } from "./Icons"
+import { RemoveDevice } from "../Icons"
 
 export default function DevicesTable({ filas, setFilas }) {
   const handleChange = (e, index) => {

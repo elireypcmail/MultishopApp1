@@ -1,13 +1,16 @@
-import { Profile, Delete, Copy } from './Icons'
+import { Profile, Delete, Copy } from '../Icons'
 import Image from 'next/image'
 import logo from '@p/multi2.jpg'
+import { useRouter } from 'next/router'
 import { useDisclosure } from "@nextui-org/react"
-import ModalDev from './Modal'
-import ModalMov from './Movements'
-import MovNotify from './MovNotify'
-import { useState, useRef } from 'react'
+import ModalDev from '../Dispositivos/Modal'
+import ModalMov from '../Movimientos/Movements'
+import MovNotify from '../Notificaciones/MovNotify'
+import { useState } from 'react'
 
 export default function UserProfile() {
+  const router = useRouter()
+
   const {isOpen: isOpenDev, onOpen: onOpenDev, onClose: onCloseDev} = useDisclosure()
   const {isOpen: isOpenMov, onOpen: onOpenMov, onClose: onCloseMov} = useDisclosure()
   const {isOpen: isOpenNot, onOpen: onOpenNot, onClose: onCloseNot} = useDisclosure()
@@ -15,8 +18,6 @@ export default function UserProfile() {
   const [filas, setFilas] = useState([
     { telefono: "", mac: "", niv_auth: "", clave: "" },
   ])
-
-  const inputDireccionRef = useRef(null)
 
   const eliminarFila = (index) => {
     const nuevasFilas = [...filas]
@@ -116,7 +117,7 @@ export default function UserProfile() {
                 <div className="buttons">
                   <div className='button1'>
                     <button type="button" className='btn2'>Guardar</button>
-                    <button type="button" className='btn3'>Cerrar</button>
+                    <button type="button" className='btn3' onClick={() => { router.push('/client') }}>Cerrar</button>
                   </div>
                   <div className="button2">
                     <button type='button' className='btn5 b' onClick={onOpenMov}>Ver movimientos</button>

@@ -1,4 +1,4 @@
-import { NewUser } from "./Icons"
+import { NewUser } from "../Icons"
 import Image from "next/image"
 import logo from "@p/multi2.jpg"
 import FormClient from "./FormClient"

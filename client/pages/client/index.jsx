@@ -1,4 +1,4 @@
-import DataClient from "@c/DataClient"
+import DataClient from "@c/Clientes/DataClient"
 import Navbar from "@c/Navbar"
 import Menu from "@c/Menu"
 

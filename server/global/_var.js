@@ -2,6 +2,9 @@ import dotentv from "dotenv"
 dotentv.config()
 
 const _var = {
+  // CORS
+  ORIGIN: process.env.FRONT_URL,
+
   // SERVER
   PORT: process.env.PORT || 5000,
 

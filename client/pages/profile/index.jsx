@@ -1,4 +1,4 @@
-import UserProfile from "@c/Profile"
+import UserProfile from "@c/Perfil - Cliente/Profile"
 import Navbar from "@c/Navbar"
 import Menu from "@c/Menu"
 

@@ -1,5 +1,5 @@
 import { useDisclosure } from "@nextui-org/react"
-import ModalDev from "./Modal"
+import ModalDev from "../Dispositivos/Modal"
 
 export default function FormClient({ }) {
   const { isOpen, onOpen, onClose } = useDisclosure()

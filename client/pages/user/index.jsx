@@ -1,6 +1,6 @@
 import Navbar from "@c/Navbar"
 import Menu from "@c/Menu"
-import Register from "@c/Register"
+import Register from "@c/Registro - Admin/Register"
 
 export default function RegisterPage() {
   return(

@@ -1,4 +1,4 @@
-import { Search } from './Icons'
+import { Search } from '../Icons'
 
 export default function TableNotify() {
   return (
