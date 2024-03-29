@@ -1,32 +1,18 @@
 import { RemoveDevice } from "../Icons"
 
-export default function DevicesTable({ filas, setFilas }) {
+export default function TableDev({ dispositivos, onChange }) {
   const handleChange = (e, index) => {
     const { name, value } = e.target
-    const nuevasFilas = [...filas]
-    nuevasFilas[index][name] = value
-    setFilas(nuevasFilas)
+    const nuevosDispositivos = [...dispositivos]
+    nuevosDispositivos[index][name] = value
+    onChange(nuevosDispositivos)
   }
 
-  const eliminarFila = (index) => {
-    const nuevasFilas = [...filas]
-    nuevasFilas.splice(index, 1)
-    setFilas(nuevasFilas)
+  const eliminarDispositivo = (index) => {
+    const nuevosDispositivos = [...dispositivos]
+    nuevosDispositivos.splice(index, 1)
+    onChange(nuevosDispositivos)
   }
-
-  // Eliminar y añadir filas usando el id
-  /* const handleChange = (e, id) => {
-    const { name, value } = e.target
-    const nuevasFilas = filas.map(fila =>
-      fila.id === id ? { ...fila, [name]: value } : fila
-    )
-    setFilas(nuevasFilas)
-  }
-
-  const eliminarFila = (id) => {
-    const nuevasFilas = filas.filter(fila => fila.id !== id)
-    setFilas(nuevasFilas)
-  } */
 
   return (
     <div className="relative overflow-y-auto shadow-md sm:rounded-lg">
@@ -49,57 +35,54 @@ export default function DevicesTable({ filas, setFilas }) {
           </tr>
         </thead>
         <tbody>
-          {
-            filas.map((fila, index) => (
-              <tr className="bg-white hover:bg-gray-50" key={index}>
-                <td>
-                  <input
-                    className="block w-full p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-xs focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                    type="tel"
-                    name="telefono"
-                    value={fila.telefono}
-                    onChange={(e) => { handleChange(e, index) }}
-                  />
-                </td>
-                <td>
-                  <input
-                    className="block w-full p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-xs focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                    type="text"
-                    name="mac"
-                    value={fila.mac}
-                    onChange={(e) => { handleChange(e, index) }}
-                  />
-                </td>
-                <td>
-                  <select
-                    className="block w-full p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-xs focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                    name="niv_auth"
-                    value={fila.niv_auth}
-                    onChange={(e) => handleChange(e, index)}
-                  >
-                    <option value="nivel1">Seleccione</option>
-                    <option value="nivel1">Nivel 1</option>
-                    <option value="nivel2">Nivel 2</option>
-                    <option value="nivel3">Nivel 3</option>
-                  </select>
-                </td>
-                <td>
-                  <input
-                    className="block w-full p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-xs focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                    type="text"
-                    name="clave"
-                    value={fila.clave}
-                    onChange={(e) => { handleChange(e, index) }}
-                  />
-                </td>
-                <td>
-                  <button className="remove" onClick={() => eliminarFila(index)}>
-                    <RemoveDevice />
-                  </button>
-                </td>
-              </tr>
-            ))
-          }
+          {dispositivos.map((dispositivo, index) => (
+            <tr className="bg-white hover:bg-gray-50" key={index}>
+              <td>
+                <input
+                  className="block w-full p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-xs focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                  type="tel"
+                  name="telefono"
+                  value={dispositivo.telefono}
+                  onChange={(e) => handleChange(e, index)}
+                />
+              </td>
+              <td>
+                <input
+                  className="block w-full p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-xs focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                  type="text"
+                  name="mac"
+                  value={dispositivo.mac}
+                  onChange={(e) => handleChange(e, index)}
+                />
+              </td>
+              <td>
+                <select
+                  className="block w-full p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-xs focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                  name="rol"
+                  value={dispositivo.rol}
+                  onChange={(e) => handleChange(e, index)}
+                >
+                  <option value="rol1">rol1</option>
+                  <option value="rol2">rol2</option>
+                  <option value="rol3">rol3</option>
+                </select>
+              </td>
+              <td>
+                <input
+                  className="block w-full p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-xs focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                  type="text"
+                  name="clave"
+                  value={dispositivo.clave}
+                  onChange={(e) => handleChange(e, index)}
+                />
+              </td>
+              <td>
+                <button className="remove" onClick={() => eliminarDispositivo(index)}>
+                  <RemoveDevice />
+                </button>
+              </td>
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>

@@ -17,7 +17,6 @@ CREATE TABLE cliente(
   telefono VARCHAR(100) NOT NULL,
   est_financiero estado_financiero DEFAULT 'Activo'::estado_financiero,
   intento INT DEFAULT 0,
-  clave VARCHAR(100) NOT NULL,
   instancia TEXT,
   suscripcion INT,
   createUser TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -41,7 +40,6 @@ CREATE TABLE cliente_eliminado(
   nombre TEXT NOT NULL,
   telefonos VARCHAR(100) NOT NULL,
   est_financiero estado_financiero DEFAULT 'Activo'::estado_financiero,
-  clave VARCHAR(100) NOT NULL,
   instancia TEXT,
   suscripcion INT,
   userDelete TIMESTAMP DEFAULT CURRENT_TIMESTAMP

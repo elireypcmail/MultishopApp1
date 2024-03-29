@@ -99,18 +99,20 @@ controller.postUser = async (req, res) => {
   try {
     await client.query('BEGIN') 
 
-    const { identificacion, nombre, telefono, dispositivos, clave, instancia, suscripcion } = req.body
+    const { identificacion, nombre, telefono, dispositivos, instancia, suscripcion } = req.body
 
     const clienteQuery = `
-      INSERT INTO cliente (identificacion, nombre, telefono, clave, instancia, suscripcion)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      INSERT INTO cliente (identificacion, nombre, telefono, instancia, suscripcion)
+      VALUES ($1, $2, $3, $4, $5)
       RETURNING id;`
-    const clienteValues = [ identificacion, nombre, telefono, clave, instancia, suscripcion ]
+    const clienteValues = [ identificacion, nombre, telefono, instancia, suscripcion ]
     const clienteResult = await client.query(clienteQuery, clienteValues)
     const clienteId = clienteResult.rows[0].id
 
     // Insertar datos de dispositivos asociados al cliente
-    for (const dispositivo of dispositivos) {
+    const dispositivosValidados = dispositivos.filter(dispositivo => ['rol1', 'rol2', 'rol3'].includes(dispositivo.rol))
+
+    for (const dispositivo of dispositivosValidados) {
       const dispositivoQuery = `
         INSERT INTO dispositivo(id_cliente, telefono, mac, rol, clave)
         VALUES($1, $2, $3, $4, $5)`
@@ -203,15 +205,13 @@ controller.updateUser = async (req, res) => {
                  SET nombre=$1, 
                      telefono=$2, 
                      est_financiero=$4, 
-                     clave=$5 
-                 WHERE id=$6`
+                 WHERE id=$5`
 
     const user = await bd.query(sql, [
       edit?.nombre,
       edit?.telefono,
       edit?.per_contacto,
       edit?.est_financiero, 
-      edit?.clave,
       id
     ])
 
