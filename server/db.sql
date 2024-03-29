@@ -15,7 +15,6 @@ CREATE TABLE cliente(
   identificacion VARCHAR(9) UNIQUE NOT NULL,
   nombre TEXT NOT NULL,
   telefono VARCHAR(100) NOT NULL,
-  per_contacto VARCHAR(50) NOT NULL,
   est_financiero estado_financiero DEFAULT 'Activo'::estado_financiero,
   intento INT DEFAULT 0,
   clave VARCHAR(100) NOT NULL,
@@ -41,7 +40,6 @@ CREATE TABLE cliente_eliminado(
   identificacion VARCHAR(9) UNIQUE NOT NULL,
   nombre TEXT NOT NULL,
   telefonos VARCHAR(100) NOT NULL,
-  per_contacto VARCHAR(50) NOT NULL,
   est_financiero estado_financiero DEFAULT 'Activo'::estado_financiero,
   clave VARCHAR(100) NOT NULL,
   instancia TEXT,
@@ -86,7 +84,7 @@ CREATE OR REPLACE FUNCTION clientes_eliminados_respaldo()
 RETURNS TRIGGER AS $$
 BEGIN
   INSERT INTO cliente_eliminado
-  (id, identificacion, nombre, telefonos, dispositivos, per_contacto, est_financiero, clave, instancia, suscripcion) 
+  (id, identificacion, nombre, telefonos, dispositivos, est_financiero, clave, instancia, suscripcion) 
   VALUES (
     OLD.id, 
     OLD.identificacion, 
@@ -94,7 +92,6 @@ BEGIN
     OLD.telefonos, 
     OLD.dispositivos, 
     OLD.per_contacto, 
-    OLD.est_financiero, 
     OLD.clave, 
     OLD.instancia, 
     OLD.suscripcion

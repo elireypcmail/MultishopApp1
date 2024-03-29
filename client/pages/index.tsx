@@ -1,9 +1,9 @@
-import CustomerReg from '@c/Home'
+import Login from "@c/Login"
 
 export default function Home() {
   return (
     <>
-      <CustomerReg />
+      <Login />
     </>
   )
 }

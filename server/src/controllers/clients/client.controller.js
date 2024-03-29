@@ -62,8 +62,8 @@ controller.checkToken = async (req, res) => {
     const token = authHeader.split(' ')[1]
     const decodedToken = jwt.verify(token, _var.TOKEN_KEY)
 
-    const currentTime = Math.floor(Date.now() / 1000);
-    let timeRemaining = decodedToken.expiraEn - currentTime;
+    const currentTime = Math.floor(Date.now() / 1000)
+    let timeRemaining = decodedToken.expiraEn - currentTime
 
     if (timeRemaining > 0) {
       const intervalId = setInterval(() => {
@@ -84,6 +84,7 @@ controller.checkToken = async (req, res) => {
         ['Inactivo', decodedToken.usuarioId]
       )
       decodedToken.suscripcionActiva = false
+      console.log(decodedToken)
       res.status(401).send({ "message": 'El token ha expirado' })
     }
   } catch (err) {
@@ -98,13 +99,13 @@ controller.postUser = async (req, res) => {
   try {
     await client.query('BEGIN') 
 
-    const { identificacion, nombre, telefono, dispositivos, per_contacto, clave, instancia, suscripcion } = req.body
+    const { identificacion, nombre, telefono, dispositivos, clave, instancia, suscripcion } = req.body
 
     const clienteQuery = `
-      INSERT INTO cliente (identificacion, nombre, telefono, per_contacto, clave, instancia, suscripcion)
+      INSERT INTO cliente (identificacion, nombre, telefono, clave, instancia, suscripcion)
       VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING id;`
-    const clienteValues = [ identificacion, nombre, telefono, per_contacto, clave, instancia, suscripcion ]
+    const clienteValues = [ identificacion, nombre, telefono, clave, instancia, suscripcion ]
     const clienteResult = await client.query(clienteQuery, clienteValues)
     const clienteId = clienteResult.rows[0].id
 
@@ -201,7 +202,6 @@ controller.updateUser = async (req, res) => {
     const sql = `UPDATE cliente 
                  SET nombre=$1, 
                      telefono=$2, 
-                     per_contacto=$3, 
                      est_financiero=$4, 
                      clave=$5 
                  WHERE id=$6`

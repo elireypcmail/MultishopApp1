@@ -1,11 +1,11 @@
 .navbar{
   grid-area: navbar;
-  margin: 10px 0 15px 15px;
+  margin: 10px 0 10px 15px;
 }
 
 .nav{
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   width: 98%;
   background: rgb(255, 255, 255);

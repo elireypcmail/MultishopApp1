@@ -1,9 +1,12 @@
 import { Search } from "./Icons"
 import logo from '@p/multi2.jpg'
 import Image from "next/image"
+import { useRouter } from 'next/router'
 import UserTable from "./UserTable"
 
 export default function DataClient() {
+  const router = useRouter()
+
   return (
     <>
       <div className="main">
@@ -20,6 +23,7 @@ export default function DataClient() {
 
           <UserTable />
 
+          <button type="button" className="add" onClick={() => router.push('/home')} >Añadir cliente</button>
           <div className="multi">
             <span>Powered by</span>
             <Image className="mul" src={logo} alt="Logo de multishop" priority />

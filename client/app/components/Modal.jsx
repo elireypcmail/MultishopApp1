@@ -22,16 +22,20 @@ export default function ModalDev({ isOpen, onClose, eliminarFila}) {
       onClose={onClose}
       scrollBehavior="inside"
       size="5xl"
+      style={{
+        maxWidth: '80%',
+        height: '70vh'
+      }}
     >
       <ModalContent>
         {(onClose) => (
           <>
-            <ModalHeader className="flex flex-col gap-1">Modal Title</ModalHeader>
+            <ModalHeader className="flex flex-col gap-1 text-base">Lista de dispositivos</ModalHeader>
             <ModalBody>
               <DevicesTable filas={filas} setFilas={setFilas} eliminarFila={eliminarFila} />
             </ModalBody>
             <ModalFooter className="flex justify-between">
-              <button className="text-white bg-blue-700 hover:bg-blue-800 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700" onClick={agregarFila}>
+              <button className="text-white bg-cyan-700 hover:bg-cyan-800 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700" onClick={agregarFila}>
                 Añadir un nuevo dispositivo
               </button>
               <button className="text-white bg-cyan-700 hover:bg-cyan-800 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800" onClick={onClose}>

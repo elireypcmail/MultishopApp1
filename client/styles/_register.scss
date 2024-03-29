@@ -1,6 +1,26 @@
-.register{ 
-  padding: 25px;
-  min-height: 100vh; 
+.reg{
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 50px;
+}
+
+.icon{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.register{
+  margin-left: 0;
+  font-size: 24px;
+
+  .usuarios{
+    margin-left: 0;
+    color: #146C94;
+    font-size: 24px;
+  }
 }
 
 .Logo{
@@ -12,18 +32,18 @@
 .customer{
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
-  height: 78vh;
+  width: 100%;
 }
 
 .form-cus{
-  width: 25%;
+  width: 35%;
   height: 45vh;
 }
 
 .form-cus2{
-  margin-top: 4em;
+  margin-top: 2em;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -52,16 +72,28 @@
   }
 }
 
-.footer{
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  margin-bottom: 17px;
+.multi {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 30px;
 
-  .img{
+  .imgn{
     display: flex;
     justify-content: center;
-    width: 7%;
-    height: 6vh;;
+    align-items: center;
+  }
+
+  span {
+    font-size: 22px;
+    font-family: option;
+    margin-right: 8px;
+    color: #2c2c2c;
+  }
+
+  .mul {
+    width: 9%;
+    height: 6vh;
+    margin-right: 70px;
   }
 }

@@ -1,4 +1,7 @@
-.relative{ height: 58vh; }
+.relative{ 
+  height: 55vh; 
+  border: 1px solid rgba(0, 0, 0, 0.130);
+}
 tr{ cursor: pointer; }
 .relative::-webkit-scrollbar { width: 8px; }
 .relative::-webkit-scrollbar-track { background: #f3f3f3; }
@@ -16,7 +19,7 @@ tr{ cursor: pointer; }
   margin-top: 25px;
 
   .cli{
-    font-size: 28px;
+    font-size: 26px;
     font-family: font;
   }
 
@@ -43,9 +46,22 @@ tr{ cursor: pointer; }
       border: 1px solid rgba(0, 0, 0, 0.09);
       border-left: none;
       padding: 0 17px 0 0;
-      height: 29px;
+      height: 31px;
       width: 28px;
     }
   }
 }
 
+.add{
+  margin-top: 12px;
+  width: 15%;
+  background: #146C94;
+  padding: 8px;
+  color: #f3f3f3;
+  border-radius: 10px;
+}
+
+.text-base{
+  margin-top: 10px;
+  font-size: 25px;
+}

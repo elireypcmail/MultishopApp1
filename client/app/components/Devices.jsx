@@ -14,9 +14,23 @@ export default function DevicesTable({ filas, setFilas }) {
     setFilas(nuevasFilas)
   }
 
+  // Eliminar y añadir filas usando el id
+  /* const handleChange = (e, id) => {
+    const { name, value } = e.target
+    const nuevasFilas = filas.map(fila =>
+      fila.id === id ? { ...fila, [name]: value } : fila
+    )
+    setFilas(nuevasFilas)
+  }
+
+  const eliminarFila = (id) => {
+    const nuevasFilas = filas.filter(fila => fila.id !== id)
+    setFilas(nuevasFilas)
+  } */
+
   return (
     <div className="relative overflow-y-auto shadow-md sm:rounded-lg">
-      <table className="w-full text-sm text-left rtl:text-right text-gray-500">
+      <table className="w-full text-sm text-center rtl:text-right text-gray-500">
         <thead className="text-xs text-gray-700 uppercase bg-blue-400">
           <tr>
             <th scope="col" className="px-6 py-3">

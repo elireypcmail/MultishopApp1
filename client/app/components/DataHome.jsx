@@ -5,19 +5,15 @@ import FormClient from "./FormClient"
 
 export default function DataHome () {
   return(
-    <div className="main">
-        <div className="data">
-          <i className="user">
-            <NewUser />
-          </i>
+        <div className="data datah">
+          <div className="user">
+            <i className="icon-us">
+              <NewUser />
+              <span className="useri">Registro de <span className="clientes">Clientes</span></span>
+            </i>
+          </div>
           
           <FormClient />
-
-          <div className="multi">
-            <span>Powered by</span>
-            <Image className="mul" src={ logo } alt="Logo de multishop" priority />
-          </div>
         </div>
-      </div>
   )
 }

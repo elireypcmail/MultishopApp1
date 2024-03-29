@@ -1,12 +1,12 @@
-import { Search } from "./Icons"
+import { Search } from './Icons'
 
-export default function MovTable() {
+export default function TableNotify() {
   return (
     <>
       <div className="search-head">
-        <h1 className="cli">Lista de Movimientos</h1>
+        <h1 className="cli">Lista de Notificaciones</h1>
         <form action="" className="search-bar">
-          <input className="search-name" type="text" placeholder="Buscar" />
+          <input className="search-name" type="text" placeholder="AÑO-MES-DIA" />
           <button className="search" type="button">
             <Search />
           </button>
@@ -18,7 +18,10 @@ export default function MovTable() {
           <thead className="text-xs text-gray-700 uppercase bg-blue-400">
             <tr>
               <th scope="col" className="px-6 py-3">
-                Tipo de movimiento
+                Tipo de Notificacion
+              </th>
+              <th scope="col" className="px-6 py-3">
+                Dispositivo
               </th>
               <th scope="col" className="px-6 py-3">
                 Fecha
@@ -31,7 +34,14 @@ export default function MovTable() {
                 <input
                   className="block w-full p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-xs focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                   type="text"
-                  name="movimiento"
+                  name="type_noti"
+                />
+              </td>
+              <td>
+                <input
+                  className="block w-full p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-xs focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                  type="text"
+                  name="dispositivo"
                 />
               </td>
               <td>
