@@ -59,7 +59,7 @@ controllerUs.login = async (req, res) => {
       return res.status(200).json({ "message": "Sesión iniciada correctamente" }) 
     }
 
-    return res.status(404).json({ "message": "Contraseña incorrecta o usuario no registrado" })
+    return res.status(200).json({ "message": "Contraseña incorrecta o usuario no registrado" })
   } catch (err) {
     console.error(err)
     return res.status(500).json({ "message": "Error al iniciar sesión" })

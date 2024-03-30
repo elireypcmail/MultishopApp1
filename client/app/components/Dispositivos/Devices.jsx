@@ -62,6 +62,7 @@ export default function TableDev({ dispositivos, onChange }) {
                   value={dispositivo.rol}
                   onChange={(e) => handleChange(e, index)}
                 >
+                  <option value="selecc">Seleccionar</option>
                   <option value="rol1">rol1</option>
                   <option value="rol2">rol2</option>
                   <option value="rol3">rol3</option>

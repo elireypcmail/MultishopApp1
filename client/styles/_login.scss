@@ -1,0 +1,67 @@
+.login{ 
+  padding: 25px;
+  min-height: 100vh; 
+}
+
+.Logo2{
+  width: 10%;
+  height: 7.5vh;
+  margin-left: 20px;
+}
+
+.customer2{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 78vh;
+}
+
+.form-cusL{
+  width: 25%;
+  height: 45vh;
+}
+
+.form-cusL2{
+  margin-top: 4em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .cusL{
+    width: 75%;
+    height: 5vh;
+    margin-bottom: 30px;
+    border-radius: 9px;
+    padding: 10px;
+    padding-left: 18px;
+    background: #dfebf0;
+    outline: none;
+    border: 1px solid rgb(218, 218, 218);
+    color: #515151;
+  }
+
+  .btn-cusL{
+    background: #146C94;
+    width: 75%;
+    height: 5vh;
+    border-radius: 4px;
+    margin-top: 35px;
+    color: #fff;
+    font-family: option;
+  }
+}
+
+.footer{
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  margin-bottom: 17px;
+
+  .img{
+    display: flex;
+    justify-content: center;
+    width: 7%;
+    height: 6vh;;
+  }
+}

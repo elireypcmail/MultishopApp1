@@ -32,15 +32,13 @@ export default function FormClient({ }) {
     try {
       let res = await registroCliente(cliente)
       if (res.status == '200' || res.data.message == 'Cliente y dispositivos registrados correctamente.') {
-        notifySucces('Registrado con éxito!')
+        notifySucces('Cliente y dispositivos registrados correctamente')
       } else {
-        notifyError('Error')
+        notifyError('Ha ocurrrido un error en el registro')
       }
 
       limpiarCampos()
-    } catch (err) {
-      console.error(err)
-    }
+    } catch (err) { console.error(err) }
   }
 
   const limpiarCampos = () => {

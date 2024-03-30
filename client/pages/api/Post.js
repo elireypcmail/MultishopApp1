@@ -1,20 +1,30 @@
 import instance from '@g/api'
-
-const v = {
-  REGISTRO_C: process.env.NEXT_PUBLIC_REGISTRO_CLIENTE,
-
-}
+import v from '@g/_var'
 
 async function registroCliente(data) {
   try {
-    const res = await instance.post('/create/user', data)
+    const res = await instance.post(`${v.REGISTRO_C}`, data)
+    return res
+  } catch (err) { console.error(err) }
+}
+
+async function registroAdmin(data) {
+  try {
+    const res = await instance.post(`${v.REGISTRO_A}`, data)
+    return res
+  } catch (err) { console.error(err) }
+}
+
+async function loginAdmin(data) {
+  try {
+    const res = await instance.post(`${v.LOGIN_ADMIN}`, data)
     console.log(res)
     return res
-  } catch (err) {
-    console.error(err)
-  }
+  } catch (err) { console.error(err) }
 }
 
 export { 
   registroCliente,
+  registroAdmin,
+  loginAdmin,
 }
