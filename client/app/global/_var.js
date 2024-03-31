@@ -7,7 +7,7 @@ const v = {
 
   // GET
   ALL_CLIENTS: process.env.NEXT_PUBLIC_GET_ALL_CLIENTS,
-  ONE_CLIENT:  process.env.NEXT_PUBLIC_GET_ONE_CLIENTS,
+  ONE_CLIENTS: process.env.NEXT_PUBLIC_GET_ONE_CLIENTS,
   GET_NOTIFY:  process.env.NEXT_PUBLIC_GET_NOTIFY_CLI,
 
   // PUT

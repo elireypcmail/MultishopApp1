@@ -6,18 +6,53 @@ import { useDisclosure } from "@nextui-org/react"
 import ModalDev from '../Dispositivos/Modal'
 import ModalMov from '../Movimientos/Movements'
 import MovNotify from '../Notificaciones/MovNotify'
-import { useState } from 'react'
+import { getUser } from '@api/Get'
+import { useState, useEffect } from 'react'
 
 export default function UserProfile() {
+  const [userData, setUserData] = useState({})
+  const [selectedOptions, setSelectedOptions] = useState({
+    est_financiero: '',
+    suscripcion: ''
+  })
+  
+  const [filas, setFilas] = useState([
+    { telefono: "", mac: "", niv_auth: "", clave: "" },
+  ])
+
   const router = useRouter()
 
   const {isOpen: isOpenDev, onOpen: onOpenDev, onClose: onCloseDev} = useDisclosure()
   const {isOpen: isOpenMov, onOpen: onOpenMov, onClose: onCloseMov} = useDisclosure()
   const {isOpen: isOpenNot, onOpen: onOpenNot, onClose: onCloseNot} = useDisclosure()
 
-  const [filas, setFilas] = useState([
-    { telefono: "", mac: "", niv_auth: "", clave: "" },
-  ])
+  const { userId } = router.query
+
+  const id = userId
+
+  useEffect(() => {
+    if (id) {
+      fetchUserData(id)
+    }
+  }, [])
+
+  const fetchUserData = async (id) => {
+    try {
+      const response = await getUser(id)
+      if (response && response.data && response.status === 200) {
+        setUserData(response.data.data)
+        setFilas(response.data.data.dispositivos)
+      } else {
+        console.error('Error al obtener los datos del usuario:', response)
+      }
+    } catch (error) {
+      console.error('Error al obtener los datos del usuario:', error)
+    }
+  }
+
+  const handleDispositivosChange = (dispositivos) => {
+    setUserData({ ...userData, dispositivos: dispositivos })
+  }
 
   const eliminarFila = (index) => {
     const nuevasFilas = [...filas]
@@ -36,7 +71,16 @@ export default function UserProfile() {
     }
   }
 
-  return(
+  const handleSelectChange = (e) => {
+    const { name, value } = e.target
+    setSelectedOptions(prevState => ({ ...prevState, [name]: value }))
+  }
+
+  const handleSave = () => {
+    console.log('Datos actualizados:', userData, selectedOptions, filas)
+  }
+
+  return (
     <>
       <div className="main">
         <div className="data">
@@ -44,11 +88,11 @@ export default function UserProfile() {
             <div className='pro'>
               <div className="name">
                 <Profile />
-                <span className='us-pro'>Panificadora</span>
+                <span className='us-pro'>{userData.nombre}</span>
               </div>
               <button className='del'>
-                  <span className='delete'>Eliminar</span>
-                  <Delete />
+                <span className='delete'>Eliminar</span>
+                <Delete />
               </button>
             </div>
 
@@ -58,19 +102,28 @@ export default function UserProfile() {
                   <div className="user1">
                     <span className='us1'>
                       <label className='labels'>Identificación</label>
-                      <input className='us2' type="text" />
+                      <input className='us2' type="text" value={userData.identificacion} readOnly />
                     </span>
                     <span className='us1'>
                       <label className='labels'>Nombre</label>
-                      <input className='us2' type="text" />
+                      <input className='us2' type="text" value={userData.nombre} readOnly />
                     </span>
                     <span className='us1'>
                       <label className='labels'>Telefono</label>
-                      <input className='us2' type="tel" />
+                      <input className='us2' type="tel" value={userData.telefono} readOnly />
                     </span>
                     <span className='us1'>
                       <label className='labels'>Estatus financiero</label>
-                      <input className='us2' type="text" />
+                      <select
+                        className="us2"
+                        name="est_financiero"
+                        value={userData.est_financiero}
+                        onChange={handleSelectChange}
+                      >
+                        <option value="">Seleccione</option>
+                        <option value="Activo">Activo</option>
+                        <option value="Inactivo">Inactivo</option>
+                      </select>
                     </span>
                   </div>
 
@@ -78,30 +131,24 @@ export default function UserProfile() {
                     <span className='us1'>
                       <label className='labels'>Dirección de instancia</label>
                       <div className="input-with-icon">
-                        <input className='us2' type="text" id='copy' />
-                        <button type='button' className='copy' onClick={() => { copiarContenido() }}>
+                        <input className='us2' type="text" id='copy' value={userData.instancia} readOnly />
+                        <button type='button' className='copy' onClick={copiarContenido}>
                           <Copy />
                         </button>
                       </div>
                     </span>
                     <span className='us1'>
-                      <label className='labels'>Estatus de seguridad</label>
-                      <select
-                        className="us2 option text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                      >
-                        <option value="nivel1">Seleccione</option>
-                        <option value="nivel1">Activo</option>
-                        <option value="nivel2">Inactivo</option>
-                      </select>
-                    </span>
-                    <span className='us1'>
                       <label className='labels'>Tiempo de suscripción</label>
                       <select
-                        className="us2 option text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                        className="us2"
+                        name="suscripcion"
+                        value={userData.suscripcion}
+                        onChange={handleSelectChange}
                       >
-                        <option value="nivel1">Seleccione</option>
-                        <option value="nivel1">30 (días)</option>
-                        <option value="nivel1">40 (días)</option>
+                        <option value="">Seleccione</option>
+                        <option value="1">1 (días)</option>
+                        <option value="30">30 (días)</option>
+                        <option value="40">40 (días)</option>
                       </select>
                     </span>
                     <span className='us1'>
@@ -109,21 +156,21 @@ export default function UserProfile() {
                       <button type="button" className="btn4" onClick={onOpenDev}>
                         Ver dispositivos
                       </button>
-                      <ModalDev isOpen={isOpenDev} onClose={onCloseDev} eliminarFila={eliminarFila} />
+                      <ModalDev isOpen={isOpenDev} onClose={onCloseDev} dispositivos={userData.dispositivos} onChange={handleDispositivosChange} eliminarFila={eliminarFila} />
                     </span>
                   </div>
                 </div>
 
                 <div className="buttons">
                   <div className='button1'>
-                    <button type="button" className='btn2'>Guardar</button>
-                    <button type="button" className='btn3' onClick={() => { router.push('/client') }}>Cerrar</button>
+                    <button type="button" className='btn2' onClick={handleSave}>Guardar</button>
+                    <button type="button" className='btn3' onClick={() => router.push('/client')}>Cerrar</button>
                   </div>
                   <div className="button2">
                     <button type='button' className='btn5 b' onClick={onOpenMov}>Ver movimientos</button>
-                    <ModalMov isOpen={isOpenMov} onClose={onCloseMov}  />
+                    <ModalMov isOpen={isOpenMov} onClose={onCloseMov} />
                     <button type='button' className='btn5' onClick={onOpenNot}>Ver notificaciones</button>
-                    <MovNotify isOpen={isOpenNot} onClose={onCloseNot}  />
+                    <MovNotify isOpen={isOpenNot} onClose={onCloseNot} />
                   </div>
                 </div>
               </form>
@@ -132,7 +179,7 @@ export default function UserProfile() {
 
           <div className="multi">
             <span>Powered by</span>
-            <Image className="mul" src={ logo } alt="Logo de multishop" priority />
+            <Image className="mul" src={logo} alt="Logo de multishop" priority />
           </div>
         </div>
       </div>

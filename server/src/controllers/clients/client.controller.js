@@ -9,7 +9,7 @@ const bd = pool
 
 controller.getUsers = async (req, res) => {
   try {
-    const sql  = `SELECT * FROM cliente;`
+    const sql  = `SELECT id, identificacion, nombre, est_financiero FROM cliente;`
     const user = await bd.query(sql)
 
     if (user?.rows.length > 0) res.status(200).json({ 
@@ -26,14 +26,41 @@ controller.getUsers = async (req, res) => {
 controller.getUser = async (req, res) => {
   try {
     const { id } = req.params
+    console.log(id)
+    const sql = `
+      SELECT c.id, c.identificacion, c.nombre, c.telefono, c.est_financiero, c.instancia, c.suscripcion,
+             d.telefono AS telefono_dispositivo, d.mac, d.rol, d.clave
+      FROM cliente c
+      LEFT JOIN dispositivo d ON c.id = d.id_cliente
+      WHERE c.id = $1
+    `
+    
+    const user = await pool.query(sql, [id])
+    if (user?.rows.length === 0) {
+      return res.status(404).json({ message: 'Usuario no encontrado' })
+    } else {
+      // Agrupar los datos de dispositivos para cada cliente
+      const userData = {
+        id: user.rows[0].id,
+        identificacion: user.rows[0].identificacion,
+        nombre: user.rows[0].nombre,
+        telefono: user.rows[0].telefono,
+        est_financiero: user.rows[0].est_financiero,
+        instancia: user.rows[0].instancia,
+        suscripcion: user.rows[0].suscripcion,
+        dispositivos: user.rows.map(row => ({
+          telefono: row.telefono_dispositivo,
+          mac: row.mac,
+          rol: row.rol,
+          clave: row.clave
+        }))
+      }
 
-    const sql  = `SELECT * FROM cliente WHERE id=$1`
-    const user = await pool.query(sql, [ id ])
-    if (user?.rows.length == 0) res.status(404).json({ "message": 'Usuario no encontrado' }) 
-    else res.status(200).json({ "message": 'Usuario encontrado', data: user?.rows[0] }) 
+      return res.status(200).json({ message: 'Usuario encontrado', data: userData })
+    }
   } catch (err) {
     console.error(err)
-    return res.status(500).json({ "message": 'Error al traer los datos del usuario' })
+    return res.status(500).json({ message: 'Error al traer los datos del usuario' })
   }
 }
 
