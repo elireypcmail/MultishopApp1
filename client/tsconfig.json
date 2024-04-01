@@ -29,6 +29,9 @@
       "@s/*": [
         "./styles/*"
       ],
+      "@t/*": [
+        "./types/*"
+      ],
       "@api/*": [
         "./pages/api/*"
       ],
@@ -45,7 +48,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts"
-  ],
+, "app/global/redux/store.js", "app/global/redux/customMiddleware.js"  ],
   "exclude": [
     "node_modules"
   ]

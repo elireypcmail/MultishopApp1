@@ -1,6 +1,6 @@
-import { useRouter } from "next/router"
 import { useState, useEffect } from "react"
-import { getUsers } from "@api/Get"
+import { useRouter }           from "next/router"
+import { getUsers }            from "@api/Get"
 
 export default function UserTable() {
   const [users, setUsers] = useState([])

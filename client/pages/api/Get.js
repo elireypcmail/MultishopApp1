@@ -13,7 +13,6 @@ async function getUsers() {
 async function getUser(id) {
   try {
     const res = await instance.get(`/user/${id}`)
-    console.log(res)
     return res
   } catch (err) { console.error(err) }
 }

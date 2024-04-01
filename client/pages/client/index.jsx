@@ -1,6 +1,6 @@
 import DataClient from "@c/Clientes/DataClient"
-import Navbar from "@c/Navbar"
-import Menu from "@c/Menu"
+import Navbar     from "@c/Navbar"
+import Menu       from "@c/Menu"
 
 export default function Client() {
   return(

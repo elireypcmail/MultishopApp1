@@ -49,7 +49,7 @@ DROP TABLE IF EXISTS suscripcion;
 CREATE TABLE suscripcion(
   id serial PRIMARY KEY,
   idUser INT NOT NULL,
-  token VARCHAR(255) NOT NULL,
+  token TEXT NOT NULL,
   FOREIGN KEY (idUser) REFERENCES cliente(id)
 );
 

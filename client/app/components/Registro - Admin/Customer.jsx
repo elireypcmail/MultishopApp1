@@ -1,6 +1,6 @@
 import Navbar from '../Navbar'
-import Menu from '../Menu'
-import Data from './Data'
+import Menu   from '../Menu'
+import Data   from './Data'
 
 export default function Customer() {
   return (

@@ -1,8 +1,8 @@
-import { Search } from "../Icons"
-import logo from '@p/multi2.jpg'
-import Image from "next/image"
 import { useRouter } from 'next/router'
-import UserTable from "./UserTable"
+import { Search }    from "../Icons"
+import UserTable     from "./UserTable"
+import Image         from "next/image"
+import logo          from '@p/multi2.jpg'
 
 export default function DataClient() {
   const router = useRouter()

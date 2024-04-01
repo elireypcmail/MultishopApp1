@@ -1,10 +1,10 @@
-import { Customer } from "../Icons"
 import { useState, useEffect } from "react"
-import { useRouter } from "next/router"
-import { loginAdmin } from '@api/Post'
-import toast, {Toaster} from 'react-hot-toast'
-import Image from "next/image"
-import logo from '@p/multi2.jpg'
+import toast, {Toaster}        from 'react-hot-toast'
+import { loginAdmin }          from '@api/Post'
+import { Customer }            from "../Icons"
+import { useRouter }           from "next/router"
+import Image                   from "next/image"
+import logo                    from '@p/multi2.jpg'
 
 export default function Login() {
   const [redirect, setRedirect] = useState(false)

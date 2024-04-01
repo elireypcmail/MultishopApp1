@@ -1,6 +1,6 @@
-import Navbar from "@c/Navbar"
-import Menu from "@c/Menu"
 import DataHome from "@c/Registro - Cliente/DataHome"
+import Navbar   from "@c/Navbar"
+import Menu     from "@c/Menu"
 
 export default function HomePage() {
   return (

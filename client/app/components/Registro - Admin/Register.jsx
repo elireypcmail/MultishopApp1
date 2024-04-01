@@ -1,9 +1,9 @@
-import { Customer } from "../Icons"
-import { useState } from "react"
-import toast, {Toaster} from 'react-hot-toast'
 import { registroAdmin } from "@api/Post"
-import Image from "next/image"
-import logo from '@p/multi2.jpg'
+import toast, {Toaster}  from 'react-hot-toast'
+import { Customer }      from "../Icons"
+import { useState }      from "react"
+import Image             from "next/image"
+import logo              from '@p/multi2.jpg'
 
 export default function Register() {
   const [names, setNames] = useState({

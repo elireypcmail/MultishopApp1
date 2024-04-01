@@ -1,8 +1,8 @@
-import Image from "next/image"
-import { useState } from "react"
-import { useRouter } from 'next/router'
-import logo from "@p/multi2.jpg"
 import { Clients, Home, User } from "./Icons"
+import { useState }            from "react"
+import { useRouter }           from 'next/router'
+import Image                   from "next/image"
+import logo                    from "@p/multi2.jpg"
 
 export default function Menu() {
   const router = useRouter()

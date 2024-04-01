@@ -1,26 +1,38 @@
+'use client'
+
 import { Profile, Delete, Copy } from '../Icons'
-import Image from 'next/image'
-import logo from '@p/multi2.jpg'
-import { useRouter } from 'next/router'
+import { useState, useEffect }   from 'react'
+import toast, {Toaster}  from 'react-hot-toast'
+import { useRouter }     from 'next/router'
 import { useDisclosure } from "@nextui-org/react"
-import ModalDev from '../Dispositivos/Modal'
-import ModalMov from '../Movimientos/Movements'
-import MovNotify from '../Notificaciones/MovNotify'
-import { getUser } from '@api/Get'
-import { useState, useEffect } from 'react'
+import { useDispatch } from 'react-redux'
+import { seeDataClient } from '@g/redux/slicers/clientSlicer'
+import { getUser }       from '@api/Get'
+import { deleteClient }  from '@api/Delete'
+import Image             from 'next/image'
+import logo              from '@p/multi2.jpg'
+import ModalDev          from '../Dispositivos/Modal'
+import ModalMov          from '../Movimientos/Movements'
+import MovNotify         from '../Notificaciones/MovNotify'
 
 export default function UserProfile() {
+  const dispatch = useDispatch()
+
   const [userData, setUserData] = useState({})
   const [selectedOptions, setSelectedOptions] = useState({
     est_financiero: '',
     suscripcion: ''
   })
+
+  const notifySucces = (msg) => { toast.success(msg) }
+  const notifyError  = (msg) => { toast.error(msg) }
   
   const [filas, setFilas] = useState([
     { telefono: "", mac: "", niv_auth: "", clave: "" },
   ])
 
   const router = useRouter()
+  const { push } = useRouter()
 
   const {isOpen: isOpenDev, onOpen: onOpenDev, onClose: onCloseDev} = useDisclosure()
   const {isOpen: isOpenMov, onOpen: onOpenMov, onClose: onCloseMov} = useDisclosure()
@@ -40,6 +52,18 @@ export default function UserProfile() {
     try {
       const response = await getUser(id)
       if (response && response.data && response.status === 200) {
+        const data = response?.data?.data
+        dispatch(seeDataClient({ 
+          id: data?.id,
+          identificacion: data?.identificacion,
+          nombre: data?.nombre,
+          telefono: data?.telefono,
+          instancia: data?.instancia,
+          est_financiero: data?.est_financiero,
+          suscripcion: data?.suscripcion,
+          dispositivos: data?.dispositivos
+        }))
+
         setUserData(response.data.data)
         setFilas(response.data.data.dispositivos)
       } else {
@@ -48,6 +72,16 @@ export default function UserProfile() {
     } catch (error) {
       console.error('Error al obtener los datos del usuario:', error)
     }
+  }
+
+  const eliminarCliente = async () => {
+    try {
+      const result = await deleteClient(id)
+      if (result.status == 200) {
+        notifySucces('Se ha eliminado el cliente correctamente')
+        push('/client')
+      } else { notifyError('Ha ocurrido un error al eliminar este cliente') }
+    } catch (err) { console.error(err) }
   }
 
   const handleDispositivosChange = (dispositivos) => {
@@ -83,6 +117,7 @@ export default function UserProfile() {
   return (
     <>
       <div className="main">
+      <Toaster position="top-right" reverseOrder={true} duration={5000}/>
         <div className="data">
           <div className="profile">
             <div className='pro'>
@@ -90,7 +125,7 @@ export default function UserProfile() {
                 <Profile />
                 <span className='us-pro'>{userData.nombre}</span>
               </div>
-              <button className='del'>
+              <button className='del' onClick={ eliminarCliente }>
                 <span className='delete'>Eliminar</span>
                 <Delete />
               </button>

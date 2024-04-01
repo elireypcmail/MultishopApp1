@@ -1,8 +1,8 @@
-import { useDisclosure } from "@nextui-org/react"
-import { useState } from "react"
-import toast, {Toaster} from 'react-hot-toast'
-import ModalDev from "../Dispositivos/Modal"
 import { registroCliente } from "@api/Post"
+import toast, {Toaster}    from 'react-hot-toast'
+import { useDisclosure }   from "@nextui-org/react"
+import { useState }        from "react"
+import ModalDev            from "../Dispositivos/Modal"
 
 export default function FormClient({ }) {
   const { isOpen, onOpen, onClose } = useDisclosure()

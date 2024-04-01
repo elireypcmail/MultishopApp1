@@ -1,6 +1,6 @@
 import UserProfile from "@c/Perfil - Cliente/Profile"
-import Navbar from "@c/Navbar"
-import Menu from "@c/Menu"
+import Navbar      from "@c/Navbar"
+import Menu        from "@c/Menu"
 
 export default function ClientProfile() {
   return(

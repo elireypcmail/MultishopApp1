@@ -1,4 +1,10 @@
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@nextui-org/react"
+import { 
+  Modal, 
+  ModalContent, 
+  ModalHeader, 
+  ModalBody, 
+  ModalFooter 
+} from "@nextui-org/react"
 import { useState } from "react"
 import DevicesTable from "./Devices"
 
