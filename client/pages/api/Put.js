@@ -1,3 +1,10 @@
 import instance from '@g/api'
-import v from '@g/_var'
 
+async function updateUser(id, data) {
+  try {
+    const res = await instance.patch(`/edit/user/${id}`, data)
+    return res
+  } catch (err) { console.error(err) }
+}
+
+export { updateUser }

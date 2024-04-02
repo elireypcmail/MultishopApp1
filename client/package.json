@@ -11,6 +11,7 @@
   "dependencies": {
     "@nextui-org/react": "^2.2.10",
     "@reduxjs/toolkit": "^2.2.3",
+    "@types/js-cookie": "^3.0.6",
     "axios": "^1.6.8",
     "framer-motion": "^11.0.12",
     "js-cookie": "^3.0.5",

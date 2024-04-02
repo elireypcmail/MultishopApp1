@@ -224,32 +224,57 @@ controller.loginUser = async (req, res) => {
 }
 
 controller.updateUser = async (req, res) => {
+  const client = await pool.connect()
   try {
     const { id } = req.params
-    const edit = req.body
+    const { dispositivos, ...edit } = req.body
 
-    const sql = `UPDATE cliente 
-                 SET nombre=$1, 
-                     telefono=$2, 
-                     est_financiero=$4, 
-                 WHERE id=$5`
+    await client.query('BEGIN')
 
-    const user = await bd.query(sql, [
-      edit?.nombre,
-      edit?.telefono,
-      edit?.per_contacto,
-      edit?.est_financiero, 
+    const updateUserQuery = `
+      UPDATE cliente 
+      SET identificacion=$1, nombre=$2, telefono=$3, est_financiero=$4, suscripcion=$5
+      WHERE id=$6
+    `
+    const updateUserValues = [
+      edit.identificacion,
+      edit.nombre,
+      edit.telefono,
+      edit.est_financiero,
+      edit.suscripcion,
       id
-    ])
+    ]
+    await client.query(updateUserQuery, updateUserValues)
 
-    if (user.rowCount == 1) {
-      res.status(200).json({ "message": 'Datos del usuario editados correctamente' })
-    } else {
-      res.status(404).json({ "message": 'El usuario no existe' })
+    const deleteDispositivosQuery = `
+      DELETE FROM dispositivo
+      WHERE id_cliente=$1
+    `
+    await client.query(deleteDispositivosQuery, [id])
+
+    const insertDispositivosQuery = `
+      INSERT INTO dispositivo (id_cliente, telefono, mac, rol, clave)
+      VALUES ($1, $2, $3, $4, $5)
+    `
+    for (const dispositivo of dispositivos) {
+      const insertDispositivoValues = [
+        id,
+        dispositivo.telefono,
+        dispositivo.mac,
+        dispositivo.rol,
+        dispositivo.clave
+      ]
+      await client.query(insertDispositivosQuery, insertDispositivoValues)
     }
+
+    await client.query('COMMIT')
+    res.status(200).json({ message: 'Datos del usuario y dispositivos actualizados correctamente' })
   } catch (err) {
+    await client.query('ROLLBACK')
     console.error(err)
-    return res.status(500).json({ "message": 'Error al editar los datos de este usuario' })
+    res.status(500).json({ message: 'Error al editar los datos de este usuario y dispositivos' })
+  } finally {
+    client.release()
   }
 }
 
