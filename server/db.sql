@@ -61,6 +61,8 @@ CREATE TABLE users(
   password VARCHAR(64) NOT NULL
 );
 
+INSERT INTO users (username, email, password)  VALUES('admin','admin@gmail.com','admin');
+
 DROP TABLE IF EXISTS notificacion;
 CREATE TABLE notificacion(
   id serial PRIMARY KEY,
