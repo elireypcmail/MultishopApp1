@@ -1,5 +1,5 @@
 import instance from '@g/api'
-import v from '@g/_var'
+import v        from '@g/_var'
 
 async function deleteClient(id) {
   try {

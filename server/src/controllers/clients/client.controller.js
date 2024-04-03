@@ -26,7 +26,6 @@ controller.getUsers = async (req, res) => {
 controller.getUser = async (req, res) => {
   try {
     const { id } = req.params
-    console.log(id)
     const sql = `
       SELECT c.id, c.identificacion, c.nombre, c.telefono, c.est_financiero, c.instancia, c.suscripcion,
              d.telefono AS telefono_dispositivo, d.mac, d.rol, d.clave
@@ -61,6 +60,26 @@ controller.getUser = async (req, res) => {
   } catch (err) {
     console.error(err)
     return res.status(500).json({ message: 'Error al traer los datos del usuario' })
+  }
+}
+
+controller.filtrarClientesPorLetra = async (req, res) => {
+  try {
+    const { letra } = req.body 
+
+    const client = await pool.connect()
+    const query = `
+      SELECT * FROM cliente
+      WHERE LOWER(nombre) LIKE '%' || LOWER($1) || '%';
+    `
+    const result = await client.query(query, [letra])
+
+    client.release()
+
+    res.status(200).json({ "message": "Se encontraron coincidencias", "data": result.rows })
+  } catch (error) {
+    console.error('Error al filtrar clientes:', error)
+    res.status(500).json({ message: 'Error al filtrar clientes' })
   }
 }
 

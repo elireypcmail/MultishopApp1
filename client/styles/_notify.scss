@@ -1,0 +1,43 @@
+.separator {
+  margin-left: 0;
+  height: 31px;
+  padding: 4px;
+  color: #20202093;
+  background: #f4f7f9;
+  border-top: 1px solid rgba(0, 0, 0, 0.09);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.09);
+}
+
+.search-noti {
+  display: flex;
+  align-items: center;
+  width: 22%;
+
+  .search{
+    background: #f4f7f9;
+    border-radius: 0 15px 15px 0;
+    border: 1px solid rgba(0, 0, 0, 0.09);
+    border-left: none;
+    padding: 0 17px 0 0;
+    height: 31px;
+    width: 28px;
+  }
+}
+
+.search-fin,
+.search-inicio {
+  outline: none;
+  height: 31px;
+  width: 100%;
+  background: #f4f7f9;
+  border: 1px solid rgba(0, 0, 0, 0.09);
+  color: #20202093;
+  border-right: none;
+  padding: 7px 0 7px 17px;
+  border-radius: 15px 0 0 15px;
+}
+
+.search-fin{
+  border-radius: 0;
+  border-left: 0;
+}

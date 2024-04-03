@@ -1,19 +1,23 @@
-import { useState, useEffect } from "react"
-import { useRouter }           from "next/router"
-import { getUsers }            from "@api/Get"
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/router'
+import { getUsers } from '@api/Get'
 
-export default function UserTable() {
+export default function UserTable({ searchResults }) {
   const [users, setUsers] = useState([])
   const { push } = useRouter()
 
   useEffect(() => {
-    loadUsers()
-  }, [])
+    if (searchResults && searchResults.length > 0) {
+      setUsers(searchResults)
+    } else {
+      loadUsers()
+    }
+  }, [searchResults])
 
   const loadUsers = async () => {
     try {
       const response = await getUsers()
-      if (response.status == 200) {
+      if (response.status === 200) {
         setUsers(response.data.data)
       } else {
         console.error('Error al cargar los usuarios:', response.statusText)
@@ -22,6 +26,8 @@ export default function UserTable() {
       console.error('Error al cargar los usuarios:', error)
     }
   }
+
+  const displayUsers = searchResults.length > 0 ? searchResults : users
 
   return (
     <div className="relative overflow-y-auto shadow-md sm:rounded-lg">
@@ -32,7 +38,7 @@ export default function UserTable() {
               ID
             </th>
             <th scope="col" className="px-6 py-3">
-              Identificacion
+              Identificación
             </th>
             <th scope="col" className="px-6 py-3">
               Nombre
@@ -43,7 +49,7 @@ export default function UserTable() {
           </tr>
         </thead>
         <tbody>
-          {users.map((user) => (
+          {displayUsers.map((user) => (
             <tr
               key={user.id}
               className="bg-white hover:bg-gray-50 cursor-pointer"

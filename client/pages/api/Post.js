@@ -23,8 +23,25 @@ async function loginAdmin(data) {
   } catch (err) { console.error(err) }
 }
 
+async function filtrarClientesPorLetra(letra) {
+  try {
+    const res = await instance.post(`${v.FILTER_CLI}`, {letra})
+    return res
+  } catch (err) { console.error(err) }
+}
+
+async function filterNotify(fecha) {
+  try {
+    const res = await instance.post(`/find`, fecha)
+    console.log(res)
+    return res
+  } catch (err) { console.error(err) }
+}
+
 export { 
   registroCliente,
   registroAdmin,
   loginAdmin,
+  filtrarClientesPorLetra,
+  filterNotify
 }

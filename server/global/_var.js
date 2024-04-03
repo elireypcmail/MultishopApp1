@@ -16,16 +16,17 @@ const _var = {
 
   // ROUTES
   // - Clients
-  GET_ALL_USER: process.env.GET_ALL_USER,
-  GET_ONE_USER: process.env.GET_ONE_USER,
-  GET_FALSE_US: process.env.GET_FALSE,
-  GET_NOTIFY:   process.env.GET_NOTIFY,
-  FIND_BY_DATE: process.env.FIND_BY_DATE,
-  VERIFY_TOKEN: process.env.VERIFY_TOKEN,
-  CREATE_USER:  process.env.CREATE_USER,
-  LOGIN_USER:   process.env.LOGIN_USER,
-  UPDATE_USER:  process.env.UPDATE_USER,
-  DELETE_USER:  process.env.DELETE_USER,
+  GET_ALL_USER:  process.env.GET_ALL_USER,
+  GET_ONE_USER:  process.env.GET_ONE_USER,
+  GET_FALSE_US:  process.env.GET_FALSE,
+  GET_NOTIFY:    process.env.GET_NOTIFY,
+  FIND_BY_DATE:  process.env.FIND_BY_DATE,
+  FILTER_CLIENT: process.env.FILTER_USERS,
+  VERIFY_TOKEN:  process.env.VERIFY_TOKEN,
+  CREATE_USER:   process.env.CREATE_USER,
+  LOGIN_USER:    process.env.LOGIN_USER,
+  UPDATE_USER:   process.env.UPDATE_USER,
+  DELETE_USER:   process.env.DELETE_USER,
 
   // - Users
   GET_USERS: process.env.GET_ADMINS,

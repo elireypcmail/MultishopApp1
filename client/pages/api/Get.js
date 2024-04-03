@@ -17,7 +17,15 @@ async function getUser(id) {
   } catch (err) { console.error(err) }
 }
 
+async function getNotifyClient(id) {
+  try {
+    const res = await instance.get(`/notify/${id}`)
+    return res
+  } catch (err) { console.error(err) }
+}
+
 export {
   getUsers,
   getUser,
+  getNotifyClient,
 }

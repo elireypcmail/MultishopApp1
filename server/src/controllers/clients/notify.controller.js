@@ -27,7 +27,7 @@ controllerNoti.notifyClient = async (req, res) => {
     const notificacionesResult = await client.query(notificacionesQuery, notificacionesValues)
     const notificaciones = notificacionesResult.rows.map((notificacion) => ({
       ...notificacion,
-      fecha: formatDate(notificacion.fecha), // Formatear la fecha
+      fecha: formatDate(notificacion.fecha), 
     }))
 
     res.status(200).json({ "userId": id, "data": notificaciones })
@@ -43,6 +43,7 @@ controllerNoti.findByDate = async (req, res) => {
   try {
     // Buscar la fecha en formato de "YYYY-MM-DD"
     const { userId, inicio, fin } = req.body 
+    console.log(userId, inicio, fin)
 
     const client = await db.connect()
 
@@ -54,7 +55,9 @@ controllerNoti.findByDate = async (req, res) => {
     `
     const notificacionesValues = [userId, inicio, fin]
     const notificacionesResult = await client.query(notificacionesQuery, notificacionesValues)
+    console.log(notificacionesResult);
     const notificaciones = notificacionesResult.rows
+    console.log(notificaciones);
 
     if (notificaciones.length === 0) {
       return  res.status(404).json({ "message": "No se encontraron notificaciones con esa fecha."})
