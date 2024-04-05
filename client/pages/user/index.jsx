@@ -1,14 +1,15 @@
 import Register from "@c/Registro - Admin/Register"
+import { getCookie } from "@g/cookies"
 import Navbar   from "@c/Navbar"
 import Menu     from "@c/Menu"
 
-export default function RegisterPage() {
+export default function RegisterPage({ data }) {
   return(
     <>
       <div className='body'>
         <div className="container">
           <div className="navbar">
-            <Navbar />
+            <Navbar data={data} />
           </div>
           <div className="menu">
             <Menu />
@@ -20,4 +21,25 @@ export default function RegisterPage() {
       </div>
     </>
   )
+}
+
+export const getServerSideProps = async ({ req }) => {
+  const adminCookie = getCookie('Admins', req)
+  console.log(adminCookie);
+  
+  let data = null
+
+  if (adminCookie) {
+    try {
+      data = adminCookie
+    } catch (error) {
+      console.error('Error al analizar la cookie como JSON:', error)
+    }
+  }
+
+  return {
+    props: {
+      data: data
+    }
+  }
 }

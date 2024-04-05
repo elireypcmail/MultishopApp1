@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import toast, {Toaster}        from 'react-hot-toast'
 import { loginAdmin }          from '@api/Post'
+import { setCookie }           from '@g/cookies'
 import { Customer }            from "../Icons"
 import { useRouter }           from "next/router"
 import Image                   from "next/image"
@@ -31,6 +32,8 @@ export default function Login() {
       let res = await loginAdmin(username)
       if (res.status == 200) {
         if (res.data.message == 'Sesión iniciada correctamente') {
+          const email = res.data.data.email 
+          setCookie('Admins', email)
           notifySucces('Inicio de sección exitoso')
           setRedirect(true)
         } else { notifyError('Usuario o contraseña incorrectos') }

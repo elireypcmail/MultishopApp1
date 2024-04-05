@@ -56,7 +56,7 @@ controllerUs.login = async (req, res) => {
     client.release()
 
     if (result.rows[0] && user?.password == result.rows[0].password) {
-      return res.status(200).json({ "message": "Sesión iniciada correctamente" }) 
+      return res.status(200).json({ "message": "Sesión iniciada correctamente", "data": result.rows[0] }) 
     }
 
     return res.status(200).json({ "message": "Contraseña incorrecta o usuario no registrado" })
