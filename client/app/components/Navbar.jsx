@@ -12,17 +12,6 @@ export default function Navbar({ data }) {
     push('/')
   }
 
-  useEffect(() => {
-    const isLoggedIn = !!document.cookie.replace(
-      /(?:(?:^|.*;\s*)loggedIn\s*\=\s*([^;]*).*$)|^.*$/,
-      '$1'
-    )
-
-    if (!isLoggedIn) {
-      push('/')
-    }
-  }, [])
-
   return(
     <>
       <div className='navbar'>
