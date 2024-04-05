@@ -8,9 +8,9 @@ controllerUs.getadmins = async (req, res) => {
     const sql =  `SELECT * FROM users`
     const admins = await db.query(sql)
     if (admins.rowCount > 0) {
-      res.status(200).json({ "message": "Listado de Admins", "data": admins.rows })
+      return res.status(200).json({ "message": "Listado de Admins", "data": admins.rows })
     }
-    res.status(404).json({ "message": "No hay administradores registrados"})
+    return res.status(404).json({ "message": "No hay administradores registrados"})
   } catch (err) {
     console.error(err)
     return  res.status(500).json({ "message": 'Error al obtener los administradores' })
