@@ -1,5 +1,5 @@
 import { generateUniqueInstanceName, createInstanceForClient } from '../../services/instance.services.js'
-import { createSchema, connectToClientSchema } from '../../models/schemas.js'
+import { createSchema, connectToClientSchema, pruebaConexionCliente, createTableInSchema } from '../../models/schemas.js'
 import getMAC   from 'getmac'
 import pool     from '../../models/db.connect.js'
 import services from '../../services/user.services.js'
@@ -172,6 +172,7 @@ controller.postUser = async (req, res) => {
     }
 
     await createSchema(nombreCliente)
+    createTableInSchema(nombreCliente, 'prueba')
     createInstanceForClient(clienteId, nombreCliente, instancia)
 
     await client.query('COMMIT') // Confirmar la transacción
@@ -193,7 +194,7 @@ controller.loginUser = async (req, res) => {
     const client = await pool.connect()
 
     const usuarioQuery = `
-      SELECT id, suscripcion, est_financiero, intento
+      SELECT id, nombre, suscripcion, est_financiero, intento
       FROM cliente
       WHERE identificacion = $1
     `
@@ -201,6 +202,7 @@ controller.loginUser = async (req, res) => {
     const usuarioResult = await client.query(usuarioQuery, usuarioValues)
     const { 
       id: userId, 
+      nombre: nombreCliente,
       suscripcion: tiempoSuscripcion, 
       est_financiero: est_financiero,
       intento: intentosFallidos 
@@ -236,7 +238,9 @@ controller.loginUser = async (req, res) => {
       return res.status(403).send({ "message": 'Suscripción expirada. Comunícate con los administradores' })
     }
 
-    await connectToClientSchema(userId, instancia)
+    connectToClientSchema(identificacion, instancia)
+
+    const prueba = await pruebaConexionCliente(identificacion, nombreCliente, instancia)
 
     const token = services.generarToken(userId, true, dispositivos, tiempoSuscripcion)
     await bd.query(
@@ -311,6 +315,7 @@ controller.deleteUser = async (req, res) => {
   try {
     const { id } = req.params
 
+    await bd.query(`DELETE FROM instancia WHERE id_cliente = $1`, [id])
     await bd.query('DELETE FROM suscripcion WHERE idUser = $1', [id])
     await bd.query('DELETE FROM dispositivo WHERE id_cliente = $1', [id])
     const sql  = `DELETE FROM cliente WHERE id =$1`

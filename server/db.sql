@@ -27,6 +27,7 @@ CREATE TABLE instancia (
   id serial PRIMARY KEY,
   id_cliente INT REFERENCES cliente(id),
   nombre_cliente TEXT,
+  est_financiero estado_financiero DEFAULT 'Activo'::estado_financiero,
   instance TEXT UNIQUE NOT NULL
 );
 
