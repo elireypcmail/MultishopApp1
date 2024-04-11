@@ -147,3 +147,160 @@
     color: #2c2c2c;
   }
 }
+
+@media (min-width: 1024px) {
+  .datah {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .user {
+    margin-left: 88px;
+    margin-bottom: 19px;
+  }
+
+  .form {
+    margin-top: 115px;
+  }
+
+  .btn {
+    margin-left: 190px;
+    margin-top: 19px;
+  }
+}
+
+/* Estilos para pantallas medianas */
+@media (max-width: 1023px) {
+  .datah {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .user {
+    margin-left: 50px;
+    margin-bottom: 10px;
+  }
+
+  .form {
+    margin-top: 50px;
+  }
+
+  .btn {
+    margin-left: 100px;
+    margin-top: 10px;
+  }
+}
+
+/* Estilos para pantallas pequeñas */
+@media (max-width: 767px) {
+  .datah {
+    grid-template-columns: 1.5fr;
+    grid-auto-flow: row;
+    grid-auto-rows: auto;
+    grid-template-areas:
+      "form form form"
+      "form form form"
+      "footer footer footer";
+    min-height: 262vh;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .user {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 19px;
+  
+    .icon-us{
+      display: flex;
+      justify-content: center;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 165px;
+    
+      .useri{
+        display: flex;
+        justify-content: center;
+        margin-left: 7px;
+        margin-top: 30px;
+        font-size: 42px;
+  
+        .clientes{
+          margin-left: 15px;
+          color: #146C94;
+          font-size: 42px;
+        }
+      }
+    }
+  }
+
+  .span{
+    width: 100%;
+    margin: 0;
+    min-height: 7vh;
+    
+    .title{
+      font-size:  37px;
+    }
+
+    .input{
+      min-height: 11vh;
+      margin-bottom: 49px;
+      font-size: 36px;
+    }
+  }
+
+  .form {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+    min-width: 95%;
+    min-height: 70vh;
+  }
+
+  .btns {
+    display: flex;
+    justify-content: flex-end;
+    flex-direction: column;
+    min-width: 100%;
+    min-height: 11vh;
+    font-size: 36px;
+    margin-left: 0;
+    margin-top: 10px;
+  }
+
+  .btn1{
+    min-height: 11vh;
+    font-size: 36px;
+    margin-bottom: 55px;
+  }
+
+  .btn{
+    margin: 0;
+    min-width: 95%;
+  }
+
+  .create {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    justify-content: center;
+    margin-left: 0;
+  }
+  
+  .one {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 100%;
+  }
+
+  .da{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    padding: 35px;
+  }
+}

@@ -1,8 +1,10 @@
-import getMAC, { isMAC } from 'getmac'
+import { generateUniqueInstanceName, createInstanceForClient } from '../../services/instance.services.js'
+import { createSchema, connectToClientSchema } from '../../models/schemas.js'
+import getMAC   from 'getmac'
 import pool     from '../../models/db.connect.js'
 import services from '../../services/user.services.js'
-import jwt from 'jsonwebtoken'
-import _var from '../../../global/_var.js'
+import jwt      from 'jsonwebtoken'
+import _var     from '../../../global/_var.js'
 
 const controller = {}
 const bd = pool
@@ -143,28 +145,34 @@ controller.postUser = async (req, res) => {
   const client = await bd.connect()
 
   try {
-    await client.query('BEGIN') 
+    await client.query('BEGIN')
 
-    const { identificacion, nombre, telefono, dispositivos, instancia, suscripcion } = req.body
+    const { identificacion, nombre, telefono, dispositivos, suscripcion } = req.body
+
+    const instancia = generateUniqueInstanceName()
 
     const clienteQuery = `
       INSERT INTO cliente (identificacion, nombre, telefono, instancia, suscripcion)
       VALUES ($1, $2, $3, $4, $5)
-      RETURNING id;`
+      RETURNING id, nombre
+    `
     const clienteValues = [ identificacion, nombre, telefono, instancia, suscripcion ]
     const clienteResult = await client.query(clienteQuery, clienteValues)
     const clienteId = clienteResult.rows[0].id
+    const nombreCliente = clienteResult.rows[0].nombre
 
-    // Insertar datos de dispositivos asociados al cliente
     const dispositivosValidados = dispositivos.filter(dispositivo => ['rol1', 'rol2', 'rol3'].includes(dispositivo.rol))
-
     for (const dispositivo of dispositivosValidados) {
       const dispositivoQuery = `
         INSERT INTO dispositivo(id_cliente, telefono, mac, rol, clave)
-        VALUES($1, $2, $3, $4, $5)`
+        VALUES($1, $2, $3, $4, $5);
+      `
       const dispositivoValues = [ clienteId, dispositivo.telefono, dispositivo.mac, dispositivo.rol, dispositivo.clave ]
       await client.query(dispositivoQuery, dispositivoValues)
     }
+
+    await createSchema(nombreCliente)
+    createInstanceForClient(clienteId, nombreCliente, instancia)
 
     await client.query('COMMIT') // Confirmar la transacción
     res.status(200).send({ "message": 'Cliente y dispositivos registrados correctamente.'})
@@ -173,12 +181,12 @@ controller.postUser = async (req, res) => {
     console.error({ "message": 'Error al registrar cliente y dispositivos:', err })
     res.status(500).send({ "message": 'Error al registrar cliente y dispositivos.'})
   } finally {
-    client.release() 
+    client.release()
   }
 }
 
 controller.loginUser = async (req, res) => {
-  const { identificacion, clave } = req.body
+  const { identificacion, instancia, clave } = req.body
   const macAddress = getMAC()
 
   try {
@@ -227,6 +235,8 @@ controller.loginUser = async (req, res) => {
     if (est_financiero === 'Inactivo') {
       return res.status(403).send({ "message": 'Suscripción expirada. Comunícate con los administradores' })
     }
+
+    await connectToClientSchema(userId, instancia)
 
     const token = services.generarToken(userId, true, dispositivos, tiempoSuscripcion)
     await bd.query(
@@ -301,6 +311,8 @@ controller.deleteUser = async (req, res) => {
   try {
     const { id } = req.params
 
+    await bd.query('DELETE FROM suscripcion WHERE idUser = $1', [id])
+    await bd.query('DELETE FROM dispositivo WHERE id_cliente = $1', [id])
     const sql  = `DELETE FROM cliente WHERE id =$1`
     await bd.query(sql, [ id ])
     res.status(200).json({ "message": 'Se ha eliminado el usuario correctamente' })

@@ -1,67 +1,79 @@
-.login{ 
+.login {
   padding: 25px;
-  min-height: 100vh; 
-}
-
-.Logo2{
-  width: 10%;
-  height: 7.5vh;
-  margin-left: 20px;
-}
-
-.customer2{
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: 78vh;
+  justify-content: space-between;
 }
 
-.form-cusL{
-  width: 25%;
-  height: 45vh;
+.Logo2 {
+  width: 150px; /* Ajusta el tamaño según tus necesidades */
+  height: auto;
+  margin: 20px;
 }
 
-.form-cusL2{
-  margin-top: 4em;
+.iconL{ margin-bottom: 25px; }
+
+.customer2 {
   display: flex;
   flex-direction: column;
   align-items: center;
-
-  .cusL{
-    width: 75%;
-    height: 5vh;
-    margin-bottom: 30px;
-    border-radius: 9px;
-    padding: 10px;
-    padding-left: 18px;
-    background: #dfebf0;
-    outline: none;
-    border: 1px solid rgb(218, 218, 218);
-    color: #515151;
-  }
-
-  .btn-cusL{
-    background: #146C94;
-    width: 75%;
-    height: 5vh;
-    border-radius: 4px;
-    margin-top: 35px;
-    color: #fff;
-    font-family: option;
-  }
 }
 
-.footer{
-  position: fixed;
-  bottom: 0;
+.form-cusL {
+  width: 100%; 
+  max-width: 400px; 
+}
+
+.form-cusL2 { margin-top: 2em; }
+
+.cusL {
   width: 100%;
-  margin-bottom: 17px;
+  height: 40px; 
+  margin-bottom: 20px;
+  border-radius: 9px;
+  padding: 10px;
+  background: #dfebf0;
+  outline: none;
+  border: 1px solid rgb(218, 218, 218);
+  color: #515151;
+}
 
-  .img{
-    display: flex;
-    justify-content: center;
-    width: 7%;
-    height: 6vh;;
+.btn-cusL {
+  width: 100%;
+  height: 40px; 
+  border-radius: 4px;
+  margin-top: 20px;
+  color: #fff;
+  font-family: option;
+  background: #146C94;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 17px;
+}
+
+.img {
+  width: 60px; 
+  height: auto;
+}
+
+@media (max-width: 768px) {
+  .form-cusL {
+    width: 90%;
   }
+}
+
+@media (max-width: 576px) {
+  .form-cusL { width: 100%; }
+  .Logo2{ margin: 0; }
+  .iconL{ margin-bottom: 25px; }
+
+  .footer{
+    span{ font-size: 20px; }
+    .img{ width: 85px; }
+  } 
 }

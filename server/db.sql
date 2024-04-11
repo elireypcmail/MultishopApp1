@@ -22,6 +22,14 @@ CREATE TABLE cliente(
   createUser TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+DROP TABLE IF EXISTS instancia;
+CREATE TABLE instancia (
+  id serial PRIMARY KEY,
+  id_cliente INT REFERENCES cliente(id),
+  nombre_cliente TEXT,
+  instance TEXT UNIQUE NOT NULL
+);
+
 DROP TABLE IF EXISTS dispositivo;
 CREATE TABLE dispositivo(
   id serial PRIMARY KEY,
@@ -84,13 +92,12 @@ CREATE OR REPLACE FUNCTION clientes_eliminados_respaldo()
 RETURNS TRIGGER AS $$
 BEGIN
   INSERT INTO cliente_eliminado
-  (id, identificacion, nombre, telefonos, dispositivos, est_financiero, clave, instancia, suscripcion) 
+  (id, identificacion, nombre, telefonos, est_financiero, clave, instancia, suscripcion) 
   VALUES (
     OLD.id, 
     OLD.identificacion, 
     OLD.nombre, 
     OLD.telefonos, 
-    OLD.dispositivos, 
     OLD.per_contacto, 
     OLD.clave, 
     OLD.instancia, 

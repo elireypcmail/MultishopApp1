@@ -3,7 +3,7 @@ import FormClient  from "./FormClient"
 
 export default function DataHome () {
   return(
-        <div className="data datah">
+        <div className="data datah da">
           <div className="user">
             <i className="icon-us">
               <NewUser />

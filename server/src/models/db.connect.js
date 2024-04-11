@@ -7,9 +7,9 @@ const config = {
   host: _var.DB_HOST,
   database: _var.DB_NAME,
   password: _var.DB_PASS,
-  ssl: {
+  /* ssl: {
     rejectUnauthorized: false 
-  }
+  } */
 }
 
 const pool = new Pool(config)
