@@ -21,6 +21,32 @@ async function createSchema(nombreCliente) {
   }
 }
 
+async function deleteSchema(clientId) {
+  console.log(clientId)
+  const connection = await db.connect()
+  try {
+    // Busca el nombre del cliente para su schema
+    const clientQuery = `SELECT nombre FROM cliente WHERE id = $1`
+    const clientResult = await connection.query(clientQuery, [clientId])
+
+    // Verifica si se obtuvo un resultado válido
+    if (clientResult.rows.length === 0) {
+      throw new Error(`No se encontró ningún cliente con el ID ${clientId}`)
+    }
+
+    const nombreCliente = clientResult.rows[0].nombre
+
+    // Elimina el schema y el rol asociado
+    await connection.query(`DROP SCHEMA IF EXISTS "${nombreCliente}" CASCADE`)
+    await connection.query(`DROP ROLE IF EXISTS "${nombreCliente}_user"`)
+  } catch (err) {
+    console.error('Error al eliminar el schema del cliente:', err)
+    throw err
+  } finally {
+    connection.release()
+  }
+}
+
 async function connectToClientSchema(identificacion, instancia) {
   console.log(identificacion, instancia)
   const client = await db.connect()
@@ -48,7 +74,6 @@ async function connectToClientSchema(identificacion, instancia) {
     console.log(`Cliente '${identificacion}' conectado a su schema '${clientSchema}'.`)
   } catch (error) {
     console.error('Error al conectar al cliente a su schema:', error)
-    throw error
   } finally {
     client.release()
   }
@@ -58,14 +83,13 @@ async function pruebaConexionCliente(identificacion, nombreCliente, instancia) {
   try {
     connectToClientSchema(identificacion, instancia)
 
-    const query = `INSERT INTO "${nombreCliente}".prueba (nombre, apellifo) VALUES ($1, $2)`
-    const values = ['Sugey', 'Chacón']
+    const query = `INSERT INTO "${nombreCliente}".prueba (dato1, dato2) VALUES ($1, $2)`
+    const values = ['Dato1', 'Dato2']
     await db.query(query, values)
 
     console.log(`Datos insertados en la tabla de prueba del schema del cliente ${nombreCliente}`)
   } catch (error) {
     console.error('Error al probar la conexión del cliente:', error)
-    throw error
   }
 }
 
@@ -74,20 +98,20 @@ async function createTableInSchema(nombreCliente, nombreTabla) {
     const query = `
       CREATE TABLE "${nombreCliente}"."${nombreTabla}" (
         id serial PRIMARY KEY,
-        nombre TEXT,
-        apellifo TEXT
+        dato1 TEXT,
+        dato2 TEXT
       );
     `
     await db.query(query);
     console.log(`Tabla '${nombreTabla}' creada en el esquema '${nombreCliente}'.`)
   } catch (error) {
     console.error('Error al crear la tabla en el esquema:', error)
-    throw error
   }
 }
 
 export { 
   createSchema,
+  deleteSchema,
   connectToClientSchema,
   pruebaConexionCliente,
   createTableInSchema

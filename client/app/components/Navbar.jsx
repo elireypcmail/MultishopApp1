@@ -16,7 +16,7 @@ export default function Navbar({ data, toggleMenu }) {
     <>
       <div className='navbar'>
         <div className="nav">
-        <div class="menu-toggle" onClick={toggleMenu}>☰</div>
+        <div className="menu-toggle" onClick={toggleMenu}>☰</div>
           {
             data ? ( 
               <button className='logout' type='button' onClick={ Logout }>Cerrar Sesión</button>

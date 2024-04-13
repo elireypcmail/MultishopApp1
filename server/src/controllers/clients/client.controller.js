@@ -1,5 +1,14 @@
-import { generateUniqueInstanceName, createInstanceForClient } from '../../services/instance.services.js'
-import { createSchema, connectToClientSchema, pruebaConexionCliente, createTableInSchema } from '../../models/schemas.js'
+import { 
+  createSchema, 
+  deleteSchema,
+  connectToClientSchema, 
+  pruebaConexionCliente, 
+  createTableInSchema 
+} from '../../models/schemas.js'
+import { 
+  generateUniqueInstanceName, 
+  createInstanceForClient 
+} from '../../services/instance.services.js'
 import getMAC   from 'getmac'
 import pool     from '../../models/db.connect.js'
 import services from '../../services/user.services.js'
@@ -150,6 +159,16 @@ controller.postUser = async (req, res) => {
     const { identificacion, nombre, telefono, dispositivos, suscripcion } = req.body
 
     const instancia = generateUniqueInstanceName()
+
+    const existsClientQuery = `
+      SELECT id FROM cliente WHERE identificacion = $1 AND nombre = $2 AND telefono = $3
+    `
+    const existsClientValues = [identificacion, nombre, telefono]
+    const existsClientResult = await client.query(existsClientQuery, existsClientValues)
+
+    if (existsClientResult.rows.length > 0) {
+      return res.status(400).json({ "message": 'El cliente ya existe.' })
+    }
 
     const clienteQuery = `
       INSERT INTO cliente (identificacion, nombre, telefono, instancia, suscripcion)
@@ -318,8 +337,12 @@ controller.deleteUser = async (req, res) => {
     await bd.query(`DELETE FROM instancia WHERE id_cliente = $1`, [id])
     await bd.query('DELETE FROM suscripcion WHERE idUser = $1', [id])
     await bd.query('DELETE FROM dispositivo WHERE id_cliente = $1', [id])
+    
+    await deleteSchema(id)
+
     const sql  = `DELETE FROM cliente WHERE id =$1`
     await bd.query(sql, [ id ])
+    
     res.status(200).json({ "message": 'Se ha eliminado el usuario correctamente' })
   } catch (err) {
     console.error(err)
