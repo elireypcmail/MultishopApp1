@@ -15,7 +15,7 @@ export default function Login() {
   })
 
   const { push } = useRouter()
-  useEffect(() => { if (redirect) push('/home') }, [redirect])
+  useEffect(() => { if (redirect) push('/home') }, [redirect, push])
 
   const notifySucces = (msg) => { toast.success(msg) }
   const notifyError  = (msg) => { toast.error(msg) }

@@ -199,7 +199,7 @@
       "form form form"
       "form form form"
       "footer footer footer";
-    min-height: 262vh;
+    min-height: 254vh;
     justify-content: center;
     align-items: center;
   }
@@ -244,6 +244,8 @@
     .input{
       min-height: 11vh;
       margin-bottom: 49px;
+      padding: 18px;
+      padding-left: 24px;
       font-size: 36px;
     }
   }

@@ -45,9 +45,9 @@ DROP TABLE IF EXISTS cliente_eliminado;
 CREATE TABLE cliente_eliminado(
   id_delete serial PRIMARY KEY,
   id INT NOT NULL,  
-  identificacion VARCHAR(9) UNIQUE NOT NULL,
+  identificacion VARCHAR(9) NOT NULL,
   nombre TEXT NOT NULL,
-  telefonos VARCHAR(100) NOT NULL,
+  telefono VARCHAR(100) NOT NULL,
   est_financiero estado_financiero DEFAULT 'Activo'::estado_financiero,
   instancia TEXT,
   suscripcion INT,
@@ -93,14 +93,13 @@ CREATE OR REPLACE FUNCTION clientes_eliminados_respaldo()
 RETURNS TRIGGER AS $$
 BEGIN
   INSERT INTO cliente_eliminado
-  (id, identificacion, nombre, telefonos, est_financiero, clave, instancia, suscripcion) 
+  (id, identificacion, nombre, telefono, est_financiero, instancia, suscripcion) 
   VALUES (
     OLD.id, 
     OLD.identificacion, 
     OLD.nombre, 
-    OLD.telefonos, 
-    OLD.per_contacto, 
-    OLD.clave, 
+    OLD.telefono, 
+    OLD.est_financiero, 
     OLD.instancia, 
     OLD.suscripcion
   );

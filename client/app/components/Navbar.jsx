@@ -4,7 +4,7 @@ import { useEffect }    from 'react'
 import { useRouter }    from 'next/router'
 import { removeCookie } from '@g/cookies'
  
-export default function Navbar({ data, toggleMenu }) {
+export default function Navbar({ data }) {
   const { push } = useRouter()
 
   function Logout() {
@@ -16,7 +16,7 @@ export default function Navbar({ data, toggleMenu }) {
     <>
       <div className='navbar'>
         <div className="nav">
-        <div className="menu-toggle" onClick={toggleMenu}>☰</div>
+        <div className="menu-toggle">☰</div>
           {
             data ? ( 
               <button className='logout' type='button' onClick={ Logout }>Cerrar Sesión</button>
