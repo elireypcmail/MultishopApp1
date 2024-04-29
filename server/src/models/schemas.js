@@ -79,7 +79,7 @@ async function connectToClientSchema(identificacion, instancia) {
   }
 }
 
-async function pruebaConexionCliente(identificacion, nombreCliente, instancia) {
+/* async function pruebaConexionCliente(identificacion, nombreCliente, instancia) {
   try {
     connectToClientSchema(identificacion, instancia)
 
@@ -91,18 +91,39 @@ async function pruebaConexionCliente(identificacion, nombreCliente, instancia) {
   } catch (error) {
     console.error('Error al probar la conexión del cliente:', error)
   }
-}
+} */
 
 async function createTableInSchema(nombreCliente, nombreTabla) {
   try {
     const query = `
       CREATE TABLE "${nombreCliente}"."${nombreTabla}" (
-        id serial PRIMARY KEY,
-        dato1 TEXT,
-        dato2 TEXT
+        id serial NOT NULL,
+        fecha date NOT NULL,
+        cantidadfac integer NOT NULL DEFAULT 0,
+        totalcosto decimal(25,2) NOT NULL DEFAULT 0,
+        totalut decimal(25,2) NOT NULL DEFAULT 0,
+        totalventa decimal(25,2) NOT NULL DEFAULT 0,
+        cantidadund integer NOT NULL DEFAULT 0,
+        clientesa integer NOT NULL DEFAULT 0,
+        clientesf integer NOT NULL DEFAULT 0,
+        clientesn integer NOT NULL DEFAULT 0,
+        valor_tp decimal(25,2) NOT NULL DEFAULT 0,
+        valor_up decimal(25,2) NOT NULL DEFAULT 0,
+        valor_uxb decimal(25,2) NOT NULL DEFAULT 0,
+        cantidadfac_cd integer NOT NULL DEFAULT 0,
+        totalventa_cd decimal(25,2) NOT NULL DEFAULT 0,
+        sincroniza smallint DEFAULT 0,
+        sincronizaf timestamp NOT NULL,
+        cod_clibs character varying(20) NOT NULL DEFAULT '',
+        nom_clibs character varying(240) NOT NULL DEFAULT '',
+        totalventa_bs decimal(25,2) NOT NULL DEFAULT 0,
+        cod_art_bs character varying(20) NOT NULL DEFAULT '',
+        nom_art_bs character varying(240) NOT NULL DEFAULT '',
+        totalventa_bs_art decimal(25,2) NOT NULL DEFAULT 0,
+        CONSTRAINT pk_id PRIMARY KEY (id)
       );
     `
-    await db.query(query);
+    await db.query(query)
     console.log(`Tabla '${nombreTabla}' creada en el esquema '${nombreCliente}'.`)
   } catch (error) {
     console.error('Error al crear la tabla en el esquema:', error)
@@ -113,6 +134,6 @@ export {
   createSchema,
   deleteSchema,
   connectToClientSchema,
-  pruebaConexionCliente,
+  //pruebaConexionCliente,
   createTableInSchema
 }

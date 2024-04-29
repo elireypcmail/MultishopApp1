@@ -2,7 +2,7 @@ import {
   createSchema, 
   deleteSchema,
   connectToClientSchema, 
-  pruebaConexionCliente, 
+  //pruebaConexionCliente, 
   createTableInSchema 
 } from '../../models/schemas.js'
 import { 
@@ -191,7 +191,7 @@ controller.postUser = async (req, res) => {
     }
 
     await createSchema(nombreCliente)
-    createTableInSchema(nombreCliente, 'prueba')
+    createTableInSchema(nombreCliente, 'ventas')
     createInstanceForClient(clienteId, nombreCliente, instancia)
 
     await client.query('COMMIT') // Confirmar la transacción
@@ -259,8 +259,6 @@ controller.loginUser = async (req, res) => {
 
     connectToClientSchema(identificacion, instancia)
 
-    const prueba = await pruebaConexionCliente(identificacion, nombreCliente, instancia)
-
     const token = services.generarToken(userId, true, dispositivos, tiempoSuscripcion)
     await bd.query(
       'INSERT INTO suscripcion (idUser, token) VALUES ($1, $2)',
@@ -285,11 +283,10 @@ controller.updateUser = async (req, res) => {
 
     const updateUserQuery = `
       UPDATE cliente 
-      SET identificacion=$1, nombre=$2, telefono=$3, est_financiero=$4, suscripcion=$5
-      WHERE id=$6
+      SET nombre=$1, telefono=$2, est_financiero=$3, suscripcion=$4
+      WHERE id=$5
     `
     const updateUserValues = [
-      edit.identificacion,
       edit.nombre,
       edit.telefono,
       edit.est_financiero,

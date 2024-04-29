@@ -58,6 +58,7 @@
 
   .nav{
     height: 18vh;
+    width: 97%;
     border-radius: 73px;
   }
 
@@ -75,5 +76,9 @@
   .menu-toggle{
     margin-left: 50px;
     font-size: 28px;
+  }
+
+  .logout{
+    display: none;
   }
 }

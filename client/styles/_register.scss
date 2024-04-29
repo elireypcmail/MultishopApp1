@@ -97,3 +97,36 @@
     margin-right: 70px;
   }
 }
+
+@media (max-width: 767px){
+  .customer{ margin-top: 280px; }
+
+  .form-cus{
+    width: 86%;
+    margin-top: 35px;
+    margin-bottom: 495px;
+  }
+
+  .form-cus2{
+    .cus{
+      height: 9.5vh;
+      font-size: 28px;
+    }
+
+    .btn-cus{
+      height: 9.5vh;
+      font-size: 27px;
+    }
+  }
+
+  .register{
+    margin-left: 0;
+    font-size: 34px;
+  
+    .usuarios{
+      margin-left: 0;
+      color: #146C94;
+      font-size: 34px;
+    }
+  }
+}

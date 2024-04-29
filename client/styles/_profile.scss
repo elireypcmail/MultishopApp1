@@ -225,3 +225,114 @@
     margin-right: 70px;
   }
 }
+
+@media (max-width: 767px){
+  .profile{ 
+    height: 195vh; 
+
+    .us{
+      height: 160vh;
+
+      .form-us{ height: 90vh; }
+    }
+  }
+
+  .profile .pro{
+    margin-bottom: 96px;
+
+    .name .us-pro{ font-size: 30px; } 
+
+    .name{
+      svg{
+        width: 130px;
+        height: 130px;
+      }
+    }
+
+    .del{
+      svg{
+        width: 30px;
+        height: 30px;
+      }
+    }
+
+    .delete{ font-size: 29px; }
+  } 
+  
+  .profile .us .forms{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .forms{
+    .user1{ margin-top: 55px; }
+
+    .user2{
+      margin-bottom: 65px;
+
+      .input-with-icon .copy {
+        position: absolute;
+        right: 30px; 
+        top: 40%;
+        transform: translateY(-88%);
+        background: transparent;
+        border: none;
+        cursor: pointer;
+      }
+
+      svg{
+        height: 30px;
+        width: 30px;
+      }
+    }
+
+    .user1, .user2{
+      width: 80%;
+
+      .us1{
+        font-size: 23px;
+
+        .btn4{
+          width: 100%;
+          height: 7.5vh;
+          font-size: 22px;
+        }
+
+        .labels{ font-size: 28px; }
+      }
+
+      .us2{
+        height: 7.5vh;
+        width: 100%;
+        font-size: 23px;
+        margin-bottom: 45px;
+      }
+    }
+  }
+
+  .form-us .buttons{
+    margin-top: 405px;
+
+    .button1{
+      .btn2, .btn3{
+        width: 35%;
+        height: 7.5vh;
+        border-radius: 50px;
+        padding: 9px;
+        font-size: 23px;
+      }
+    }
+
+    .button2{
+      .btn5{
+        width: 95%;
+        padding: 9px;
+        height: 7.5vh;
+        font-size: 23px;
+        border-radius: 50px;
+      }
+    }
+  }
+}

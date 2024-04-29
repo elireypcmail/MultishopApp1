@@ -163,7 +163,7 @@
   }
 
   .btn {
-    margin-left: 190px;
+    margin-left: 143px;
     margin-top: 19px;
   }
 }
@@ -189,7 +189,6 @@
   }
 }
 
-/* Estilos para pantallas pequeñas */
 @media (max-width: 767px) {
   .datah {
     grid-template-columns: 1.5fr;
@@ -199,9 +198,15 @@
       "form form form"
       "form form form"
       "footer footer footer";
-    min-height: 254vh;
+    min-height: 250vh;
+    max-width: 94%;
     justify-content: center;
     align-items: center;
+  }
+
+  .data{
+    max-width: 94%;
+    min-height: 250vh;
   }
 
   .user {
@@ -214,7 +219,12 @@
       justify-content: center;
       flex-direction: column;
       align-items: center;
-      margin-bottom: 165px;
+      margin-bottom: 125px;
+
+      svg{
+        width: 130px;
+        height: 130px;
+      }
     
       .useri{
         display: flex;
@@ -304,5 +314,44 @@
     align-items: center;
     flex-direction: column;
     padding: 35px;
+  }
+
+  .w-screen, .h-screen{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: auto;
+  }
+
+  section{
+    width: 100%;
+    min-height: 87vh;
+    
+    .ti{
+      font-size: 34px;
+    }
+
+    .overflow-y-auto{
+      border-radius: 10px;
+      height: 62vh;
+    }
+  }
+
+  thead{ height: 4.5vh; }
+
+  th{ font-size: 18px; }
+  .text-xs{
+    font-size: 18px;
+  }
+
+  footer{
+    .add, .close{
+      height: 6.5vh;
+      margin: 15px 0 25px 0;
+      font-size: 20px;
+    }
+  
+    .add{ width: 37%; }
   }
 }
