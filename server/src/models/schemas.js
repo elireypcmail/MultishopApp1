@@ -47,8 +47,7 @@ async function deleteSchema(clientId) {
   }
 }
 
-async function connectToClientSchema(identificacion, instancia) {
-  console.log(identificacion, instancia)
+async function connectToClientSchema(identificacion) {
   const client = await db.connect()
   try {
     const clienteQuery = `
@@ -60,7 +59,7 @@ async function connectToClientSchema(identificacion, instancia) {
         WHERE identificacion = $1
       )
     `
-    const clienteValues = [identificacion];
+    const clienteValues = [identificacion]
     const clienteResult = await client.query(clienteQuery, clienteValues)
 
     if (clienteResult.rows.length === 0) {

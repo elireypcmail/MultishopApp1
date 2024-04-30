@@ -158,7 +158,7 @@ controller.postUser = async (req, res) => {
 
     const { identificacion, nombre, telefono, dispositivos, suscripcion } = req.body
 
-    const instancia = generateUniqueInstanceName()
+    const instancia = generateUniqueInstanceName(nombre)
 
     const existsClientQuery = `
       SELECT id FROM cliente WHERE identificacion = $1 AND nombre = $2 AND telefono = $3
