@@ -16,7 +16,8 @@ const v = {
   EDIT_CLIENT: process.env.NEXT_PUBLIC_UPDATE_CLIENT,
 
   // DELETE
-  DEL_CLIENT:  process.env.NEXT_PUBLIC_DELETE_CLIENT
+  DEL_CLIENT:  process.env.NEXT_PUBLIC_DELETE_CLIENT,
+  DEL_ADMIN:   process.env.NEXT_PUBLIC_DELETE_ADMIN
 }
 
 export default v
