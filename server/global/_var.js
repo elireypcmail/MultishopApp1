@@ -30,6 +30,7 @@ const _var = {
 
   // - Users
   GET_USERS: process.env.GET_ADMINS,
+  FILTER_LE: process.env.FILTER_ADM,
   REG_USER:  process.env.REG_USER,
   LOG_USER:  process.env.LOG_USER,
   DELETE_AD: process.env.DELETE_AD,

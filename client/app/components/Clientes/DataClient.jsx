@@ -30,7 +30,7 @@ export default function DataClient() {
       <div className="main">
         <div className="data">
           <div className="search-head">
-            <h1 className="cli">Lista de Clientes</h1>
+            <h1 className="cli">Clientes</h1>
             <form onSubmit={(e) => e.preventDefault()} className="search-bar">
               <input
                 className="search-name"

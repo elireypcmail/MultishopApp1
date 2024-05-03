@@ -17,6 +17,26 @@ controllerUs.getadmins = async (req, res) => {
   }
 }
 
+controllerUs.filtrarAdminsPorLetra = async (req, res) => {
+  try {
+    const { letra } = req.body 
+
+    const client = await pool.connect()
+    const query = `
+      SELECT * FROM users
+      WHERE LOWER(username) LIKE '%' || LOWER($1) || '%';
+    `
+    const result = await client.query(query, [letra])
+
+    client.release()
+
+    res.status(200).json({ "message": "Se encontraron coincidencias", "data": result.rows })
+  } catch (error) {
+    console.error('Error al filtrar clientes:', error)
+    res.status(500).json({ message: 'Error al filtrar clientes' })
+  }
+}
+
 controllerUs.register = async (req, res) => {
   try {
     const newUser = req.body
@@ -48,18 +68,22 @@ controllerUs.login = async (req, res) => {
   try {
     const user = req.body
 
-    const sql = `SELECT * FROM users WHERE email = $1 AND password = $2;`
-    const userData = [user.email, user.password]
+    const sql = `SELECT * FROM users WHERE email = $1;`
+    const userData = [user.email]
 
     const client = await pool.connect()
     const result = await client.query(sql, userData)
     client.release()
 
-    if (result.rows[0] && user?.password == result.rows[0].password) {
-      return res.status(200).json({ "message": "Sesión iniciada correctamente", "data": result.rows[0] }) 
+    if (result.rows.length === 0) {
+      return res.status(200).json({ "message": "Este correo no existe o no es correcto. Intente de nuevo." })
     }
 
-    return res.status(200).json({ "message": "Contraseña incorrecta o usuario no registrado" })
+    if (user.password !== result.rows[0].password) {
+      return res.status(200).json({ "message": "Contraseña incorrecta" })
+    }
+
+    return res.status(200).json({ "message": "Sesión iniciada correctamente", "data": result.rows[0] }) 
   } catch (err) {
     console.error(err)
     return res.status(500).json({ "message": "Error al iniciar sesión" })

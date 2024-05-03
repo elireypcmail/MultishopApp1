@@ -5,8 +5,20 @@ export default function MovTable() {
     <>
       <div className="search-head">
         <h1 className="cli">Lista de Movimientos</h1>
-        <form action="" className="search-bar">
-          <input className="search-name" type="text" placeholder="Buscar" />
+        <form onSubmit={(e) => e.preventDefault()} className="search-noti">
+          <input
+            className="search-inicio"
+            type="text"
+            placeholder="año-mes-dia"
+            name="inicio"
+          />
+          <span className='separator'>/</span>
+          <input
+            className="search-fin"
+            type="text"
+            placeholder="año-mes-dia"
+            name="fin"
+          />
           <button className="search" type="button">
             <Search />
           </button>
@@ -26,21 +38,9 @@ export default function MovTable() {
             </tr>
           </thead>
           <tbody>
-            <tr className="bg-white hover:bg-gray-50">
-              <td>
-                <input
-                  className="block w-full p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-xs focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                  type="text"
-                  name="movimiento"
-                />
-              </td>
-              <td>
-                <input
-                  className="block w-full p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-xs focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                  type="text"
-                  name="fecha"
-                />
-              </td>
+            <tr className="bg-white hover:bg-gray-50 cursor-pointer">
+              <td className="px-6 py-4"></td>
+              <td className="px-6 py-4"></td>
             </tr>
           </tbody>
         </table>

@@ -12,13 +12,13 @@ END$$;
 
 CREATE TABLE cliente(
   id serial PRIMARY KEY,
-  identificacion VARCHAR(9) UNIQUE NOT NULL,
+  identificacion VARCHAR(15) UNIQUE NOT NULL,
   nombre TEXT NOT NULL,
   telefono VARCHAR(100) NOT NULL,
   est_financiero estado_financiero DEFAULT 'Activo'::estado_financiero,
   intento INT DEFAULT 0,
   instancia TEXT,
-  suscripcion INT,
+  suscripcion INT DEFAULT 30,
   createUser TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -50,7 +50,6 @@ CREATE TABLE cliente_eliminado(
   telefono VARCHAR(100) NOT NULL,
   est_financiero estado_financiero DEFAULT 'Activo'::estado_financiero,
   instancia TEXT,
-  suscripcion INT,
   userDelete TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -93,15 +92,14 @@ CREATE OR REPLACE FUNCTION clientes_eliminados_respaldo()
 RETURNS TRIGGER AS $$
 BEGIN
   INSERT INTO cliente_eliminado
-  (id, identificacion, nombre, telefono, est_financiero, instancia, suscripcion) 
+  (id, identificacion, nombre, telefono, est_financiero, instancia) 
   VALUES (
     OLD.id, 
     OLD.identificacion, 
     OLD.nombre, 
     OLD.telefono, 
     OLD.est_financiero, 
-    OLD.instancia, 
-    OLD.suscripcion
+    OLD.instancia
   );
   RETURN OLD;
 END;

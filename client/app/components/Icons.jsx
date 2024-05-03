@@ -522,6 +522,33 @@ const Logout = () => {
   )
 }
 
+const Arrow = () => {
+  return (
+    <svg 
+      viewBox="0 0 24 24" 
+      fill="none" 
+      xmlns="http://www.w3.org/2000/svg"
+      width="28px"
+      height="28px"
+    >
+      <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+      <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
+      <g id="SVGRepo_iconCarrier"> 
+        <path 
+          d="M17 12H3" 
+          stroke="#125d80" 
+          strokeLinecap="round" 
+          strokeLinejoin="round">
+        </path> 
+        <path 
+          d="M21.6427 11.7856L18.2116 9.72696C17.6784 9.40703 17 9.79112 17 10.413V13.587C17 14.2089 17.6784 14.593 18.2116 14.273L21.6427 12.2144C21.8045 12.1173 21.8045 11.8827 21.6427 11.7856Z" 
+          fill="#125d80">
+        </path> 
+      </g>
+    </svg>
+  )
+}
+
 export {
   Notification,
   NewNoti,
@@ -539,4 +566,5 @@ export {
   User2,
   Home2,
   Clients2,
+  Arrow,
 }

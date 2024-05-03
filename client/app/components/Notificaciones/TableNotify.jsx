@@ -68,7 +68,7 @@ export default function TableNotify() {
           <input
             className="search-inicio"
             type="text"
-            placeholder="Inicio año-mes-dia"
+            placeholder="año-mes-dia"
             name="inicio"
             value={filter.inicio}
             onChange={handleInputChange}
@@ -77,7 +77,7 @@ export default function TableNotify() {
           <input
             className="search-fin"
             type="text"
-            placeholder="Fin año-mes-dia"
+            placeholder="año-mes-dia"
             name="fin"
             value={filter.fin}
             onChange={handleInputChange}

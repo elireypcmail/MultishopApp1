@@ -4,8 +4,11 @@ import v from '@g/_var'
 async function registroCliente(data) {
   try {
     const res = await instance.post(`${v.REGISTRO_C}`, data)
-    return res
-  } catch (err) { console.error(err) }
+    return { success: true, data: res.data } 
+  } catch (err) { 
+    console.error(err)
+    return { success: false, error: err } 
+  }
 }
 
 async function registroAdmin(data) {
@@ -18,7 +21,6 @@ async function registroAdmin(data) {
 async function loginAdmin(data) {
   try {
     const res = await instance.post(`${v.LOGIN_ADMIN}`, data)
-    console.log(res)
     return res
   } catch (err) { console.error(err) }
 }

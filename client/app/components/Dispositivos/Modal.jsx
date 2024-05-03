@@ -28,7 +28,7 @@ export default function ModalDev({ isOpen, onClose, dispositivos, onChange }) {
       onClose={onClose}
       className="w-full h-full"
       size="5xl"
-      style={{ maxWidth: '80%', height: '70vh' }}
+      style={{ maxWidth: '80%', height: '80vh' }}
     >
       <ModalContent>
         <ModalHeader className="flex flex-col gap-1 text-base ti">Lista de dispositivos</ModalHeader>

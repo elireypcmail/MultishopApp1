@@ -32,6 +32,7 @@ export default function TableDev({ dispositivos, onChange }) {
               Clave
             </th>
             <th scope="col" className="px-6 py-3"></th>
+            <th scope="col" className="px-6 py-3"></th>
           </tr>
         </thead>
         <tbody>
@@ -77,6 +78,7 @@ export default function TableDev({ dispositivos, onChange }) {
                   onChange={(e) => handleChange(e, index)}
                 />
               </td>
+              <td><input type="checkbox" /></td>
               <td>
                 <button className="remove" onClick={() => eliminarDispositivo(index)}>
                   <RemoveDevice />

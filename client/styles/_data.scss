@@ -97,6 +97,22 @@
   }
 }
 
+.span2{
+  width: 83%;
+  margin-bottom: 22px;
+
+  .input-container{
+    border: 1px solid rgb(232, 232, 232);
+    width: 100%;
+    height: 5vh;
+    border-radius: 10px;
+    padding: 11px;
+    outline: none;
+    background: #dfebf0;
+    color: #515151;
+  }
+}
+
 .btn{
   display: flex;
   justify-content: flex-start;

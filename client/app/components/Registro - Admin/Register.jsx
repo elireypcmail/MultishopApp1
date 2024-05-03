@@ -1,9 +1,11 @@
-import { registroAdmin } from "@api/Post"
-import toast, {Toaster}  from 'react-hot-toast'
-import { Customer }      from "../Icons"
-import { useState }      from "react"
-import Image             from "next/image"
-import logo              from '@p/multi2.jpg'
+import { registroAdmin }   from "@api/Post"
+import { useRouter }       from "next/router"
+import toast, {Toaster}    from 'react-hot-toast'
+import { Customer, Arrow } from "../Icons"
+import { useState }        from "react"
+import Loading             from "../Loading"
+import Image               from "next/image"
+import logo                from '@p/multi2.jpg'
 
 export default function Register() {
   const [names, setNames] = useState({
@@ -11,6 +13,10 @@ export default function Register() {
     email: '',
     password: ''
   })
+  const [loading, setLoading] = useState(false)
+  const [emailError, setEmailError] = useState('')
+
+  const { push } = useRouter()
 
   const notifySucces = (msg) => { toast.success(msg) }
   const notifyError  = (msg) => { toast.error(msg) }
@@ -18,10 +24,14 @@ export default function Register() {
   const handleChange = (e) => {
     const { name, value } = e.target
     setNames({ ...names, [name]: value })
+    if (name === 'email') {
+      validateEmail(value)
+    }
   }
 
   const newUser = async (e) => {
     e.preventDefault()
+    setLoading(true)
 
     try {
       let res = await registroAdmin(names)
@@ -35,7 +45,13 @@ export default function Register() {
       } else { notifyError('Ha ocurrido un error al crear el administrador') }
 
       limpiarCampos()
-    } catch (err) { console.error(err) }
+    } catch (err) { 
+      console.error(err) 
+    } finally {
+      setTimeout(() => {
+        setLoading(false)
+      }, 2000)
+    }
   }
 
   const limpiarCampos = () => {
@@ -46,8 +62,15 @@ export default function Register() {
     })
   }
 
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) { setEmailError('Ingrese un correo electrónico válido') } 
+    else { setEmailError('') }
+  }
+
   return(
     <>
+      {loading && <Loading />}
       <div className="data">
       <Toaster position="top-right" reverseOrder={true} duration={5000}/>
         <div className="reg">
@@ -67,15 +90,16 @@ export default function Register() {
                   onChange={handleChange} 
                 />
                 <input 
-                  className="cus" 
+                  className="cust" 
                   type="email" 
                   placeholder="Correo" 
                   name="email" 
                   value={names.email} 
                   onChange={handleChange} 
                 />
+                { emailError && <p className="text-red-500 text-sm">{emailError}</p> }
                 <input 
-                  className="cus" 
+                  className="cus cos" 
                   type="password" 
                   placeholder="Contraseña" 
                   name="password" 
@@ -86,6 +110,7 @@ export default function Register() {
               </form>
             </div>
           </div>
+          <i><Arrow /></i><span className="adminis" onClick={() => push('/admins')}>Ver todos los administradores</span>
         </div>
         <div className="multi">
           <span>Powered by</span>

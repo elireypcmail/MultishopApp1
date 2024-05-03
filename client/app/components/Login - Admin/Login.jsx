@@ -13,6 +13,7 @@ export default function Login() {
     email: '',
     password: ''
   })
+  const [emailError, setEmailError] = useState('')
 
   const { push } = useRouter()
   useEffect(() => { if (redirect) push('/home') }, [redirect, push])
@@ -23,6 +24,9 @@ export default function Login() {
   const handleChange = (e) => {
     const { name, value } = e.target
     setUsername({ ...username, [name]: value })
+    if (name === 'email') {
+      validateEmail(value)
+    }
   }
 
   const loginUser = async (e) => {
@@ -36,7 +40,7 @@ export default function Login() {
           setCookie('Admins', email)
           notifySucces('Inicio de sección exitoso')
           setRedirect(true)
-        } else { notifyError('Usuario o contraseña incorrectos') }
+        } else { notifyError(res.data.message) }
       } else { notifyError('Ha ocurrido un error en el inicio de sesión') }
 
       limpiarCampos()
@@ -48,6 +52,12 @@ export default function Login() {
       email: '',
       password: ''
     })
+  }
+
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) { setEmailError('Ingrese un correo electrónico válido') } 
+    else { setEmailError('') }
   }
 
   return(
@@ -65,13 +75,14 @@ export default function Login() {
           <div className="form-cusL">
             <form className="form-cusL2" action="" onSubmit={loginUser}>
               <input 
-                className="cusL" 
+                className="input-container" 
                 type="email" 
                 placeholder="Correo"
                 name="email" 
                 value={username.email} 
                 onChange={handleChange}
               />
+              { emailError && <p className="text-red-500 text-sm">{emailError}</p> }
               <input 
                 className="cusL" 
                 type="password" 

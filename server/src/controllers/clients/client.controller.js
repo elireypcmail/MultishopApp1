@@ -107,7 +107,7 @@ controller.getClientesInactivos = async (req, res) => {
     console.error('Error al obtener clientes inactivos:', error)
     res.status(500).json({ message: 'Error al obtener clientes inactivos' })
   }
-};
+}
 
 controller.checkToken = async (req, res) => {
   try {
@@ -119,23 +119,12 @@ controller.checkToken = async (req, res) => {
     const token = authHeader.split(' ')[1]
     const decodedToken = jwt.verify(token, _var.TOKEN_KEY)
 
-    const currentTime = Math.floor(Date.now() / 1000)
-    let timeRemaining = decodedToken.expiraEn - currentTime
+    const expiraEn = new Date(decodedToken.expiraEn * 1000) // Convertir el timestamp a una fecha real
+    const tiempoActual = Date.now()
 
-    if (timeRemaining > 0) {
-      const intervalId = setInterval(() => {
-        timeRemaining = decodedToken.expiraEn - Math.floor(Date.now() / 1000)
-        if (timeRemaining <= 0) {
-          clearInterval(intervalId)
-          decodedToken.suscripcionActiva = false
-          console.log('Token ha expirado. Suscripción inactiva.')
-          return
-        }
-        const remainingTimeFormatted = services.formatTime(timeRemaining)
-        console.log("Tiempo restante del token: " + remainingTimeFormatted)
-      }, 60000)
-      res.status(200).send({ "message": 'Suscripción activa' })
-    } else {
+    if (expiraEn < tiempoActual) {
+      decodedToken.suscripcionActiva = false
+      console.log('Token ha expirado. Suscripción inactiva.')
       bd.query(
         'UPDATE cliente SET est_financiero = $1 WHERE id = $2',
         ['Inactivo', decodedToken.usuarioId]
@@ -143,6 +132,8 @@ controller.checkToken = async (req, res) => {
       decodedToken.suscripcionActiva = false
       console.log(decodedToken)
       res.status(401).send({ "message": 'El token ha expirado' })
+    } else {
+      res.status(200).send({ "message": 'Suscripción activa' })
     }
   } catch (err) {
     console.error('Error al verificar token:', err)
@@ -156,9 +147,37 @@ controller.postUser = async (req, res) => {
   try {
     await client.query('BEGIN')
 
-    const { identificacion, nombre, telefono, dispositivos, suscripcion } = req.body
+    const { identificacion, nombre, telefono, dispositivos } = req.body
 
     const instancia = generateUniqueInstanceName(nombre)
+
+    if (identificacion.length > 12) {
+      return res.status(400).json({ "message": "Has superado la cantidad de dígitos de la identificación. No puede tener más de 12 digitos" })
+    }
+
+    const existingIdentificacionQuery = `SELECT id FROM cliente WHERE identificacion = $1`
+    const existingIdentificacionValues = [identificacion]
+    const existingIdentificacionResult = await client.query(existingIdentificacionQuery, existingIdentificacionValues)
+
+    if (existingIdentificacionResult.rows.length > 0) {
+      return res.status(400).json({ "message": "Esta identificación ya existe." })
+    }
+
+    const existingTelefonoQuery = `SELECT id FROM cliente WHERE telefono = $1`
+    const existingTelefonoValues = [telefono]
+    const existingTelefonoResult = await client.query(existingTelefonoQuery, existingTelefonoValues)
+
+    if (existingTelefonoResult.rows.length > 0) {
+      return res.status(400).json({ "message": "Este número de teléfono ya existe." })
+    }
+
+    const existingNombreQuery = `SELECT id FROM cliente WHERE nombre = $1`
+    const existingNombreValues = [nombre]
+    const existingNombreResult = await client.query(existingNombreQuery, existingNombreValues)
+
+    if (existingNombreResult.rows.length > 0) {
+      return res.status(400).json({ "message": "Este nombre de cliente ya existe." })
+    }
 
     const existsClientQuery = `
       SELECT id FROM cliente WHERE identificacion = $1 AND nombre = $2 AND telefono = $3
@@ -171,11 +190,11 @@ controller.postUser = async (req, res) => {
     }
 
     const clienteQuery = `
-      INSERT INTO cliente (identificacion, nombre, telefono, instancia, suscripcion)
-      VALUES ($1, $2, $3, $4, $5)
+      INSERT INTO cliente (identificacion, nombre, telefono, instancia)
+      VALUES ($1, $2, $3, $4)
       RETURNING id, nombre
     `
-    const clienteValues = [ identificacion, nombre, telefono, instancia, suscripcion ]
+    const clienteValues = [ identificacion, nombre, telefono, instancia ]
     const clienteResult = await client.query(clienteQuery, clienteValues)
     const clienteId = clienteResult.rows[0].id
     const nombreCliente = clienteResult.rows[0].nombre
@@ -258,13 +277,12 @@ controller.loginUser = async (req, res) => {
     }
 
     connectToClientSchema(identificacion, instancia)
-
+    console.log(tiempoSuscripcion)
     const token = services.generarToken(userId, true, dispositivos, tiempoSuscripcion)
-    await bd.query(
-      'INSERT INTO suscripcion (idUser, token) VALUES ($1, $2)',
-      [userId, token]
-    )
-    res.status(200).send({ token })
+
+    const tokenUser = await token
+
+    res.status(200).send({ tokenUser })
 
     client.release() // Liberar el cliente de la pool
   } catch (error) {
