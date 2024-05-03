@@ -118,7 +118,7 @@ async function createTableInSchema(nombreCliente, nombreTabla) {
         totalventa_bs decimal(25,2) NOT NULL DEFAULT 0,
         cod_art_bs character varying(20) NOT NULL DEFAULT '',
         nom_art_bs character varying(240) NOT NULL DEFAULT '',
-        totalventa_bs decimal(25,2) NOT NULL DEFAULT 0,
+        totalventa_bs_art decimal(25,2) NOT NULL DEFAULT 0,
         cod_op_bs character varying(20) NOT NULL DEFAULT '',
         nom_op_bs character varying(240) NOT NULL DEFAULT '',
         totalventa_bs_op decimal(25,2) NOT NULL DEFAULT 0,
