@@ -12,7 +12,8 @@ export default function AdminList() {
     try {
       const response = await getAdmins()
       if (response.status === 200) {
-        setUsers(response.data.data[0])
+        setUsers(response.data.data)
+        console.log(response.data.data)
       } else {
         console.error('Error al cargar los administradores:', response.statusText)
       }
@@ -41,14 +42,18 @@ export default function AdminList() {
           </tr>
         </thead>
         <tbody>
-            <tr className="bg-white hover:bg-gray-50 cursor-pointer" >
-              <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
-                {user.id}
-              </td>
-              <td className="px-6 py-4">{user.username}</td>
-              <td className="px-6 py-4">{user.email}</td>
-              <td className="px-6 py-4">{user.password}</td>
-            </tr>
+          {
+            user.map((user) => (
+              <tr className="bg-white hover:bg-gray-50 cursor-pointer" key={user.id} >
+                <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+                  {user.id}
+                </td>
+                <td className="px-6 py-4">{user.username}</td>
+                <td className="px-6 py-4">{user.email}</td>
+                <td className="px-6 py-4">{user.password}</td>
+              </tr>
+            ))
+          }
         </tbody>
       </table>
     </div>

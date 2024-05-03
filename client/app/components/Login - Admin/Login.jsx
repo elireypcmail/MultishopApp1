@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import toast, {Toaster}        from 'react-hot-toast'
+import Loading                 from "../Loading"
 import { loginAdmin }          from '@api/Post'
 import { setCookie }           from '@g/cookies'
 import { Customer }            from "../Icons"
@@ -13,6 +14,7 @@ export default function Login() {
     email: '',
     password: ''
   })
+  const [loading, setLoading] = useState(false)
   const [emailError, setEmailError] = useState('')
 
   const { push } = useRouter()
@@ -31,6 +33,7 @@ export default function Login() {
 
   const loginUser = async (e) => {
     e.preventDefault()
+    setLoading(true)
 
     try {
       let res = await loginAdmin(username)
@@ -44,7 +47,13 @@ export default function Login() {
       } else { notifyError('Ha ocurrido un error en el inicio de sesión') }
 
       limpiarCampos()
-    } catch (err) { console.error(err) }
+    } catch (err) { 
+      console.error(err) 
+    } finally {
+      setTimeout(() => {
+        setLoading(false)
+      }, 2000)
+    }
   }
 
   const limpiarCampos = () => {
@@ -62,6 +71,7 @@ export default function Login() {
 
   return(
     <>
+      {loading && <Loading />}
       <div className="login">
       <Toaster position="top-right" reverseOrder={true} duration={5000}/>
         <div className="nv">
