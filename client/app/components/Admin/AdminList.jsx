@@ -31,7 +31,7 @@ export default function AdminList() {
   const eliminarAdmin = async (id) => {
     try {
       const result = await deleteAdmin(id)
-      if (result.status === 200) {
+      if (result) {
         removeCookie('Admin')
         notifySucces('Se ha eliminado el administrador correctamente')
         setUsers(users.filter(user => user.id !== id))
