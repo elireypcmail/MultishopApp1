@@ -17,6 +17,32 @@ controllerUs.getadmins = async (req, res) => {
   }
 }
 
+controllerUs.getAdmin = async (req, res) => {
+  try {
+    const { id } = req.params
+    const sql = `
+      SELECT * FROM users WHERE id = $1
+    `
+    
+    const admin = await pool.query(sql, [id])
+    if (admin?.rows.length === 0) {
+      return res.status(404).json({ message: 'Usuario no encontrado' })
+    } else {
+      const adminData = {
+        id: admin.rows[0].id,
+        username: admin.rows[0].username,
+        email: admin.rows[0].email,
+        password: admin.rows[0].password
+      }
+
+      return res.status(200).json({ message: 'Usuario encontrado', data: adminData })
+    }
+  } catch (err) {
+    console.error(err)
+    return res.status(500).json({ message: 'Error al traer los datos del usuario' })
+  }
+}
+
 controllerUs.filtrarAdminsPorLetra = async (req, res) => {
   try {
     const { letra } = req.body 
@@ -51,9 +77,9 @@ controllerUs.register = async (req, res) => {
     }
 
     const sql = `INSERT INTO users ( username, email, password ) VALUES ($1, $2, $3)`
-    const values = [ newUser?.name, newUser?.email, newUser?.password ]
+    const values = [ newUser?.username, newUser?.email, newUser?.password ]
 
-    const result = await db.query(sql, [ newUser?.name, newUser?.email, newUser?.password ])
+    const result = await db.query(sql, [ newUser?.username, newUser?.email, newUser?.password ])
     if (result.rowCount === 1) {
       return res.status(200).json({ 'message': 'Usuario creado correctamente', 'data': values })
     } 
@@ -87,6 +113,44 @@ controllerUs.login = async (req, res) => {
   } catch (err) {
     console.error(err)
     return res.status(500).json({ "message": "Error al iniciar sesión" })
+  }
+}
+
+controllerUs.updateAdmin = async (req, res) => {
+  const client = await pool.connect()
+  try {
+    const { id } = req.params
+    const { ...edit } = req.body
+
+    await client.query('BEGIN')
+
+    let updateAdminQuery = 'UPDATE users SET'
+    const updateAdminValues = []
+    const params = []
+
+    Object.keys(edit).forEach((key, index) => {
+      if (edit[key]) {
+        updateAdminQuery += ` ${key}=$${index + 1},`
+        updateAdminValues.push(edit[key])
+        params.push(key)
+      }
+    })
+
+    updateAdminQuery = updateAdminQuery.slice(0, -1)
+
+    updateAdminQuery += ` WHERE id=$${updateAdminValues.length + 1}`
+    updateAdminValues.push(id)
+
+    await client.query(updateAdminQuery, updateAdminValues)
+
+    await client.query('COMMIT')
+    res.status(200).json({ message: 'Datos del administrador actualizados correctamente' })
+  } catch (err) {
+    await client.query('ROLLBACK')
+    console.error(err)
+    res.status(500).json({ message: 'Error al editar los datos de este administrador' })
+  } finally {
+    client.release()
   }
 }
 

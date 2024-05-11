@@ -36,16 +36,23 @@ CREATE TABLE dispositivo(
   id serial PRIMARY KEY,
   id_cliente INT REFERENCES cliente(id) ON DELETE CASCADE,
   telefono VARCHAR(25),
-  mac VARCHAR(255) UNIQUE NOT NULL,
   rol VARCHAR(50) NOT NULL CHECK (rol IN ('rol1', 'rol2', 'rol3')),
   clave VARCHAR(100) NOT NULL
+);
+
+DROP TABLE IF EXISTS verificacion_code;
+CREATE TABLE vericacion_code(
+  id serial PRIMARY KEY,
+  userId INT REFERENCES cliente(id) ON DELETE CASCADE,
+  telefono VARCHAR(25),
+  code VARCHAR(25) NOT NULL
 );
 
 DROP TABLE IF EXISTS cliente_eliminado;
 CREATE TABLE cliente_eliminado(
   id_delete serial PRIMARY KEY,
   id INT NOT NULL,  
-  identificacion VARCHAR(9) NOT NULL,
+  identificacion VARCHAR(15) NOT NULL,
   nombre TEXT NOT NULL,
   telefono VARCHAR(100) NOT NULL,
   est_financiero estado_financiero DEFAULT 'Activo'::estado_financiero,

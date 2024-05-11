@@ -54,7 +54,7 @@ export default function MenuToggle({ isMenuOpen, setIsMenuOpen }) {
                 <i className="i"><Clients2 /></i>
                 Clientes
               </li>
-              <li className="lis text-white rounded flex items-center" onClick={() => router.push('/user')}>
+              <li className="lis text-white rounded flex items-center" onClick={() => router.push('/admins')}>
                 <i className="i"><User2 /></i>
                 Usuarios
               </li>

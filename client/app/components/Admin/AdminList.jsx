@@ -1,15 +1,11 @@
 import { useEffect, useState } from 'react'
-import { getAdmins } from '@api/Get'
-import toast, {Toaster}  from 'react-hot-toast'
-import { removeCookie } from '@g/cookies'
-import { deleteAdmin } from '@api/Delete'
-import { RemoveDevice } from "../Icons"
+import { getAdmins }           from '@api/Get'
+import { useRouter }           from 'next/router'
 
 export default function AdminList() {
   const [users, setUsers] = useState([])
 
-  const notifySucces = (msg) => { toast.success(msg) }
-  const notifyError  = (msg) => { toast.error(msg) }
+  const { push } = useRouter()
 
   useEffect(() => {
     loadUsers()
@@ -28,22 +24,10 @@ export default function AdminList() {
     }
   }
 
-  const eliminarAdmin = async (id) => {
-    try {
-      const result = await deleteAdmin(id)
-      if (result) {
-        removeCookie('Admin')
-        notifySucces('Se ha eliminado el administrador correctamente')
-        setUsers(users.filter(user => user.id !== id))
-      } else { notifyError('Ha ocurrido un error al eliminar este administrador') }
-    } catch (err) { console.error(err) }
-  }
-
   return (
     <div className="relative overflow-y-auto shadow-md sm:rounded-lg">
-      <Toaster position="top-right" reverseOrder={true} duration={5000} />
       <table className="w-full text-sm text-left rtl:text-right text-gray-500">
-        <thead className="text-xs text-gray-700 uppercase bg-sky-100">
+        <thead className="text-xs text-gray-100 uppercase thead">
           <tr>
             <th scope="col" className="px-6 py-3">
               ID
@@ -57,22 +41,22 @@ export default function AdminList() {
             <th scope="col" className="px-6 py-3">
               Clave
             </th>
-            <th scope="col" className="px-6 py-3">
-              Eliminar
-            </th>
           </tr>
         </thead>
         <tbody>
           {
             users.map((user) => (
-              <tr className="bg-white hover:bg-gray-50 cursor-pointer" key={user.id} >
+              <tr 
+                className="bg-white hover:bg-gray-50 cursor-pointer" 
+                key={user.id} 
+                onClick={() => push(`/profile-admin/${user.id}`)}
+              >
                 <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
                   {user.id}
                 </td>
                 <td className="px-6 py-4">{user.username}</td>
                 <td className="px-6 py-4">{user.email}</td>
                 <td className="px-6 py-4">{user.password}</td>
-                <td className="px-6 py-4" onClick={() => eliminarAdmin(user.id)}><RemoveDevice /></td>
               </tr>
             ))
           }

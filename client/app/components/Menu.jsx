@@ -20,7 +20,7 @@ export default function Menu() {
               <i><Clients /></i>
               Clientes
             </li>
-            <li className="li" onClick={() => router.push('/user')}>
+            <li className="li" onClick={() => router.push('/admins')}>
               <i><User /></i>
               Usuarios
             </li>

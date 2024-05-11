@@ -1,4 +1,4 @@
-import app from './src/controllers/app.js'
+import app  from './src/controllers/app.js'
 import _var from './global/_var.js'
 
 function __init__() {

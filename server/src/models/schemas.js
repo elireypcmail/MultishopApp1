@@ -122,7 +122,8 @@ async function createTableInSchema(nombreCliente, nombreTabla) {
         cod_op_bs character varying(20) NOT NULL DEFAULT '',
         nom_op_bs character varying(240) NOT NULL DEFAULT '',
         totalventa_bs_op decimal(25,2) NOT NULL DEFAULT 0,
-        CONSTRAINT pk_id PRIMARY KEY (id)
+        CONSTRAINT pk_id PRIMARY KEY (id),
+        CONSTRAINT idx_fecha UNIQUE (fecha)
       );
     `
     await db.query(query)

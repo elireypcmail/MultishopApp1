@@ -9,9 +9,9 @@ async function deleteClient(id) {
 }
 
 async function deleteAdmin(id) {
+  console.log(id);
   try {
     const res = await instance.delete(`${v.DEL_ADMIN}/${id}`)
-    console.log(res)
     return res
   } catch (err) { console.error(err) }
 }

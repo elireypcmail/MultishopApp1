@@ -164,6 +164,10 @@
   }
 }
 
+.thead{
+  background-color: rgb(14 116 144)
+}
+
 @media (min-width: 1024px) {
   .datah {
     grid-template-columns: repeat(3, 1fr);

@@ -32,7 +32,7 @@ export default function UserTable({ searchResults }) {
   return (
     <div className="relative overflow-y-auto shadow-md sm:rounded-lg">
       <table className="w-full text-sm text-left rtl:text-right text-gray-500">
-        <thead className="text-xs text-gray-700 uppercase bg-sky-100">
+        <thead className="text-xs text-gray-100 uppercase thead">
           <tr>
             <th scope="col" className="px-6 py-3">
               ID

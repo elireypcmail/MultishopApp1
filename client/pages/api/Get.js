@@ -27,16 +27,22 @@ async function getNotifyClient(id) {
 async function getAdmins() {
   try {
     const res = await instance.get(`${v.GET_ADMINS}`)
+    return res
+  } catch (err) { console.error(err) }
+}
+
+async function getAdmin(id) {
+  try {
+    const res = instance.get(`${v.GET_ADMIN}/${id}`)
     console.log(res)
     return res
-  } catch (err) {
-    console.error(err)
-  }
+  } catch (err) { console.error(err) }
 }
 
 export {
   getUsers,
   getUser,
   getNotifyClient,
-  getAdmins
+  getAdmins,
+  getAdmin
 }

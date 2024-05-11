@@ -46,7 +46,7 @@ export default function UserProfile({ data }) {
     if (id) {
       fetchUserData(id)
     }
-  }, [id, userData])
+  }, [id])
 
   const fetchUserData = async (id) => {
     try {

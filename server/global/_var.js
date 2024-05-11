@@ -8,6 +8,12 @@ const _var = {
   // SERVER
   PORT: process.env.PORT || 5000,
 
+  // TWILIO
+  ACCOUNT_SID: process.env.TWILIO_ACCOUNT_SID,
+  AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN,
+  SERVICE_SID: process.env.TWILIO_SERVICE_SID,
+  FROM: process.env.TWILIO_FROM_PHONE,
+
   // DATABASE
   DB_HOST: process.env.HOST,
   DB_USER: process.env.USER,
@@ -23,6 +29,7 @@ const _var = {
   FIND_BY_DATE:  process.env.FIND_BY_DATE,
   FILTER_CLIENT: process.env.FILTER_USERS,
   VERIFY_TOKEN:  process.env.VERIFY_TOKEN,
+  CODE_CLIENT:   process.env.CODE_USER,
   CREATE_USER:   process.env.CREATE_USER,
   LOGIN_USER:    process.env.LOGIN_USER,
   UPDATE_USER:   process.env.UPDATE_USER,
@@ -30,6 +37,8 @@ const _var = {
 
   // - Users
   GET_USERS: process.env.GET_ADMINS,
+  GET_ADMIN: process.env.GET_ADMIN,
+  EDIT_ADM:  process.env.EDIT_ADMIN,
   FILTER_LE: process.env.FILTER_ADM,
   REG_USER:  process.env.REG_USER,
   LOG_USER:  process.env.LOG_USER,

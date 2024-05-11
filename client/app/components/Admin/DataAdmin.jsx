@@ -1,10 +1,11 @@
-import { useRouter } from 'next/router'
-import AdminList     from './AdminList'
-import Image         from 'next/image'
-import logo          from '@p/multi2.jpg'
+import { useDisclosure } from "@nextui-org/react"
+import MovAdmin          from './ModalReg'
+import AdminList         from './AdminList'
+import Image             from 'next/image'
+import logo              from '@p/multi2.jpg'
 
 export default function DataAdmin() {
-  const router = useRouter()
+  const { isOpen, onOpen, onClose } = useDisclosure()
 
   return (
     <>
@@ -14,15 +15,17 @@ export default function DataAdmin() {
             <h1 className="cli">Administradores</h1>
           </div>
 
-          <AdminList  />
+          <AdminList />
 
           <button
             type="button"
             className="add"
-            onClick={() => router.push('/user')}
+            onClick={onOpen}
           >
             Añadir Administrador
           </button>
+          <MovAdmin isOpen={isOpen} onClose={onClose} />
+          
           <div className="multi">
             <span>Powered by</span>
             <Image className="mul" src={logo} alt="Logo de multishop" priority />

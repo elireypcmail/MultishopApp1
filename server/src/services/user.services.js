@@ -5,7 +5,7 @@ import _var from '../../global/_var.js'
 const services = {}
 let message    = {}
 
-services.generarToken = async (userId, tieneSuscripcion, dispositivos, tiempoSuscripcionEnDias) => {
+services.generarToken = async (userId, tieneSuscripcion, dispositivo, tiempoSuscripcionEnDias) => {
   try {
     const tiempoEnMilisegundos = tiempoSuscripcionEnDias * 24 * 60 * 60 * 1000
     const expiraEn = Date.now() + tiempoEnMilisegundos
@@ -14,7 +14,7 @@ services.generarToken = async (userId, tieneSuscripcion, dispositivos, tiempoSus
       usuarioId: userId,
       expiraEn: expiraEn,
       suscripcionActiva: tieneSuscripcion,
-      dispositivos: dispositivos,
+      dispositivo: dispositivo,
     }
 
     const token = jwt.sign(payload, _var.TOKEN_KEY, { algorithm: 'HS256' })

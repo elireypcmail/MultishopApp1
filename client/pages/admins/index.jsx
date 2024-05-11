@@ -25,7 +25,6 @@ export default function RegisterPage({ data }) {
 
 export const getServerSideProps = async ({ req }) => {
   const adminCookie = getCookie('Admins', req)
-  console.log(adminCookie);
   
   let data = null
 
