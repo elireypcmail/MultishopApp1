@@ -33,8 +33,7 @@ async function getAdmins() {
 
 async function getAdmin(id) {
   try {
-    const res = instance.get(`${v.GET_ADMIN}/${id}`)
-    console.log(res)
+    const res = await instance.get(`${v.GET_ADMIN}/${id}`)
     return res
   } catch (err) { console.error(err) }
 }
