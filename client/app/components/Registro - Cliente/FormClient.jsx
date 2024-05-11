@@ -1,8 +1,8 @@
+import { useState }        from 'react'
 import { registroCliente } from "@api/Post"
 import toast, { Toaster }  from 'react-hot-toast'
 import { useDisclosure }   from "@nextui-org/react"
 import Loading             from "../Loading"
-import { useState }        from "react"
 import ModalDev            from "../Dispositivos/Modal"
 
 export default function FormClient({ }) {
@@ -14,31 +14,47 @@ export default function FormClient({ }) {
     suscripcion: "",
     dispositivos: []
   })
-  const [loading, setLoading]   = useState(false)
+  const [loading, setLoading] = useState(false)
   const [idtError, setIdtError] = useState('')
   const [telError, setTelError] = useState('')
+  const [nombreError, setNombreError] = useState('')
 
   const notifySucces = (msg) => { toast.success(msg) }
   const notifyError = (msg) => { toast.error(msg) }
 
   const validarIdentificacion = (value) => {
     const regex = /^V-\d*$/
-    if (!regex.test(value)) { setIdtError("El formato de la identificación es incorrecto") } 
-    else { setIdtError('') }
+    if (!regex.test(value)) {
+      setIdtError("El formato de la identificación es incorrecto")
+    } else {
+      setIdtError('')
+    }
   }
 
   const validarTelefono = (value) => {
     const regex = /^\d{4}-\d{7}$/
-    if (!regex.test(value)) { setTelError("El formato del teléfono es incorrecto") }  
-    else { setTelError('') }
+    if (!regex.test(value)) {
+      setTelError("El formato del teléfono es incorrecto")
+    } else {
+      setTelError('')
+    }
+  }
+
+  const validarNombre = (value) => {
+    if (/[A-Z]/.test(value)) {
+      setNombreError("El nombre no puede contener letras mayúsculas")
+    } else {
+      setNombreError('')
+    }
   }
 
   const handleChange = (e) => {
-    const { name, value } = e.target  
+    const { name, value } = e.target
     setCliente({ ...cliente, [name]: value })
     if (name === 'identificacion') { validarIdentificacion(value) }
     if (name === 'telefono') { validarTelefono(value) }
-  }  
+    if (name === 'nombre') { validarNombre(value) }
+  }
 
   const handleDispositivosChange = (dispositivos) => {
     setCliente({ ...cliente, dispositivos: dispositivos })
@@ -46,13 +62,25 @@ export default function FormClient({ }) {
 
   const newClient = async (e) => {
     e.preventDefault()
+    
+    if (nombreError) {
+      notifyError('El nombre no puede contener letras mayúsculas')
+      return
+    } else if (idtError) {
+      notifyError('El formato de la identificación es incorrecto')
+      return
+    } else if (telError) {
+      notifyError('El formato del telefono es incorrecto')
+      return
+    }
+  
     setLoading(true)
-
+  
     let res = await registroCliente(cliente)
     try {
       if (res.success) {
         notifySucces('Cliente y dispositivos registrados correctamente')
-        limpiarCampos()
+        limpiarCampos();
       } else { notifyError(res.error.response.data.message) }
     } catch (err) {
       if (res.success === false && err.response && err.response.data && err.response.data.message) {
@@ -66,7 +94,7 @@ export default function FormClient({ }) {
         setLoading(false)
       }, 2000)
     }
-  }
+  }  
 
   const limpiarCampos = () => {
     setCliente({
@@ -103,20 +131,21 @@ export default function FormClient({ }) {
               <label className="title">Nombre</label>
               <input 
                 type="text" 
-                className="input" 
+                className={`input ${nombreError && 'border-red-500'}`} 
                 name="nombre" 
                 value={cliente.nombre} 
                 onChange={handleChange} 
                 placeholder="Nombre" 
                 required
               />
+              { nombreError && <p className="text-red-500 text-sm">{nombreError}</p> }
             </span>
 
             <span className="span2">
               <label className="title">Teléfono</label>
               <input 
                 type="tel" 
-                className="input-container" 
+                className={`input-container ${telError && 'border-red-500'}`} 
                 name="telefono" 
                 value={cliente.telefono} 
                 onChange={handleChange} 

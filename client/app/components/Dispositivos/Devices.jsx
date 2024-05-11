@@ -53,6 +53,7 @@ export default function TableDev({ dispositivos, onChange }) {
                   type="tel"
                   name="telefono"
                   value={dispositivo.telefono}
+                  placeholder='+58 4141234567'
                   onChange={(e) => handleChange(e, index)}
                 />
                 {telefonoError && (
