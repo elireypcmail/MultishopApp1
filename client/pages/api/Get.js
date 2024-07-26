@@ -38,10 +38,18 @@ async function getAdmin(id) {
   } catch (err) { console.error(err) }
 }
 
+async function getMove(id) {
+  try {
+    const res = await instance.get(`${v.GET_MOVES}/${id}`)
+    return res
+  } catch (err) { console.error(err) }
+}
+
 export {
   getUsers,
   getUser,
   getNotifyClient,
   getAdmins,
-  getAdmin
+  getAdmin,
+  getMove
 }

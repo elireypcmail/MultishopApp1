@@ -35,7 +35,13 @@ async function filtrarClientesPorLetra(letra) {
 async function filterNotify(fecha) {
   try {
     const res = await instance.post(`/find`, fecha)
-    console.log(res)
+    return res
+  } catch (err) { console.error(err) }
+}
+
+async function filterMove(fecha) {
+  try {
+    const res = await instance.post(`/date/move`, fecha)
     return res
   } catch (err) { console.error(err) }
 }
@@ -45,5 +51,6 @@ export {
   registroAdmin,
   loginAdmin,
   filtrarClientesPorLetra,
-  filterNotify
+  filterNotify,
+  filterMove
 }

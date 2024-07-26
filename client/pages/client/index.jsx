@@ -25,6 +25,15 @@ export default function Client({ data }) {
 
 export const getServerSideProps = async ({ req }) => {
   const adminCookie = getCookie('Admins', req)
+
+  if (!adminCookie) {
+    return {
+      redirect: {
+        destination: '/',
+        permanent: false,
+      },
+    }
+  }
   
   let data = null
 

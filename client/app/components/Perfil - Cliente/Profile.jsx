@@ -263,7 +263,7 @@ export default function UserProfile({ data }) {
                   </div>
                   <div className="button2">
                     <button type='button' className='btn5 b' onClick={onOpenMov}>Ver movimientos</button>
-                    <ModalMov isOpen={isOpenMov} onClose={onCloseMov} />
+                    <ModalMov data={data} isOpen={isOpenMov} onClose={onCloseMov} />
                     <button type='button' className='btn5' onClick={onOpenNot}>Ver notificaciones</button>
                     <MovNotify isOpen={isOpenNot} onClose={onCloseNot} />
                   </div>

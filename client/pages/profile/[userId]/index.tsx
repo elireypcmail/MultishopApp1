@@ -26,6 +26,15 @@ export default function ClientProfile({ datapro, data } : any) {
 export const getServerSideProps = async ({ req }: any) => {
   const profileCookie = getCookie('profile', req)
   const adminCookie = getCookie('Admins', req)
+
+  if (!adminCookie) {
+    return {
+      redirect: {
+        destination: '/',
+        permanent: false,
+      },
+    }
+  }
   
   let data = null
   let datapro = null
