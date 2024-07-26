@@ -18,7 +18,6 @@ services.generarToken = async (userId, tieneSuscripcion, dispositivo, tiempoSusc
     }
 
     const token = jwt.sign(payload, _var.TOKEN_KEY, { algorithm: 'HS256' })
-    //console.log(token)
 
     await services.almacenarToken(userId, token)
 
@@ -46,7 +45,14 @@ services.almacenarToken = async (userId, token) => {
 
 services.verifyToken = (req, res, next) => {
   try {
-    const token = req.headers.authorization.split(" ")[1]
+    const authHeader = req.headers.authorization
+
+    if (!authHeader) {
+      return res.status(401).send({ message: 'Token no proporcionado' })
+    }
+
+    const token = authHeader.split(" ")[1]
+
     if (!token) {
       return res.status(401).send({ message: 'Token no proporcionado' })
     }
@@ -58,7 +64,7 @@ services.verifyToken = (req, res, next) => {
         const remainingDays = Math.floor(remainingTime / (1000 * 60 * 60 * 24))
 
         console.log(`Faltan ${remainingDays} días de suscripción`)
-      }, 60000) 
+      }, 60000)
 
       return intervalId
     }
@@ -96,6 +102,97 @@ services.formatTime = (totalSeconds) => {
 
   const formattedTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
   return formattedTime
+}
+
+services.registrarAuditoria = async (id_usuario, accion, id_dispositivo = null, additional_info = null) => {
+  const client = await pool.connect()
+  try {
+    const query = `
+      INSERT INTO auditoria (id_usuario, accion, id_dispositivo, additional_info)
+      VALUES ($1, $2, $3, $4)
+    `
+    const values = [id_usuario, accion, id_dispositivo, additional_info]
+    await client.query(query, values)
+  } catch (error) {
+    console.error('Error al registrar auditoría:', error)
+  } finally {
+    client.release()
+  }
+}
+
+services.getAuditoria = async (req, res) => {
+  const { id } = req.params
+  
+  try {
+    const query = `
+      SELECT * FROM auditoria
+      WHERE id_usuario = $1
+      ORDER BY fecha DESC
+    `
+    const values = [id]
+    const result = await pool.query(query, values)
+
+    res.status(200).json({ "message": "Auditoría cargada correctamente", "data": result.rows })
+  } catch (error) {
+    console.error('Error al obtener registros de auditoría:', error)
+    res.status(500).json({ "message": 'Error al obtener registros de auditoría' })
+  }
+}
+
+services.getAuditoriaDate = async (req, res) => {
+  try {
+    const { id, inicio, fin } = req.body
+    const client = await pool.connect()
+
+    const movimientosQuery = `
+      SELECT * FROM auditoria
+      WHERE id_usuario = $1
+      AND fecha BETWEEN $2 AND $3
+      ORDER BY fecha DESC
+    `
+    const movimientosValue = [ id, inicio, fin ]
+    const movimientosResult = await client.query(movimientosQuery, movimientosValue)
+    const movimientos = movimientosResult.rows
+
+    if (movimientos.length === 0) {
+      return  res.status(404).json({ "message": "No se encontraron movimientos con esa fecha."})
+    }
+
+    res.status(200).json({ "userId": id, "data": movimientos })
+
+    client.release()
+  } catch (err) {
+    console.error(err)
+    return res.status(500).json({ "error": "Error al buscar movimientos por fecha" })
+  }
+}
+
+services.getAuditoriaPromedio = async (req, res) => {
+  const { start, end } = req.body
+
+  try {
+    const client = await pool.connect()
+
+    const query = `
+      SELECT AVG(valor_up) AS average
+      FROM "adriana guerra".ventas
+      WHERE fecha BETWEEN $1 AND $2
+    `
+
+    const values = [start, end]
+    const result = await client.query(query, values)
+
+    if (result.rows.length === 0 || result.rows[0].average === null) {
+      return res.status(404).json({ message: 'No hay datos disponibles para las fechas proporcionadas.' })
+    }
+    
+    res.json({ average: result.rows[0].average })
+
+    client.release()
+  } catch (error) {
+    console.error("Error executing query:", error)
+    res.status(500).json({ error: "Error fetching monthly average" })
+  }
 }
 
 export default services

@@ -107,4 +107,43 @@ service.compareVerificationCode = async (enteredCode) => {
   }
 }
 
+service.saveVerificationCode = async (userId, telefono, verificationCode) => {
+  try {
+    const client = await pool.connect();
+    const insertQuery = `
+      INSERT INTO vericacion_code (userid, telefono, code)
+      VALUES ($1, $2, $3)
+      RETURNING id
+    `
+    const insertValues = [userId, telefono, verificationCode]
+    const { rows } = await client.query(insertQuery, insertValues)
+    const verificationId = rows[0].id
+    client.release()
+    return verificationId
+  } catch (error) {
+    console.error('Error al guardar el código de verificación en la base de datos:', error)
+    throw error
+  }
+}
+
+service.compareVerificationCodes = async (enteredCode) => {
+  try {
+    const client = await pool.connect()
+    const selectQuery = `
+      SELECT code
+      FROM vericacion_code
+      WHERE code = $1
+      LIMIT 1
+    `
+    const selectValues = [enteredCode]
+    const { rows } = await client.query(selectQuery, selectValues)
+    const storedCode = rows[0].code
+    client.release()
+    return storedCode === enteredCode
+  } catch (error) {
+    console.error('Error al comparar el código de verificación:', error)
+    throw error
+  }
+}
+
 export default service

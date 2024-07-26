@@ -92,6 +92,7 @@ CREATE TABLE auditoria (
   id_usuario INT NOT NULL,
   accion TEXT NOT NULL,
   id_dispositivo VARCHAR(250),
+  additional_info JSONB,
   fecha DATE NOT NULL DEFAULT CURRENT_DATE
 );
 

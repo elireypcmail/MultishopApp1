@@ -4,6 +4,7 @@ dotentv.config()
 const _var = {
   // CORS
   ORIGIN: process.env.FRONT_URL,
+  ORIGIN1: process.env.FRONT_2,
 
   // SERVER
   PORT: process.env.PORT || 5000,
@@ -26,6 +27,8 @@ const _var = {
   GET_ONE_USER:  process.env.GET_ONE_USER,
   GET_FALSE_US:  process.env.GET_FALSE,
   GET_NOTIFY:    process.env.GET_NOTIFY,
+  GET_ALL_MOVE:  process.env.GET_ALL_MOVE,
+  MOVES_BY_DATE: process.env.GET_MOVE_DATE,
   FIND_BY_DATE:  process.env.FIND_BY_DATE,
   FILTER_CLIENT: process.env.FILTER_USERS,
   VERIFY_TOKEN:  process.env.VERIFY_TOKEN,

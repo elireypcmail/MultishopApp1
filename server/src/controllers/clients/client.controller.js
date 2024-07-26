@@ -8,19 +8,18 @@ import {
   generateUniqueInstanceName,
   createInstanceForClient
 } from '../../services/instance.services.js'
-import getMAC from 'getmac'
-import pool from '../../models/db.connect.js'
+import pool     from '../../models/db.connect.js'
 import services from '../../services/user.services.js'
-import service from '../../services/twilio.services.js'
-import jwt from 'jsonwebtoken'
-import _var from '../../../global/_var.js'
+import service  from '../../services/twilio.services.js'
+import jwt      from 'jsonwebtoken'
+import _var     from '../../../global/_var.js'
 
 const controller = {}
 const bd = pool
 
 controller.getUsers = async (req, res) => {
   try {
-    const sql = `SELECT id, identificacion, nombre, est_financiero FROM cliente;`
+    const sql = `SELECT id, identificacion, nombre, est_financiero FROM cliente`
     const user = await bd.query(sql)
 
     if (user?.rows.length > 0) res.status(200).json({
@@ -44,7 +43,7 @@ controller.getUser = async (req, res) => {
       LEFT JOIN dispositivo d ON c.id = d.id_cliente
       WHERE c.id = $1
     `
-
+    
     const user = await pool.query(sql, [id])
     if (user?.rows.length === 0) {
       return res.status(404).json({ message: 'Usuario no encontrado' })
@@ -79,7 +78,7 @@ controller.filtrarClientesPorLetra = async (req, res) => {
     const client = await pool.connect()
     const query = `
       SELECT * FROM cliente
-      WHERE LOWER(nombre) LIKE '%' || LOWER($1) || '%';
+      WHERE LOWER(nombre) LIKE '%' || LOWER($1) || '%'
     `
     const result = await client.query(query, [letra])
 
@@ -123,6 +122,12 @@ controller.checkToken = async (req, res) => {
     if (expiraEn < tiempoActual) {
       decodedToken.suscripcionActiva = false
       console.log('Token ha expirado. Suscripción inactiva.')
+
+      await services.registrarAuditoria(decodedToken.usuarioId, 'Suscripción expirada', null, {
+        motivo: 'Token expirado',
+        fechaExpiracion: expiraEn.toISOString()
+      })
+      
       bd.query(
         'UPDATE cliente SET est_financiero = $1 WHERE id = $2',
         ['Inactivo', decodedToken.usuarioId]
@@ -209,7 +214,7 @@ controller.postUser = async (req, res) => {
 
       const dispositivoQuery = `
         INSERT INTO dispositivo(id_cliente, telefono, rol, clave)
-        VALUES($1, $2, $3, $4);
+        VALUES($1, $2, $3, $4)
       `
       const dispositivoValues = [clienteId, dispositivo.telefono, dispositivo.rol, dispositivo.clave]
       await client.query(dispositivoQuery, dispositivoValues)
@@ -243,12 +248,13 @@ controller.loginUser = async (req, res) => {
     `
     const usuarioValues = [identificacion]
     const usuarioResult = await client.query(usuarioQuery, usuarioValues)
+    console.log(usuarioResult.rows[0])
     const {
       id: userId,
       nombre: nombreCliente,
       suscripcion: tiempoSuscripcion,
       est_financiero: est_financiero,
-      intento: intentosFallidos
+      intento: intentosFallidos,
     } = usuarioResult.rows[0]
 
     const dispositivosQuery = `
@@ -264,56 +270,60 @@ controller.loginUser = async (req, res) => {
     const existingDeviceResult = await client.query(existingDeviceQuery, existingDeviceValues)
 
     if (existingDeviceResult.rows.length !== 1) {
-      return res.status(400).json({ "message": "Este número de teléfono no existe." })
+      return res.status(400).json({ message: "Este número de teléfono no existe." })
     }
 
-    const auth = service.verificarNumeroTelefono(telefono)
-
-    const verificationCode = generateVerificationCode()
-    await service.sendVerificationCode(telefono, verificationCode)
-
     if (clave !== dispositivoValido.clave) {
-      if (intentosFallidos >= 3) {
-        await client.query('INSERT INTO notificacion (id_user, notify_type, id_dispositivo) VALUES ($1, $2, $3)',
-          [userId, 'Se ha ingresado mal la contraseña más de 3 veces', dispositivoValido.telefono]
-        )
-        return res.status(403).send({ "message": 'Intentos fallidos expirados. Comunícate con los administradores' })
+      await services.registrarAuditoria(userId, 'Intento de inicio de sesión fallido', dispositivoValido.telefono, { claveIntentada: clave })
+
+      if (intentosFallidos >= 2) {
+        await client.query('INSERT INTO notificacion (id_user, notify_type, id_dispositivo) VALUES ($1, $2, $3)', [userId, 'Se ha ingresado mal la contraseña más de 3 veces', dispositivoValido.telefono])
+        return res.status(403).send({ message: 'Intentos fallidos expirados. Comunícate con los administradores' })
       }
 
       await client.query('UPDATE cliente SET intento = intento + 1 WHERE id = $1', [userId])
-      return res.status(403).send({ "message": 'Contraseña incorrecta' })
+      return res.status(403).send({ message: 'Contraseña incorrecta' })
     }
 
     if (est_financiero === 'Inactivo') {
-      return res.status(403).send({ "message": 'Suscripción expirada. Comunícate con los administradores' })
+      return res.status(403).send({ message: 'Suscripción expirada. Comunícate con los administradores' })
     }
 
     connectToClientSchema(identificacion, instancia)
-    const token = services.generarToken(userId, true, dispositivoValido.mac, tiempoSuscripcion)
+    const token = await services.generarToken(userId, true, dispositivoValido.mac, tiempoSuscripcion)
 
-    const tokenUser = await token
+    const generateVerificationCode = () => {
+      return Math.floor(1000 + Math.random() * 9000).toString()
+    }
+
+    const verificationCode = generateVerificationCode()
+
+    //await service.saveVerificationCode(userId, telefono, verificationCode)
+
+    await services.registrarAuditoria(userId, 'Inicio de sesión exitoso', dispositivoValido.telefono)
 
     client.release()
-    service.saveVerification(userId, telefono, verificationCode)
 
-    return res.status(200).json({ "message": "Por favor, ingresa el código de verificación enviado a tu teléfono.", "token": tokenUser })
+    return res.status(200).json({ tokenCode: token })
   } catch (error) {
-    console.error({ "message": 'Error en inicio de sesión:', error })
-    res.status(500).send({ "message": 'Error en inicio de sesión' })
+    console.error({ message: 'Error en inicio de sesión:', error })
+    res.status(500).send({ message: 'Error en inicio de sesión' })
   }
 }
 
 controller.code = async (req, res) => {
   try {
     const { code } = req.body
-    const result = await service.compareVerificationCode(code)
+    const result = await service.compareVerificationCodes(code)
 
-    if (result.status == 400) { return res.status(400).json(result) }
+    if (result.status === 400) {
+      return res.status(400).json(result)
+    }
 
-    return res.status(200).json(result)
+    return res.status(200).json({ message: "Código correcto!" })
   } catch (err) {
     console.log(err)
-    return res.status(500).json({ "message": "Error al validar el código" })
+    return res.status(500).json({ message: "Error al validar el código" })
   }
 }
 
