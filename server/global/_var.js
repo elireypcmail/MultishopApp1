@@ -20,6 +20,7 @@ const _var = {
   DB_USER: process.env.USER,
   DB_PASS: process.env.PASSWORD, 
   DB_NAME: process.env.DB_NAME,
+  DB_PORT: process.env.PORT_DB,
 
   // ROUTES
   // - Clients

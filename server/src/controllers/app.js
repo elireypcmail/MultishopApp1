@@ -1,8 +1,9 @@
-import express from 'express'
-import cors from 'cors'
-import _var from '../../global/_var.js'
-import userRouter from '../routes/user.routes.js'
+import express      from 'express'
+import cors         from 'cors'
+import _var         from '../../global/_var.js'
+import userRouter   from '../routes/user.routes.js'
 import clientRouter from '../routes/client.routes.js'
+import graphRoutes  from '../routes/graph.routes.js'
 
 const server = express()
 
@@ -11,6 +12,7 @@ const middlewares = () => {
   server.use(cors([_var.ORIGIN, "http://localhost:3001"]))
   server.use(userRouter)
   server.use(clientRouter)
+  server.use(graphRoutes)
 
   // Manejo de errores genérico
   server.use((err, req, res, next) => {
