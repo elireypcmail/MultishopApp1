@@ -7,8 +7,8 @@ const config = {
   host: _var.DB_HOST,
   database: _var.DB_NAME,
   password: _var.DB_PASS,
-  /*port: _var.DB_PORT,
-   ssl: {
+  port: _var.DB_PORT,
+  /* ssl: {
     rejectUnauthorized: false 
   } */
 }
