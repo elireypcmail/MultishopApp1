@@ -26,7 +26,7 @@ export default function ModalDev({ isOpen, onClose, dispositivos, onChange }) {
       backdrop="opaque"
       isOpen={isOpen}
       onClose={onClose}
-      className="w-full h-full"
+      className="w-full h-full modal"
       size="5xl"
       style={{ maxWidth: '80%', height: '80vh' }}
     >
@@ -36,10 +36,10 @@ export default function ModalDev({ isOpen, onClose, dispositivos, onChange }) {
           <DevicesTable dispositivos={dispositivos} onChange={onChange}  />
         </ModalBody>
         <ModalFooter className="flex justify-between">
-          <button className="add text-white bg-cyan-700 hover:bg-cyan-800 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700" onClick={agregarDispositivo}>
+          <button className="btn-add-device add text-white bg-cyan-700 hover:bg-cyan-800 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700" onClick={agregarDispositivo}>
             Añadir un nuevo dispositivo
           </button>
-          <button className="close text-white bg-cyan-700 hover:bg-cyan-800 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800" onClick={onClose}>
+          <button className="btn-close-modal close text-white bg-cyan-700 hover:bg-cyan-800 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800" onClick={onClose}>
             Cerrar
           </button>
         </ModalFooter>

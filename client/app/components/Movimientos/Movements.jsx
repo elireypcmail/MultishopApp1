@@ -15,6 +15,7 @@ export default function ModalMov({ isOpen, onClose, data }) {
         onClose={onClose}
         scrollBehavior="inside"
         size="5xl"
+        className="modal"
         style={{
           maxWidth: '78%',
           height: '70vh'

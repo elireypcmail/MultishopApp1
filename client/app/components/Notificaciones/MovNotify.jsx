@@ -14,6 +14,7 @@ export default function MovNotify({ isOpen, onClose }) {
         isOpen={isOpen}
         onClose={onClose}
         scrollBehavior="inside"
+        className="modal"
         style={{
           maxWidth: '85%',
           height: '70vh'

@@ -34,7 +34,7 @@ export default function FormClient({}) {
   }
 
   const validarTelefono = (value) => {
-    const regex = /^\d{4}-\d{7}$/
+    const regex = /^\d{4}\d{7}$/
     if (!regex.test(value)) {
       setTelError("El formato del teléfono es incorrecto")
     } else {
@@ -183,7 +183,7 @@ export default function FormClient({}) {
                 name="telefono"
                 value={cliente.telefono}
                 onChange={handleChange}
-                placeholder="0000-0000000"
+                placeholder="Telefono"
                 required
               />
               {telError && <p className="text-red-500 text-sm">{telError}</p>}

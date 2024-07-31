@@ -126,4 +126,42 @@ tr{ cursor: pointer; }
       height: 10.4vh;
     }
   }
+
+  .modal{
+    min-height: 110vh;
+    min-width: 95%;
+
+    .form-admin{
+      height: 60vh;
+
+      .spans{
+        width: 85%;
+
+        .titles{
+          width: 95%;
+          font-size: 1.80rem;
+        }
+
+        .input2{
+          width: 95%;
+          height: 9vh;
+          font-size: 1.70rem;
+        }
+      }
+    }
+
+    .close-btn{ 
+      font-size: 1.80rem; 
+      width: 30%;
+      height: 10vh;
+    }
+    
+    .btn-add-device, .btn-close-modal{
+      height: 10vh;
+      font-size: 1.50rem;
+    }
+
+    .btn-add-device{ width: 40%; }
+    .btn-close-modal{ width: 25%; }
+  }
 }
