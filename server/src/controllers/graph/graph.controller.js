@@ -2,7 +2,6 @@ import pool from '../../models/db.connect.js'
 
 const graphController = {}
 
-// Función para obtener todos los datos
 const fetchData = async (nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi) => {
   const tableName = `"${nombreCliente}"."${nombreTabla}"`
   const query = `
@@ -10,17 +9,17 @@ const fetchData = async (nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi)
     FROM ${tableName}
     WHERE fecha BETWEEN $1 AND $2
   `
-  console.log(`Executing query: ${query} with dates ${fechaInicio} to ${fechaFin}`)
+
   const result = await pool.query(query, [fechaInicio, fechaFin])
-  console.log('Fetched data:', result.rows)
   return result.rows
 }
 
-// Función para calcular los resultados
 const calculateResults = (data, filtro, fechaInicio) => {
   let results = []
   const groupedData = {}
   const startDate = new Date(fechaInicio)
+  const sixMonthsAgo = new Date(startDate)
+  sixMonthsAgo.setMonth(startDate.getMonth() - 6) // Obtener fecha hace 6 meses desde fechaInicio
 
   data.forEach(row => {
     let key
@@ -28,25 +27,20 @@ const calculateResults = (data, filtro, fechaInicio) => {
 
     switch (filtro) {
       case 'dias':
-        key = row.fecha // YYYY-MM-DD
-        break;
+        key = row.fecha.toISOString().split('T')[0] // YYYY-MM-DD
+        break
       case 'semanas':
-        // Agrupar por semanas si el rango es de un mes o menos
         let startOfWeek = new Date(date)
         startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay())
-        // Asegurarse de que startOfWeek no sea anterior a fechaInicio
         if (startOfWeek < startDate) {
           startOfWeek = startDate
         }
         key = startOfWeek.toISOString().split('T')[0] // YYYY-MM-DD
-        break;
+        break
       case 'meses':
         key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}` // YYYY-MM
-        break;
+        break
     }
-
-    console.log('key:' + key);
-    console.log('group' + groupedData);
 
     if (!groupedData[key]) {
       groupedData[key] = { total: 0, count: 0 }
@@ -56,6 +50,7 @@ const calculateResults = (data, filtro, fechaInicio) => {
     groupedData[key].count += 1
   })
 
+  // Convertir el objeto agrupado en un array de resultados
   for (const [periodo, values] of Object.entries(groupedData)) {
     results.push({
       periodo,
@@ -67,18 +62,16 @@ const calculateResults = (data, filtro, fechaInicio) => {
   results.sort((a, b) => new Date(a.periodo) - new Date(b.periodo))
 
   if (filtro === 'meses') {
-    const currentDate = new Date()
     results = results.filter(result => {
-      const resultDate = new Date(result.periodo + '-01')
-      return (currentDate - resultDate) <= 6 * 30 * 24 * 60 * 60 * 1000
+      const [year, month] = result.periodo.split('-')
+      const resultDate = new Date(year, month - 1) // -1 porque los meses en JS son 0-indexed
+      return resultDate >= sixMonthsAgo
     })
   }
 
-  console.log('Final calculated results:', results)
   return results
 }
 
-// Función para determinar el tipo de filtro basado en el rango de fechas
 const determineFilterType = (fechaInicio, fechaFin) => {
   const startDate = new Date(fechaInicio)
   const endDate = new Date(fechaFin)
@@ -93,7 +86,6 @@ const determineFilterType = (fechaInicio, fechaFin) => {
   }
 }
 
-// Función principal del controlador
 graphController.filterData = async (req, res) => {
   try {
     const { nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi } = req.body
@@ -104,7 +96,6 @@ graphController.filterData = async (req, res) => {
 
     const filtro = determineFilterType(fechaInicio, fechaFin)
 
-    // Limitar el rango de fechas a 6 meses para el filtro de meses
     let adjustedFechaFin = fechaFin
     if (filtro === 'meses') {
       const endDate = new Date(fechaFin)
@@ -115,7 +106,6 @@ graphController.filterData = async (req, res) => {
       }
     }
 
-    console.log(`Fetching data for ${nombreCliente}, ${nombreTabla} from ${fechaInicio} to ${adjustedFechaFin}`)
     const data = await fetchData(nombreCliente, nombreTabla, fechaInicio, adjustedFechaFin, kpi)
     
     if (data.length === 0) {
