@@ -1,7 +1,7 @@
 import { Clients, Home, User } from "./Icons"
 import { useRouter }           from 'next/router'
 import Image                   from "next/image"
-import logo                    from "@p/multi2.jpg"
+import logo                    from "@p/multi2.png"
 
 export default function Menu() {
   const router = useRouter()

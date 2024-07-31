@@ -2,7 +2,7 @@ import { useDisclosure } from "@nextui-org/react"
 import MovAdmin          from './ModalReg'
 import AdminList         from './AdminList'
 import Image             from 'next/image'
-import logo              from '@p/multi2.jpg'
+import logo              from '@p/multi2.png'
 
 export default function DataAdmin() {
   const { isOpen, onOpen, onClose } = useDisclosure()

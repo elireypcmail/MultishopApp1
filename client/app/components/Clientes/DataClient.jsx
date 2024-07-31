@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import { Search }    from '../Icons'
 import UserTable     from './UserTable'
 import Image         from 'next/image'
-import logo          from '@p/multi2.jpg'
+import logo          from '@p/multi2.png'
 import { filtrarClientesPorLetra } from '@api/Post'
 
 export default function DataClient() {

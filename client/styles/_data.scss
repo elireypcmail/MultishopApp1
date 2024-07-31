@@ -188,7 +188,6 @@
   }
 }
 
-/* Estilos para pantallas medianas */
 @media (max-width: 1023px) {
   .datah {
     grid-template-columns: repeat(2, 1fr);
@@ -262,7 +261,7 @@
     }
   }
 
-  .span{
+  .span, .span2{
     width: 100%;
     margin: 0;
     min-height: 7vh;
@@ -271,12 +270,17 @@
       font-size:  37px;
     }
 
-    .input{
+    .input, .input-container{
       min-height: 11vh;
       margin-bottom: 49px;
       padding: 18px;
       padding-left: 24px;
       font-size: 36px;
+    }
+
+    p{
+      font-size: 2.2rem;
+      margin-bottom: 35px;
     }
   }
 
@@ -345,8 +349,8 @@
   }
 
   section{
-    width: 100%;
-    min-height: 87vh;
+    max-width: 95%;
+    height: 100vh;
     
     .ti{
       font-size: 34px;
@@ -354,15 +358,21 @@
 
     .overflow-y-auto{
       border-radius: 10px;
-      height: 62vh;
+      height: 75vh;
     }
   }
 
-  thead{ height: 4.5vh; }
+  .head{ 
+    height: 9vh; 
+
+    tr th{
+      font-size: 1.75rem;
+    }
+  }
 
   th{ font-size: 18px; }
   .text-xs{
-    font-size: 18px;
+    font-size: 2.2rem;
   }
 
   footer{

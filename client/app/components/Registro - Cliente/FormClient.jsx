@@ -51,7 +51,6 @@ export default function FormClient({}) {
   }
 
   const validarEmail = (value) => {
-    // Validación básica de formato de correo electrónico
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!regex.test(value)) {
       setEmailError("Formato de correo electrónico incorrecto")

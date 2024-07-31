@@ -9,7 +9,7 @@ import { getAdmin }                from '@api/Get'
 import { deleteAdmin }             from '@api/Delete'
 import { updateAdmin }             from '@api/Put'
 import Image                       from 'next/image'
-import logo                        from '@p/multi2.jpg'
+import logo                        from '@p/multi2.png'
 
 export default function AdminProfile({ data }) {
   const [userData, setUserData] = useState(data)

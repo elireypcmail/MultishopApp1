@@ -68,21 +68,28 @@ tr{ cursor: pointer; }
 
 @media (max-width: 767px){
   .search-bar{
-    min-width: 50%;
+    min-width: 56%;
 
     .search-name{
-      min-height: 47px;
-      font-size: 24px;
+      min-height: 12vh;
+      font-size: 2.5rem;
+      border-radius: 50px 0 0 50px;
     }
 
-    .search{ min-height: 45px; }
+    .search{ 
+      min-height: 12vh; 
+      
+      svg{
+        width: 0;
+      }
+    }
   }
 
   .add{
-    width: 35%;
+    width: 55%;
     margin-top: 26px;
-    height: 8.5vh;
-    font-size: 25px;
+    height: 13.5vh;
+    font-size: 2.5rem;
   }
 
   .relative{
@@ -92,8 +99,12 @@ tr{ cursor: pointer; }
 
   table{
     tbody{
-      td{
-        font-size: 20px;
+      .td{ font-size: 2.2rem; }
+
+      .td-pa{
+        font-size: 2.2rem;
+        padding-top: 3rem;
+        padding-bottom: 3rem;
       }
     }
   }

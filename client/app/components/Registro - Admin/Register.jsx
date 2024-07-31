@@ -5,7 +5,7 @@ import { Customer, Arrow } from "../Icons"
 import { useState }        from "react"
 import Loading             from "../Loading"
 import Image               from "next/image"
-import logo                from '@p/multi2.jpg'
+import logo                from '@p/multi2.png'
 
 export default function Register() {
   const [names, setNames] = useState({

@@ -6,7 +6,7 @@ import { setCookie }           from '@g/cookies'
 import { Customer }            from "../Icons"
 import { useRouter }           from "next/router"
 import Image                   from "next/image"
-import logo                    from '@p/multi2.jpg'
+import logo                    from '@p/multi2.png'
 
 export default function Login() {
   const [redirect, setRedirect] = useState(false)
