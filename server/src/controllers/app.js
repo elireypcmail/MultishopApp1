@@ -9,7 +9,7 @@ const server = express()
 
 const middlewares = () => {
   server.use(express.json())
-  server.use(cors([_var.ORIGIN, "http://localhost:3001"]))
+  server.use(cors([_var.ORIGIN, "http://localhost:3000"]))
   server.use(userRouter)
   server.use(clientRouter)
   server.use(graphRoutes)
