@@ -91,7 +91,7 @@ graphController.filterData = async (req, res) => {
     const { nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi } = req.body
 
     if (!nombreCliente || !nombreTabla || !fechaInicio || !fechaFin || !kpi) {
-      return res.status(400).json({ error: 'Faltan parámetros requeridos' })
+      return res.status(400).json({ 'error': 'Faltan parámetros requeridos' })
     }
 
     const filtro = determineFilterType(fechaInicio, fechaFin)
@@ -109,14 +109,16 @@ graphController.filterData = async (req, res) => {
     const data = await fetchData(nombreCliente, nombreTabla, fechaInicio, adjustedFechaFin, kpi)
     
     if (data.length === 0) {
-      return res.status(404).json({ error: 'No se encontraron datos para el rango de fechas proporcionado' })
+      return res.status(404).json({ 'error': 'No se encontraron datos para el rango de fechas proporcionado' })
     }
 
     const results = calculateResults(data, filtro, fechaInicio)
+    console.log(results)
+    
     return res.json(results)
   } catch (error) {
     console.error('Error al filtrar datos:', error)
-    return res.status(500).json({ error: 'Error al filtrar datos' })
+    return res.status(500).json({ 'error': 'Error al filtrar datos' })
   }
 }
 

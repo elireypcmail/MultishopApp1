@@ -270,7 +270,7 @@ controller.loginUser = async (req, res) => {
     const existingDeviceResult = await client.query(existingDeviceQuery, existingDeviceValues)
 
     if (existingDeviceResult.rows.length !== 1) {
-      return res.status(400).json({ message: "Este número de teléfono no existe." })
+      return res.status(200).json({ message: "Este número de teléfono no existe." })
     }
 
     if (clave !== dispositivoValido.clave) {
@@ -278,18 +278,18 @@ controller.loginUser = async (req, res) => {
 
       if (intentosFallidos >= 2) {
         await client.query('INSERT INTO notificacion (id_user, notify_type, id_dispositivo) VALUES ($1, $2, $3)', [userId, 'Se ha ingresado mal la contraseña más de 3 veces', dispositivoValido.telefono])
-        return res.status(403).send({ message: 'Intentos fallidos expirados. Comunícate con los administradores' })
+        return res.status(200).send({ message: 'Intentos fallidos expirados. Comunícate con los administradores' })
       }
 
       await client.query('UPDATE cliente SET intento = intento + 1 WHERE id = $1', [userId])
-      return res.status(403).send({ message: 'Contraseña incorrecta' })
+      return res.status(200).send({ message: 'Contraseña incorrecta' })
     }
 
     if (est_financiero === 'Inactivo') {
-      return res.status(403).send({ message: 'Suscripción expirada. Comunícate con los administradores' })
+      return res.status(200).send({ message: 'Suscripción expirada. Comunícate con los administradores' })
     }
 
-    connectToClientSchema(identificacion, instancia)
+    connectToClientSchema(identificacion, nombreCliente, instancia)
     const token = await services.generarToken(userId, true, dispositivoValido.mac, tiempoSuscripcion)
 
     const generateVerificationCode = () => {

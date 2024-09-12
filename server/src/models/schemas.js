@@ -47,9 +47,12 @@ async function deleteSchema(clientId) {
   }
 }
 
-async function connectToClientSchema(identificacion) {
+async function connectToClientSchema(identificacion, nombre_cliente, instance) {
   const client = await db.connect()
   try {
+    console.log(identificacion)
+    console.log(nombre_cliente)
+
     const clienteQuery = `
       SELECT instancia
       FROM instancia
@@ -57,9 +60,12 @@ async function connectToClientSchema(identificacion) {
         SELECT id
         FROM cliente
         WHERE identificacion = $1
+        AND nombre = $2
+        LIMIT 1
       )
+      LIMIT 1
     `
-    const clienteValues = [identificacion]
+    const clienteValues = [identificacion, nombre_cliente]
     const clienteResult = await client.query(clienteQuery, clienteValues)
 
     if (clienteResult.rows.length === 0) {
@@ -67,10 +73,31 @@ async function connectToClientSchema(identificacion) {
     }
 
     const clientSchema = clienteResult.rows[0].instancia
+    console.log(clienteResult)
 
-    await db.query(`SET search_path TO "${clientSchema}"`)
+    const [ prefix, baseInstance, number ] = instance.split('_')
 
-    console.log(`Cliente '${identificacion}' conectado a su schema '${clientSchema}'.`)
+    // Set the search path to the client's schema
+    await db.query(`SET search_path TO "${prefix}"`)
+    console.log(`Cliente '${identificacion}' conectado a su schema '${prefix}'.`)
+
+    // List all tables in the schema
+    const tablesQuery = `
+      SELECT table_name
+      FROM information_schema.tables
+      WHERE table_schema = $1
+    `
+    const tablesResult = await client.query(tablesQuery, [clientSchema])
+
+    //console.log(`Tablas en el schema '${clientSchema}':`, tablesResult.rows)
+
+    // Fetch data from the 'venta' table
+    
+
+    const ventaQuery = `SELECT * FROM ${prefix}.ventas`
+    const ventaResult = await client.query(ventaQuery)
+
+    console.log(`Datos de la tabla 'venta' en el schema '${clientSchema}':`, ventaResult.rows)
   } catch (error) {
     console.error('Error al conectar al cliente a su schema:', error)
   } finally {
