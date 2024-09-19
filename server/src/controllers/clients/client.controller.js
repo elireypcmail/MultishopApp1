@@ -36,15 +36,17 @@ controller.getUsers = async (req, res) => {
 controller.getUser = async (req, res) => {
   try {
     const { id } = req.params
+
     const sql = `
-      SELECT c.id, c.identificacion, c.nombre, c.telefono, c.est_financiero, c.instancia, c.suscripcion,
-             d.telefono AS telefono_dispositivo, d.rol, d.clave
+      SELECT 
+        c.id, c.identificacion, c.nombre, c.telefono, c.est_financiero, c.instancia, c.suscripcion,
+        d.login_user AS usuario_dispositivo, d.clave                             
       FROM cliente c
       LEFT JOIN dispositivo d ON c.id = d.id_cliente
       WHERE c.id = $1
     `
-    
     const user = await pool.query(sql, [id])
+
     if (user?.rows.length === 0) {
       return res.status(404).json({ message: 'Usuario no encontrado' })
     } else {
@@ -57,8 +59,7 @@ controller.getUser = async (req, res) => {
         instancia: user.rows[0].instancia,
         suscripcion: user.rows[0].suscripcion,
         dispositivos: user.rows.map(row => ({
-          telefono: row.telefono_dispositivo,
-          rol: row.rol,
+          login_user: row.usuario_dispositivo,  
           clave: row.clave
         }))
       }
@@ -152,12 +153,15 @@ controller.postUser = async (req, res) => {
 
     const { identificacion, nombre, telefono, dispositivos } = req.body
 
-    const instancia = generateUniqueInstanceName(nombre)
+    // Crear la instancia basada en la identificación
+    const instancia = generateUniqueInstanceName(identificacion)
 
+    // Validar que la identificación no supere los 12 dígitos
     if (identificacion.length > 12) {
-      return res.status(400).json({ "message": "Has superado la cantidad de dígitos de la identificación. No puede tener más de 12 digitos" })
+      return res.status(400).json({ "message": "Has superado la cantidad de dígitos de la identificación. No puede tener más de 12 dígitos" })
     }
 
+    // Verificar si ya existe un cliente con la misma identificación
     const existingIdentificacionQuery = `SELECT id FROM cliente WHERE identificacion = $1`
     const existingIdentificacionValues = [identificacion]
     const existingIdentificacionResult = await client.query(existingIdentificacionQuery, existingIdentificacionValues)
@@ -166,6 +170,7 @@ controller.postUser = async (req, res) => {
       return res.status(400).json({ "message": "Esta identificación ya existe." })
     }
 
+    // Verificar si ya existe un cliente con el mismo número de teléfono
     const existingTelefonoQuery = `SELECT id FROM cliente WHERE telefono = $1`
     const existingTelefonoValues = [telefono]
     const existingTelefonoResult = await client.query(existingTelefonoQuery, existingTelefonoValues)
@@ -174,110 +179,99 @@ controller.postUser = async (req, res) => {
       return res.status(400).json({ "message": "Este número de teléfono ya existe." })
     }
 
-    const existingNombreQuery = `SELECT id FROM cliente WHERE nombre = $1`
-    const existingNombreValues = [nombre]
-    const existingNombreResult = await client.query(existingNombreQuery, existingNombreValues)
-
-    if (existingNombreResult.rows.length > 0) {
-      return res.status(400).json({ "message": "Este nombre de cliente ya existe." })
-    }
-
-    const existsClientQuery = `
-      SELECT id FROM cliente WHERE identificacion = $1 AND nombre = $2 AND telefono = $3
-    `
-    const existsClientValues = [identificacion, nombre, telefono]
-    const existsClientResult = await client.query(existsClientQuery, existsClientValues)
-
-    if (existsClientResult.rows.length > 0) {
-      return res.status(400).json({ "message": 'El cliente ya existe.' })
-    }
-
+    // Insertar cliente en la base de datos
     const clienteQuery = `
       INSERT INTO cliente (identificacion, nombre, telefono, instancia)
       VALUES ($1, $2, $3, $4)
-      RETURNING id, nombre
+      RETURNING id, identificacion
     `
     const clienteValues = [identificacion, nombre, telefono, instancia]
     const clienteResult = await client.query(clienteQuery, clienteValues)
     const clienteId = clienteResult.rows[0].id
-    const nombreCliente = clienteResult.rows[0].nombre
+    const identificacionCliente = clienteResult.rows[0].identificacion
 
-    const dispositivosValidados = dispositivos.filter(dispositivo => ['rol1', 'rol2', 'rol3'].includes(dispositivo.rol))
-    for (const dispositivo of dispositivosValidados) {
-      const existingDeviceQuery = `SELECT id FROM dispositivo WHERE telefono = $1`
-      const existingDeviceValues = [dispositivo.telefono]
-      const existingDeviceResult = await client.query(existingDeviceQuery, existingDeviceValues)
+    // Verificar e insertar los dispositivos si existen
+    if (dispositivos && dispositivos.length > 0) {
+      for (const dispositivo of dispositivos) {
+        if (!dispositivo.login_user || dispositivo.login_user.trim() === '') {
+          return res.status(400).json({ "message": "El campo login_user no puede estar vacío para los dispositivos." })
+        }
 
-      if (existingDeviceResult.rows.length > 0) {
-        return res.status(400).json({ "message": "Este número de teléfono ya existe en los dispositivos." })
+        // Verificar si el dispositivo con ese login_user ya existe
+        const existingDeviceQuery = `SELECT id FROM dispositivo WHERE login_user = $1`
+        const existingDeviceValues = [dispositivo.login_user]
+        const existingDeviceResult = await client.query(existingDeviceQuery, existingDeviceValues)
+
+        if (existingDeviceResult.rows.length > 0) {
+          return res.status(400).json({ "message": `El usuario ${dispositivo.login_user} ya existe en la lista de usuarios.` })
+        }
+
+        // Insertar el dispositivo en la base de datos
+        const dispositivoQuery = `
+          INSERT INTO dispositivo(id_cliente, login_user, clave)
+          VALUES($1, $2, $3)
+        `
+        const dispositivoValues = [clienteId, dispositivo.login_user, dispositivo.clave]
+        await client.query(dispositivoQuery, dispositivoValues)
       }
-
-      const dispositivoQuery = `
-        INSERT INTO dispositivo(id_cliente, telefono, rol, clave)
-        VALUES($1, $2, $3, $4)
-      `
-      const dispositivoValues = [clienteId, dispositivo.telefono, dispositivo.rol, dispositivo.clave]
-      await client.query(dispositivoQuery, dispositivoValues)
     }
 
-    await createSchema(nombreCliente)
-    createTableInSchema(nombreCliente, 'ventas')
-    createInstanceForClient(clienteId, nombreCliente, instancia)
+    // Crear el esquema basado en la identificación del cliente
+    await createSchema(identificacionCliente)
 
-    await client.query('COMMIT') // Confirmar la transacción
+    // Crear la tabla 'ventas' dentro del esquema del cliente
+    createTableInSchema(identificacionCliente, 'ventas')
+
+    // Crear la instancia para el cliente con los datos necesarios
+    createInstanceForClient(clienteId, identificacionCliente, instancia)
+
+    // Confirmar la transacción
+    await client.query('COMMIT')
+    console.log(identificacion, nombre, telefono, dispositivos)
+
+    // Responder con éxito
     res.status(200).send({ "message": 'Cliente y dispositivos registrados correctamente.' })
   } catch (err) {
-    await client.query('ROLLBACK') // Revertir la transacción en caso de error
+    // Revertir la transacción en caso de error
+    await client.query('ROLLBACK')
     console.error({ "message": 'Error al registrar cliente y dispositivos:', err })
     res.status(500).send({ "message": 'Error al registrar cliente y dispositivos.' })
   } finally {
+    // Liberar el cliente de la conexión
     client.release()
   }
 }
 
 controller.loginUser = async (req, res) => {
-  const { identificacion, instancia, telefono, clave } = req.body
+  const { login_user, clave } = req.body 
 
   try {
     const client = await pool.connect()
 
-    const usuarioQuery = `
-      SELECT id, nombre, suscripcion, est_financiero, intento
-      FROM cliente
-      WHERE identificacion = $1
+    const dispositivoQuery = `
+      SELECT id_cliente, clave 
+      FROM dispositivo 
+      WHERE login_user = $1
     `
-    const usuarioValues = [identificacion]
-    const usuarioResult = await client.query(usuarioQuery, usuarioValues)
-    console.log(usuarioResult.rows[0])
-    const {
-      id: userId,
-      nombre: nombreCliente,
-      suscripcion: tiempoSuscripcion,
-      est_financiero: est_financiero,
-      intento: intentosFallidos,
-    } = usuarioResult.rows[0]
+    const dispositivoValues = [login_user]
+    const dispositivoResult = await client.query(dispositivoQuery, dispositivoValues)
 
-    const dispositivosQuery = `
-      SELECT telefono, rol, clave FROM dispositivo
-      WHERE id_cliente = $1 
-    `
-    const dispositivosValues = [userId]
-    const dispositivosResult = await client.query(dispositivosQuery, dispositivosValues)
-    const dispositivoValido = dispositivosResult.rows[0]
-
-    const existingDeviceQuery = `SELECT id FROM dispositivo WHERE telefono = $1`
-    const existingDeviceValues = [telefono]
-    const existingDeviceResult = await client.query(existingDeviceQuery, existingDeviceValues)
-
-    if (existingDeviceResult.rows.length !== 1) {
-      return res.status(200).json({ message: "Este número de teléfono no existe." })
+    if (dispositivoResult.rows.length === 0) {
+      return res.status(200).json({ message: "Este usuario no existe." })
     }
 
-    if (clave !== dispositivoValido.clave) {
-      await services.registrarAuditoria(userId, 'Intento de inicio de sesión fallido', dispositivoValido.telefono, { claveIntentada: clave })
+    const dispositivoValido = dispositivoResult.rows[0]
+    const { id_cliente: userId, clave: claveDispositivo } = dispositivoValido
+
+    if (clave !== claveDispositivo) {
+      await services.registrarAuditoria(userId, 'Intento de inicio de sesión fallido', login_user, { claveIntentada: clave })
+
+      const intentosQuery = `SELECT intento FROM cliente WHERE id = $1`
+      const intentosResult = await client.query(intentosQuery, [userId])
+      const intentosFallidos = intentosResult.rows[0]?.intento
 
       if (intentosFallidos >= 2) {
-        await client.query('INSERT INTO notificacion (id_user, notify_type, id_dispositivo) VALUES ($1, $2, $3)', [userId, 'Se ha ingresado mal la contraseña más de 3 veces', dispositivoValido.telefono])
+        await client.query('INSERT INTO notificacion (id_user, notify_type, id_dispositivo) VALUES ($1, $2, $3)', [userId, 'Se ha ingresado mal la contraseña más de 3 veces', login_user])
         return res.status(200).send({ message: 'Intentos fallidos expirados. Comunícate con los administradores' })
       }
 
@@ -285,26 +279,33 @@ controller.loginUser = async (req, res) => {
       return res.status(200).send({ message: 'Contraseña incorrecta' })
     }
 
+    const clienteQuery = `
+      SELECT identificacion, nombre, suscripcion, est_financiero 
+      FROM cliente 
+      WHERE id = $1
+    `
+    const clienteResult = await client.query(clienteQuery, [userId])
+    const cliente = clienteResult.rows[0]
+
+    if (!cliente) {
+      return res.status(404).json({ message: "Cliente no encontrado" })
+    }
+
+    const { identificacion, nombre: nombreCliente, suscripcion: tiempoSuscripcion, est_financiero } = cliente
+
     if (est_financiero === 'Inactivo') {
       return res.status(200).send({ message: 'Suscripción expirada. Comunícate con los administradores' })
     }
 
-    connectToClientSchema(identificacion, nombreCliente, instancia)
-    const token = await services.generarToken(userId, true, dispositivoValido.mac, tiempoSuscripcion)
+    connectToClientSchema(identificacion, nombreCliente)
 
-    const generateVerificationCode = () => {
-      return Math.floor(1000 + Math.random() * 9000).toString()
-    }
+    const token = await services.generarToken(userId, true, login_user, tiempoSuscripcion)
 
-    const verificationCode = generateVerificationCode()
-
-    //await service.saveVerificationCode(userId, telefono, verificationCode)
-
-    await services.registrarAuditoria(userId, 'Inicio de sesión exitoso', dispositivoValido.telefono)
+    await services.registrarAuditoria(userId, 'Inicio de sesión exitoso', login_user)
 
     client.release()
 
-    return res.status(200).json({ tokenCode: token })
+    return res.status(200).json({ tokenCode: token, identificacion })
   } catch (error) {
     console.error({ message: 'Error en inicio de sesión:', error })
     res.status(500).send({ message: 'Error en inicio de sesión' })
@@ -332,57 +333,79 @@ function generateVerificationCode() {
 }
 
 controller.updateUser = async (req, res) => {
-  const client = await pool.connect()
+  const client = await pool.connect();
   try {
-    const { id } = req.params
-    const { dispositivos, ...edit } = req.body
+    const { id } = req.params;
+    const { dispositivos, ...edit } = req.body;
 
-    await client.query('BEGIN')
+    await client.query('BEGIN');
+
+    // Actualizar datos del usuario
+    const getUserQuery = `SELECT nombre, telefono, est_financiero, suscripcion FROM cliente WHERE id=$1`;
+    const currentUser = await client.query(getUserQuery, [id]);
+
+    if (currentUser.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ message: 'Usuario no encontrado.' });
+    }
+
+    const updatedUser = {
+      nombre: edit.nombre || currentUser.rows[0].nombre,
+      telefono: edit.telefono || currentUser.rows[0].telefono,
+      est_financiero: edit.est_financiero || currentUser.rows[0].est_financiero,
+      suscripcion: edit.suscripcion || currentUser.rows[0].suscripcion,
+    };
 
     const updateUserQuery = `
       UPDATE cliente 
       SET nombre=$1, telefono=$2, est_financiero=$3, suscripcion=$4
       WHERE id=$5
-    `
-    const updateUserValues = [
-      edit.nombre,
-      edit.telefono,
-      edit.est_financiero,
-      edit.suscripcion,
-      id
-    ]
-    await client.query(updateUserQuery, updateUserValues)
+    `;
+    await client.query(updateUserQuery, [
+      updatedUser.nombre,
+      updatedUser.telefono,
+      updatedUser.est_financiero,
+      updatedUser.suscripcion,
+      id,
+    ]);
 
-    const deleteDispositivosQuery = `
-      DELETE FROM dispositivo
-      WHERE id_cliente=$1
-    `
-    await client.query(deleteDispositivosQuery, [id])
+    // Obtener todos los dispositivos existentes para este usuario
+    const getDispositivosQuery = `SELECT login_user FROM dispositivo WHERE id_cliente = $1`;
+    const existingDispositivos = await client.query(getDispositivosQuery, [id]);
+    const existingLogins = existingDispositivos.rows.map(d => d.login_user);
 
     const insertDispositivosQuery = `
-      INSERT INTO dispositivo (id_cliente, telefono, rol, clave)
-      VALUES ($1, $2, $3, $4)
-    `
+      INSERT INTO dispositivo (id_cliente, login_user, clave)
+      VALUES ($1, $2, $3)
+      ON CONFLICT (login_user) DO NOTHING
+    `;
+
     for (const dispositivo of dispositivos) {
-      const insertDispositivoValues = [
-        id,
-        dispositivo.telefono,
-        dispositivo.rol,
-        dispositivo.clave
-      ]
-      await client.query(insertDispositivosQuery, insertDispositivoValues)
+      console.log("Procesando dispositivo:", dispositivo);
+
+      if (dispositivo.login_user && dispositivo.clave) {
+        // Verificar si el dispositivo ya existe en el array obtenido
+        if (!existingLogins.includes(dispositivo.login_user)) {
+          const result = await client.query(insertDispositivosQuery, [id, dispositivo.login_user, dispositivo.clave]);
+          console.log("Insertando dispositivo:", dispositivo.login_user, dispositivo.clave);
+          console.log("Filas afectadas:", result.rowCount); // Verifica si realmente se insertó
+        } else {
+          console.log(`Dispositivo con login_user ${dispositivo.login_user} ya existe.`);
+        }
+      }
     }
 
-    await client.query('COMMIT')
-    res.status(200).json({ message: 'Datos del usuario y dispositivos actualizados correctamente' })
+    await client.query('COMMIT');
+    res.status(200).json({ message: 'Datos del usuario y dispositivos actualizados correctamente.' });
+
   } catch (err) {
-    await client.query('ROLLBACK')
-    console.error(err)
-    res.status(500).json({ message: 'Error al editar los datos de este usuario y dispositivos' })
+    await client.query('ROLLBACK');
+    console.error(err);
+    res.status(500).json({ message: 'Error al editar los datos de este usuario y dispositivos.' });
   } finally {
-    client.release()
+    client.release();
   }
-}
+};
 
 controller.deleteUser = async (req, res) => {
   try {

@@ -89,6 +89,8 @@ const determineFilterType = (fechaInicio, fechaFin) => {
 graphController.filterData = async (req, res) => {
   try {
     const { nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi } = req.body
+    console.log(nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi);
+    
 
     if (!nombreCliente || !nombreTabla || !fechaInicio || !fechaFin || !kpi) {
       return res.status(400).json({ 'error': 'Faltan parámetros requeridos' })
