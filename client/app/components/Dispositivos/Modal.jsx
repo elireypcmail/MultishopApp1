@@ -9,7 +9,7 @@ import { useState } from "react"
 import DevicesTable from "./Devices"
 
 export default function ModalDev({ isOpen, onClose, dispositivos, onChange }) {
-  const [dispositivo, setDispositivo] = useState({ telefono: '', mac: '', rol: '', clave: '' })
+  const [dispositivo, setDispositivo] = useState({ login_user: '', clave: '' })
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -17,8 +17,8 @@ export default function ModalDev({ isOpen, onClose, dispositivos, onChange }) {
   }
 
   const agregarDispositivo = () => {
-    onChange([...dispositivos, dispositivo]) 
-    setDispositivo({ telefono: '', mac: '', rol: '', clave: '' })
+    const nuevosDispositivos = [...dispositivos, { login_user: '', clave: '' }]
+    onChange(nuevosDispositivos) 
   }
 
   return (
@@ -31,15 +31,21 @@ export default function ModalDev({ isOpen, onClose, dispositivos, onChange }) {
       style={{ maxWidth: '80%', height: '80vh' }}
     >
       <ModalContent>
-        <ModalHeader className="flex flex-col gap-1 text-base ti">Lista de dispositivos</ModalHeader>
+        <ModalHeader className="flex flex-col gap-1 text-base ti">Lista de usuarios</ModalHeader>
         <ModalBody>
-          <DevicesTable dispositivos={dispositivos} onChange={onChange}  />
+          <DevicesTable dispositivos={dispositivos} onChange={onChange} />
         </ModalBody>
         <ModalFooter className="flex justify-between">
-          <button className="btn-add-device add text-white bg-cyan-700 hover:bg-cyan-800 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700" onClick={agregarDispositivo}>
-            Añadir un nuevo dispositivo
+          <button
+            className="btn-add-device add text-white bg-cyan-700 hover:bg-cyan-800 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700"
+            onClick={agregarDispositivo}
+          >
+            Añadir un nuevo usuario
           </button>
-          <button className="btn-close-modal close text-white bg-cyan-700 hover:bg-cyan-800 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800" onClick={onClose}>
+          <button
+            className="btn-close-modal close text-white bg-cyan-700 hover:bg-cyan-800 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+            onClick={onClose}
+          >
             Cerrar
           </button>
         </ModalFooter>

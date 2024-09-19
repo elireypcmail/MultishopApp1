@@ -11,7 +11,6 @@ export default function FormClient({}) {
     identificacion: "",
     nombre: "",
     telefono: "",
-    correo: "", // Nuevo campo para el correo electrónico
     suscripcion: "",
     dispositivos: []
   })
@@ -19,13 +18,12 @@ export default function FormClient({}) {
   const [idtError, setIdtError] = useState('')
   const [telError, setTelError] = useState('')
   const [nombreError, setNombreError] = useState('')
-  const [emailError, setEmailError] = useState('') // Estado para el error del correo electrónico
 
   const notifySuccess = (msg) => { toast.success(msg) }
   const notifyError = (msg) => { toast.error(msg) }
 
   const validarIdentificacion = (value) => {
-    const regex = /^V-\d*$/
+    const regex = /^[Vv]\d*$/
     if (!regex.test(value)) {
       setIdtError("El formato de la identificación es incorrecto")
     } else {
@@ -43,20 +41,7 @@ export default function FormClient({}) {
   }
 
   const validarNombre = (value) => {
-    if (/[A-Z]/.test(value)) {
-      setNombreError("El nombre no puede contener letras mayúsculas")
-    } else {
-      setNombreError('')
-    }
-  }
-
-  const validarEmail = (value) => {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!regex.test(value)) {
-      setEmailError("Formato de correo electrónico incorrecto")
-    } else {
-      setEmailError('')
-    }
+    setCliente({ ...cliente, nombre: value.toUpperCase() }) 
   }
 
   const handleChange = (e) => {
@@ -70,10 +55,7 @@ export default function FormClient({}) {
         validarTelefono(value)
         break
       case 'nombre':
-        validarNombre(value)
-        break
-      case 'correo':
-        validarEmail(value) // Validar el correo electrónico
+        validarNombre(value)  
         break
       default:
         break
@@ -95,9 +77,6 @@ export default function FormClient({}) {
       return
     } else if (telError) {
       notifyError('El formato del teléfono es incorrecto')
-      return
-    } else if (emailError) { // Validar el correo electrónico antes de enviar
-      notifyError('Formato de correo electrónico incorrecto')
       return
     }
 
@@ -130,14 +109,12 @@ export default function FormClient({}) {
       identificacion: "",
       nombre: "",
       telefono: "",
-      correo: "", // Limpiar el campo de correo electrónico
       suscripcion: "",
       dispositivos: []
     })
     setIdtError('')
     setTelError('')
     setNombreError('')
-    setEmailError('') // Limpiar el estado de error del correo electrónico
   }
 
   return (
@@ -155,7 +132,7 @@ export default function FormClient({}) {
                 name="identificacion"
                 value={cliente.identificacion}
                 onChange={handleChange}
-                placeholder="V-Identificación"
+                placeholder="VIdentificación"
                 required
               />
               {idtError && <p className="text-red-500 text-sm">{idtError}</p>}

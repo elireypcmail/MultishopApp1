@@ -105,7 +105,7 @@ export default function MovTable({ data }) {
           <thead className="text-xs text-gray-100 uppercase thead">
             <tr>
               <th scope="col" className="px-6 py-3">Acción</th>
-              <th scope="col" className="px-6 py-3">Dispositivo</th>
+              <th scope="col" className="px-6 py-3">Usuario</th>
               <th scope="col" className="px-6 py-3">Información adicional</th>
               <th scope="col" className="px-6 py-3">Fecha</th>
             </tr>

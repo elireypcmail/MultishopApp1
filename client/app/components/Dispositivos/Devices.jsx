@@ -32,10 +32,7 @@ export default function TableDev({ dispositivos, onChange }) {
         <thead className="text-xs text-gray-100 uppercase thead">
           <tr>
             <th scope="col" className="px-6 py-3">
-              Telefono
-            </th>
-            <th scope="col" className="px-6 py-3">
-              Nivel de Autorización
+              Nombre de Usuario
             </th>
             <th scope="col" className="px-6 py-3">
               Clave
@@ -49,29 +46,13 @@ export default function TableDev({ dispositivos, onChange }) {
             <tr className="bg-white hover:bg-gray-50" key={index}>
               <td>
                 <input
-                  className={`block w-full p-2 text-gray-900 border ${telefonoError ? 'border-red-500' : 'border-gray-300'} rounded-lg bg-gray-50 text-xs focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500`}
-                  type="tel"
-                  name="telefono"
-                  value={dispositivo.telefono}
-                  placeholder='+58 4141234567'
+                  className={`block w-full p-2 text-gray-900 border rounded-lg bg-gray-50 text-xs focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500`}
+                  type="text"
+                  name="login_user" 
+                  value={dispositivo.login_user}
+                  placeholder='Nombre de usuario'
                   onChange={(e) => handleChange(e, index)}
                 />
-                {telefonoError && (
-                  <p className="text-red-500 text-xs">{telefonoError}</p>
-                )}
-              </td>
-              <td>
-                <select
-                  className="block w-full p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-xs focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                  name="rol"
-                  value={dispositivo.rol}
-                  onChange={(e) => handleChange(e, index)}
-                >
-                  <option value="selecc">Seleccionar</option>
-                  <option value="rol1">rol1</option>
-                  <option value="rol2">rol2</option>
-                  <option value="rol3">rol3</option>
-                </select>
               </td>
               <td>
                 <input
@@ -82,7 +63,18 @@ export default function TableDev({ dispositivos, onChange }) {
                   onChange={(e) => handleChange(e, index)}
                 />
               </td>
-              <td><input type="checkbox" /></td>
+              <td>
+                <button className="bookmarkBtn">
+                  <span className="IconContainer">
+                    <svg viewBox="0 0 384 512" height="0.9em" class="icon">
+                      <path
+                        d="M0 48V487.7C0 501.1 10.9 512 24.3 512c5 0 9.9-1.5 14-4.4L192 400 345.7 507.6c4.1 2.9 9 4.4 14 4.4c13.4 0 24.3-10.9 24.3-24.3V48c0-26.5-21.5-48-48-48H48C21.5 0 0 21.5 0 48z"
+                      ></path>
+                    </svg>
+                  </span>
+                  <p class="text">Guardar</p>
+                </button>
+              </td>
               <td>
                 <button className="remove" onClick={() => eliminarDispositivo(index)}>
                   <RemoveDevice />
