@@ -39,12 +39,21 @@ controller.getUser = async (req, res) => {
 
     const sql = `
       SELECT 
-        c.id, c.identificacion, c.nombre, c.telefono, c.est_financiero, c.instancia, c.suscripcion,
-        d.login_user AS usuario_dispositivo, d.clave                             
+        c.id, 
+        c.identificacion, 
+        c.nombre, 
+        c.telefono, 
+        c.est_financiero, 
+        c.instancia, 
+        c.suscripcion, 
+        TO_CHAR(c.fecha_corte, 'DD/MM/YYYY') AS fecha_corte,
+        d.login_user AS usuario_dispositivo, 
+        d.clave                             
       FROM cliente c
       LEFT JOIN dispositivo d ON c.id = d.id_cliente
       WHERE c.id = $1
     `
+    
     const user = await pool.query(sql, [id])
 
     if (user?.rows.length === 0) {
@@ -58,6 +67,7 @@ controller.getUser = async (req, res) => {
         est_financiero: user.rows[0].est_financiero,
         instancia: user.rows[0].instancia,
         suscripcion: user.rows[0].suscripcion,
+        fecha_corte: user.rows[0].fecha_corte,  
         dispositivos: user.rows.map(row => ({
           login_user: row.usuario_dispositivo,  
           clave: row.clave
@@ -175,9 +185,11 @@ controller.postUser = async (req, res) => {
       return res.status(400).json({ "message": "Este número de teléfono ya existe." })
     }
 
+    const fechaCorte = `CURRENT_DATE + INTERVAL '30 days'`
+
     const clienteQuery = `
-      INSERT INTO cliente (identificacion, nombre, telefono, instancia)
-      VALUES ($1, $2, $3, $4)
+      INSERT INTO cliente (identificacion, nombre, telefono, instancia, fecha_corte)
+      VALUES ($1, $2, $3, $4, ${fechaCorte})
       RETURNING id, identificacion
     `
     const clienteValues = [identificacion, nombre, telefono, instancia]
@@ -326,7 +338,7 @@ controller.updateUser = async (req, res) => {
 
     await client.query('BEGIN')
 
-    const getUserQuery = `SELECT nombre, telefono, est_financiero, suscripcion FROM cliente WHERE id=$1`
+    const getUserQuery = `SELECT nombre, telefono, est_financiero, suscripcion, fecha_corte FROM cliente WHERE id=$1`
     const currentUser = await client.query(getUserQuery, [id])
 
     if (currentUser.rows.length === 0) {
@@ -341,16 +353,23 @@ controller.updateUser = async (req, res) => {
       suscripcion: edit.suscripcion || currentUser.rows[0].suscripcion,
     }
 
+    const nuevaFechaCorteQuery = `
+      SELECT CURRENT_DATE + INTERVAL '${updatedUser.suscripcion} days' AS nueva_fecha_corte
+    `
+    const nuevaFechaCorteResult = await client.query(nuevaFechaCorteQuery)
+    const nuevaFechaCorte = nuevaFechaCorteResult.rows[0].nueva_fecha_corte
+
     const updateUserQuery = `
       UPDATE cliente 
-      SET nombre=$1, telefono=$2, est_financiero=$3, suscripcion=$4
-      WHERE id=$5
+      SET nombre=$1, telefono=$2, est_financiero=$3, suscripcion=$4, fecha_corte=$5
+      WHERE id=$6
     `
     await client.query(updateUserQuery, [
       updatedUser.nombre,
       updatedUser.telefono,
       updatedUser.est_financiero,
       updatedUser.suscripcion,
+      nuevaFechaCorte, 
       id,
     ])
 

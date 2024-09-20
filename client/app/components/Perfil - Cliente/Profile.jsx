@@ -59,6 +59,7 @@ export default function UserProfile({ data }) {
           instancia: data?.instancia,
           est_financiero: data?.est_financiero,
           suscripcion: data?.suscripcion,
+          fecha_corte: data?.fecha_corte,
           dispositivos: data?.dispositivos,
         }
 
@@ -252,6 +253,17 @@ export default function UserProfile({ data }) {
                         <option value="40">40 (días)</option>
                         <option value="60">60 (días)</option>
                       </select>
+                    </span>
+                    <span className='us1'>
+                      <label className='labels'>Fecha de corte de la suscripción</label>
+                      <div className="input-with-icon">
+                        <input 
+                          className='us2' 
+                          type="text" 
+                          value={userData ? userData?.fecha_corte : ''} 
+                          readOnly 
+                        />
+                      </div>
                     </span>
                     <span className='us1'>
                       <label className='labels'>Dispositivos</label>
