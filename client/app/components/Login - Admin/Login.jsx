@@ -73,8 +73,8 @@ export default function Login() {
   return(
     <>
       {loading && <Loading />}
-      <div className="login">
       <Toaster position="top-right" reverseOrder={true} duration={5000}/>
+      <div className="login">
         <div className="nv">
           <Image className="Logo2" src={ logo } alt="Logo de multishop" priority />
         </div>

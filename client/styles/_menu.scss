@@ -66,9 +66,19 @@ ul{ width: 95%; }
 
 i{ margin-right: 10px; }
 
-.bg-gray-900{ padding: 35px; }
+.bg-gray-900{ 
+  position: fixed;
+  padding: 35px; 
+  z-index: 10000;
+  height: 300vh;
+}
 
 .lis{
+  margin: 35px 0 35px 0;
+  font-size: 45px;
+}
+
+#lis{
   margin: 35px 0 35px 0;
   font-size: 45px;
 }

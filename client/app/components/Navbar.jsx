@@ -19,7 +19,7 @@ export default function Navbar({ data }) {
   }
 
   function toggleMenu() {
-    setIsMenuOpen(!isMenuOpen)
+    setIsMenuOpen(prevState => !prevState)
   }
 
   const dropdownItems = [
@@ -52,7 +52,6 @@ export default function Navbar({ data }) {
           >
             <Image src={barra} className='barra' alt='Barra' priority /> 
           </button>
-          {isMenuOpen && <MenuToggle isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />}
         </div>
         {data && (
           <Dropdown>
@@ -85,6 +84,7 @@ export default function Navbar({ data }) {
           </Dropdown>
         )}
       </div>  
+      <MenuToggle isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
     </div>
   )
 }
