@@ -42,7 +42,7 @@ export default function Login() {
           const email = res.data.data.email 
           setCookie('Admins', email)
           localStorage.setItem('email', res.data.data.email)
-          notifySucces('Inicio de sección exitoso')
+          notifySucces('Inicio de sesión exitoso')
           setRedirect(true)
         } else { notifyError(res.data.message) }
       } else { notifyError('Ha ocurrido un error en el inicio de sesión') }
