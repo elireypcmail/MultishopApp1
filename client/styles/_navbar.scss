@@ -5,7 +5,6 @@
 
 .nav{
   display: flex;
-  justify-content: space-between;
   align-items: center;
   width: 98%;
   background: rgba(238, 238, 238, 0.492);
@@ -20,17 +19,30 @@
   padding-left: 50px;
 }
 
+.button{
+  width: 20%;
+  background: none;
+  display: flex;
+  justify-content: flex-end;
+  right: -78%;
+}
+
+.ad{
+  display: flex;
+  justify-content: flex-start;
+  width: 100%;
+}
+
 .adm{
   display: flex;
   align-items: center;
-  width: 15%;
-  margin-right: 50px;
+  margin-right: 1%;
 }
 
 .admin{
-  width: 14%;
+  width: 38%;
   height: 3.2vh;
-  margin-left: 10px;
+  margin-left: 2%;
 }
 
 .name{
@@ -54,6 +66,11 @@
 }
 
 @media (max-width: 767px){
+  .button{
+    width: 38%;
+    right: -50%;
+  }
+
   .navbar{ margin-bottom: 12px; }
   .name{ font-size: 28px; }
 
@@ -73,6 +90,13 @@
     width: 39%;
     height: 7.3vh;
     margin-left: 25px;
+
+    .svg{
+      min-width: 15%;
+      min-height: 15%;
+      width: 15%;
+      height: 15%;
+    }
   }
 
   .menu-toggle{

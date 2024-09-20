@@ -120,8 +120,8 @@ export default function FormClient({}) {
   return (
     <>
       {loading && <Loading />}
+      <Toaster position="top-right" reverseOrder={true} duration={5000} />
       <form onSubmit={newClient} action="" className="form">
-        <Toaster position="top-right" reverseOrder={true} duration={5000} />
         <div className="create">
           <div className="one">
             <span className="span2">
@@ -132,7 +132,7 @@ export default function FormClient({}) {
                 name="identificacion"
                 value={cliente.identificacion}
                 onChange={handleChange}
-                placeholder="VIdentificación"
+                placeholder="V00000000"
                 required
               />
               {idtError && <p className="text-red-500 text-sm">{idtError}</p>}
@@ -166,13 +166,13 @@ export default function FormClient({}) {
               {telError && <p className="text-red-500 text-sm">{telError}</p>}
             </span>
 
-            <span className="span">
+            {/* <span className="span">
               <label className="title">Dispositivos</label>
               <button type="button" className="btn1" onClick={onOpen}>
                 Añadir dispositivos
               </button>
               <ModalDev isOpen={isOpen} onClose={onClose} dispositivos={cliente.dispositivos} onChange={handleDispositivosChange} />
-            </span>
+            </span> */}
           </div>
         </div>
 

@@ -1,48 +1,46 @@
-'use client'
+'use client' // Añadir esta línea al inicio del componente
 
-import { Profile, Delete, Copy }   from '../Icons'
-import { useState, useEffect }     from 'react'
+import { Profile, Delete, Copy } from '../Icons'
+import { useState, useEffect } from 'react'
 import { setCookie, removeCookie } from '@g/cookies'
-import toast, {Toaster}  from 'react-hot-toast'
-import { useRouter }     from 'next/router'
-import { useDisclosure } from "@nextui-org/react"
-import { getUser }       from '@api/Get'
-import { deleteClient }  from '@api/Delete'
-import { updateUser }    from '@api/Put'
-import Image             from 'next/image'
-import logo              from '@p/multi2.png'
-import ModalDev          from '../Dispositivos/Modal'
-import ModalMov          from '../Movimientos/Movements'
-import MovNotify         from '../Notificaciones/MovNotify'
+import toast, { Toaster } from 'react-hot-toast'
+import { useRouter } from 'next/router'
+import { useDisclosure } from '@nextui-org/react'
+import { getUser } from '@api/Get'
+import { deleteClient } from '@api/Delete'
+import { updateUser } from '@api/Put'
+import Image from 'next/image'
+import logo from '@p/multi2.png'
+import ModalDev from '../Dispositivos/Modal'
+import ModalMov from '../Movimientos/Movements'
+import MovNotify from '../Notificaciones/MovNotify'
 
 export default function UserProfile({ data }) {
   const [userData, setUserData] = useState(data)
   const [selectedOptions, setSelectedOptions] = useState({
     est_financiero: userData?.est_financiero,
-    suscripcion: userData?.suscripcion
+    suscripcion: userData?.suscripcion,
   })
 
   const notifySucces = (msg) => { toast.success(msg) }
-  const notifyError  = (msg) => { toast.error(msg) }
-  
+  const notifyError = (msg) => { toast.error(msg) }
+
   const [filas, setFilas] = useState([
-    { telefono: "", mac: "", niv_auth: "", clave: "" },
+    { telefono: '', mac: '', niv_auth: '', clave: '' },
   ])
 
   const router = useRouter()
   const { push } = useRouter()
 
-  const {isOpen: isOpenDev, onOpen: onOpenDev, onClose: onCloseDev} = useDisclosure()
-  const {isOpen: isOpenMov, onOpen: onOpenMov, onClose: onCloseMov} = useDisclosure()
-  const {isOpen: isOpenNot, onOpen: onOpenNot, onClose: onCloseNot} = useDisclosure()
+  const { isOpen: isOpenDev, onOpen: onOpenDev, onClose: onCloseDev } = useDisclosure()
+  const { isOpen: isOpenMov, onOpen: onOpenMov, onClose: onCloseMov } = useDisclosure()
+  const { isOpen: isOpenNot, onOpen: onOpenNot, onClose: onCloseNot } = useDisclosure()
 
   const { userId } = router.query
 
   const id = userId
 
   useEffect(() => {
-    setUserData(userData)
-
     if (id) {
       fetchUserData(id)
     }
@@ -61,7 +59,7 @@ export default function UserProfile({ data }) {
           instancia: data?.instancia,
           est_financiero: data?.est_financiero,
           suscripcion: data?.suscripcion,
-          dispositivos: data?.dispositivos
+          dispositivos: data?.dispositivos,
         }
 
         const Json = JSON.stringify(profile)
@@ -80,25 +78,37 @@ export default function UserProfile({ data }) {
   const eliminarCliente = async () => {
     try {
       const result = await deleteClient(id)
-      if (result.status == 200) {
+      if (result.status === 200) {
         removeCookie('profile')
         notifySucces('Se ha eliminado el cliente correctamente')
         push('/client')
-      } else { notifyError('Ha ocurrido un error al eliminar este cliente') }
-    } catch (err) { console.error(err) }
+      } else {
+        notifyError('Ha ocurrido un error al eliminar este cliente')
+      }
+    } catch (err) {
+      console.error(err)
+    }
   }
 
-  const handleDispositivosChange = (dispositivos) => {
-    setUserData({ ...userData, dispositivos: dispositivos })
+  const handleDispositivosChange = (nuevosDispositivos) => {
+    setFilas(nuevosDispositivos)
+    setUserData((prevUserData) => ({
+      ...prevUserData,
+      dispositivos: nuevosDispositivos,
+    }))
+  }
+
+  const agregarDispositivo = () => {
+    const nuevosDispositivos = [...filas, { telefono: '', mac: '', niv_auth: '', clave: '' }]
+    handleDispositivosChange(nuevosDispositivos)
   }
 
   const eliminarFila = (index) => {
-    const nuevasFilas = [...filas]
-    nuevasFilas.splice(index, 1)
-    setFilas(nuevasFilas)
+    const nuevasFilas = filas.filter((_, idx) => idx !== index)
+    handleDispositivosChange(nuevasFilas)
   }
 
-  async function copiarContenido() {
+  const copiarContenido = async () => {
     try {
       const instancia = document.getElementById('copy').value
       await navigator.clipboard.writeText(instancia)
@@ -133,9 +143,12 @@ export default function UserProfile({ data }) {
         dispositivos: filas,
       }
       const response = await updateUser(id, updatedUserData)
-      if (response && response.status === 200) {
+      
+      if (response && response.status === 200 && response.data.message === 'Datos del usuario y dispositivos actualizados correctamente.') {
         notifySucces('Datos actualizados correctamente')
-      } else {
+      } else if (response && response.data.message && response.data.message.endsWith('ya existe.')) {
+        notifyError(`Error: ${response.data.message}`)
+      } else  {
         notifyError('Error al actualizar los datos')
       }
     } catch (error) {
@@ -218,7 +231,7 @@ export default function UserProfile({ data }) {
                           className='us2' 
                           type="text" 
                           id='copy' 
-                          value={userData ? userData?.instancia : ''} 
+                          value={userData ? userData?.identificacion : ''} 
                           readOnly 
                         />
                         <button type='button' className='copy' onClick={copiarContenido}>
@@ -243,12 +256,12 @@ export default function UserProfile({ data }) {
                     <span className='us1'>
                       <label className='labels'>Dispositivos</label>
                       <button type="button" className="btn4" onClick={onOpenDev}>
-                        Ver dispositivos
+                        Ver usuarios
                       </button>
                       <ModalDev
                         isOpen={isOpenDev}
                         onClose={onCloseDev}
-                        dispositivos={userData?.dispositivos}
+                        dispositivos={filas}
                         onChange={handleDispositivosChange}
                         eliminarFila={eliminarFila}
                       />

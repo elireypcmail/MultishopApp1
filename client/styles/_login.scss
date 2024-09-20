@@ -4,6 +4,10 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  background-image: url('../public/fondo-multishop.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .Logo2 {
@@ -13,7 +17,8 @@
 }
 
 .iconL {
-  margin-bottom: 25px;
+  margin-bottom: 15px;
+  margin-top: 25px;
 }
 
 .customer2 {
@@ -26,12 +31,22 @@
   width: 100%;
   max-width: 400px;
   padding: 20px;
-  background: white;
+}
+
+.form-login{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 28%;
+  background: rgba(238, 238, 238, 0.12);
+  backdrop-filter: blur(2px);
+  border: 1px solid rgba(0, 0, 0, 0.105);
   border-radius: 10px;
+  height: 55vh;
 }
 
 .form-cusL2 {
-  margin-top: 2em;
+  margin-top: 1em;
 }
 
 .cusL, .input-container {
@@ -40,7 +55,8 @@
   margin: 20px 0;
   border-radius: 9px;
   padding: 10px;
-  background: #dfebf0;
+  border: 1px solid rgba(58, 108, 184, 0.44);
+  background: rgba(163, 191, 225, 0.264);
   outline: none;
   border: 1px solid rgb(218, 218, 218);
   color: #515151;

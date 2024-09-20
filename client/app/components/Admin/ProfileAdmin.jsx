@@ -1,15 +1,15 @@
 'use client'
 
-import { Profile, Delete }         from '../Icons'
-import { useState, useEffect }     from 'react'
-import { setCookie, removeCookie } from '@g/cookies'
-import toast, { Toaster }          from 'react-hot-toast'
-import { useRouter }               from 'next/router'
-import { getAdmin }                from '@api/Get'
-import { deleteAdmin }             from '@api/Delete'
-import { updateAdmin }             from '@api/Put'
-import Image                       from 'next/image'
-import logo                        from '@p/multi2.png'
+import { Profile, Delete }          from '../Icons'
+import { useState, useEffect }      from 'react'
+import { setCookie, removeCookie }  from '@g/cookies'
+import toast, { Toaster }           from 'react-hot-toast'
+import { useRouter }                from 'next/router'
+import { getAdmin, getAdminByEmail } from '@api/Get'
+import { deleteAdmin }              from '@api/Delete'
+import { updateAdmin }              from '@api/Put'
+import Image                        from 'next/image'
+import logo                         from '@p/multi2.png'
 
 export default function AdminProfile({ data }) {
   const [userData, setUserData] = useState(data)
@@ -31,8 +31,11 @@ export default function AdminProfile({ data }) {
 
   const fetchUserData = async (id) => {
     try {
+      const email = localStorage.getItem('email')
       const response = await getAdmin(id)
-      if (response && response.data && response.status === 200) {
+      const resEmail = await getAdminByEmail(email)
+      
+      if (response && resEmail && response.data && resEmail.data && response.status && resEmail.status === 200) {
         const data = response.data.data
         const profileAdmin = {
           id: data?.id,

@@ -11,14 +11,20 @@ import DevicesTable from "./Devices"
 export default function ModalDev({ isOpen, onClose, dispositivos, onChange }) {
   const [dispositivo, setDispositivo] = useState({ login_user: '', clave: '' })
 
-  const handleChange = (e) => {
-    const { name, value } = e.target
-    setDispositivo({ ...dispositivo, [name]: value })
+  const handleChange = (index, e) => {
+    if (e && e.target) {
+      const { name, value } = e.target
+      const nuevosDispositivos = [...dispositivos]
+      nuevosDispositivos[index] = { ...nuevosDispositivos[index], [name]: value }
+      onChange(nuevosDispositivos)
+    } else {
+      console.error('Evento no definido correctamente:', e)
+    }
   }
 
   const agregarDispositivo = () => {
     const nuevosDispositivos = [...dispositivos, { login_user: '', clave: '' }]
-    onChange(nuevosDispositivos) 
+    onChange(nuevosDispositivos)
   }
 
   return (
@@ -33,7 +39,7 @@ export default function ModalDev({ isOpen, onClose, dispositivos, onChange }) {
       <ModalContent>
         <ModalHeader className="flex flex-col gap-1 text-base ti">Lista de usuarios</ModalHeader>
         <ModalBody>
-          <DevicesTable dispositivos={dispositivos} onChange={onChange} />
+        <DevicesTable dispositivos={dispositivos} onChange={(newDispositivos) => onChange(newDispositivos)} />
         </ModalBody>
         <ModalFooter className="flex justify-between">
           <button

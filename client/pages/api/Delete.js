@@ -8,6 +8,16 @@ async function deleteClient(id) {
   } catch (err) { console.error(err) }
 }
 
+const deleteDevice = async (login_user) => {
+  console.log(login_user)
+  try {
+    const res = await instance.delete(`${v.DEL_DEVICE}/${login_user}`)
+    return res
+  } catch (err) {
+    console.error('Error al eliminar el dispositivo:', err)
+  }
+}
+
 async function deleteAdmin(id) {
   console.log(id);
   try {
@@ -16,4 +26,4 @@ async function deleteAdmin(id) {
   } catch (err) { console.error(err) }
 }
 
-export { deleteClient, deleteAdmin }
+export { deleteClient, deleteAdmin, deleteDevice }

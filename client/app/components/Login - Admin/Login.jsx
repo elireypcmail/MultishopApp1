@@ -41,6 +41,7 @@ export default function Login() {
         if (res.data.message == 'Sesión iniciada correctamente') {
           const email = res.data.data.email 
           setCookie('Admins', email)
+          localStorage.setItem('email', res.data.data.email)
           notifySucces('Inicio de sección exitoso')
           setRedirect(true)
         } else { notifyError(res.data.message) }
@@ -79,30 +80,32 @@ export default function Login() {
         </div>
 
         <div className="customer2">
-          <div className="iconL">
-            <Customer />
-          </div>
-          <div className="form-cusL">
-            <form className="form-cusL2" action="" onSubmit={loginUser}>
-              <input 
-                className="input-container" 
-                type="email" 
-                placeholder="Correo"
-                name="email" 
-                value={username.email} 
-                onChange={handleChange}
-              />
-              { emailError && <p className="text-red-500 text-sm">{emailError}</p> }
-              <input 
-                className="cusL" 
-                type="password" 
-                placeholder="Contraseña"
-                name="password"
-                value={username.password} 
-                onChange={handleChange} 
-              />
-              <button className="btn-cusL" type="submit">Iniciar Sesión</button>
-            </form>
+          <div className="form-login">
+            <div className="iconL">
+              <Customer />
+            </div>
+            <div className="form-cusL">
+              <form className="form-cusL2" action="" onSubmit={loginUser}>
+                <input 
+                  className="input-container" 
+                  type="email" 
+                  placeholder="Correo"
+                  name="email" 
+                  value={username.email} 
+                  onChange={handleChange}
+                />
+                { emailError && <p className="text-red-500 text-sm">{emailError}</p> }
+                <input 
+                  className="cusL" 
+                  type="password" 
+                  placeholder="Contraseña"
+                  name="password"
+                  value={username.password} 
+                  onChange={handleChange} 
+                />
+                <button className="btn-cusL" type="submit">Iniciar Sesión</button>
+              </form>
+            </div>
           </div>
         </div>
 

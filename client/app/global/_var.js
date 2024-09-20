@@ -13,13 +13,15 @@ const v = {
   GET_NOTIFY:  process.env.NEXT_PUBLIC_GET_NOTIFY_CLI,
   GET_ADMINS:  process.env.NEXT_PUBLIC_GET_ALL_ADMINS,
   GET_ADMIN:   process.env.NEXT_PUBLIC_GET_ONE_ADMIN,
+  GET_AD_EM:   process.env.NEXT_PUBLIC_GET_ADMIN,
 
   // PUT
   EDIT_CLIENT: process.env.NEXT_PUBLIC_UPDATE_CLIENT,
 
   // DELETE
   DEL_CLIENT:  process.env.NEXT_PUBLIC_DELETE_CLIENT,
-  DEL_ADMIN:   process.env.NEXT_PUBLIC_DELETE_ADMIN
+  DEL_ADMIN:   process.env.NEXT_PUBLIC_DELETE_ADMIN,
+  DEL_DEVICE:  process.env.NEXT_PUBLIC_DELETE_DEVICE
 }
 
 export default v

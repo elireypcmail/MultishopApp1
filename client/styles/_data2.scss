@@ -1,11 +1,11 @@
-.relative{ 
+.lista{ 
   height: 55vh; 
   border: 1px solid rgba(0, 0, 0, 0.130);
 }
 tr{ cursor: pointer; }
-.relative::-webkit-scrollbar { width: 8px; }
-.relative::-webkit-scrollbar-track { background: #f3f3f3; }
-.relative::-webkit-scrollbar-thumb {
+.lista::-webkit-scrollbar { width: 8px; }
+.lista::-webkit-scrollbar-track { background: #f3f3f3; }
+.lista::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.09);
   border-radius: 20px;
 }
@@ -92,7 +92,7 @@ tr{ cursor: pointer; }
     font-size: 2.5rem;
   }
 
-  .relative{
+  .lista{
     height: 170vh;
     border-radius: 15px;  
   }

@@ -38,6 +38,13 @@ async function getAdmin(id) {
   } catch (err) { console.error(err) }
 }
 
+async function getAdminByEmail(email) {
+  try {
+    const res = await instance.get(`${v.GET_AD_EM}/${email}`)
+    return res
+  } catch (err) { console.error(err) }
+}
+
 async function getMove(id) {
   try {
     const res = await instance.get(`${v.GET_MOVES}/${id}`)
@@ -51,5 +58,6 @@ export {
   getNotifyClient,
   getAdmins,
   getAdmin,
+  getAdminByEmail,
   getMove
 }
