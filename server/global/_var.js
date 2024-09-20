@@ -38,10 +38,12 @@ const _var = {
   LOGIN_USER:    process.env.LOGIN_USER,
   UPDATE_USER:   process.env.UPDATE_USER,
   DELETE_USER:   process.env.DELETE_USER,
+  DELETE_DEVICE: process.env.DELETE_DEVICE,
 
   // - Users
   GET_USERS: process.env.GET_ADMINS,
   GET_ADMIN: process.env.GET_ADMIN,
+  GET_EMAIL: process.env.GET_AD_EMAIL,
   EDIT_ADM:  process.env.EDIT_ADMIN,
   FILTER_LE: process.env.FILTER_ADM,
   REG_USER:  process.env.REG_USER,

@@ -17,6 +17,30 @@ controllerUs.getadmins = async (req, res) => {
   }
 }
 
+controllerUs.getAdminByEmail = async (req, res) => {
+  try {
+    const { email } = req.params
+    const sql = `SELECT * FROM users WHERE email = $1`
+    
+    const admin = await pool.query(sql, [email])
+    if (admin.rows.length === 0) {
+      return res.status(404).json({ message: 'Usuario no encontrado' })
+    }
+
+    const adminData = {
+      id: admin.rows[0].id,
+      username: admin.rows[0].username,
+      email: admin.rows[0].email,
+      password: admin.rows[0].password
+    }
+
+    return res.status(200).json({ message: 'Usuario encontrado', data: adminData })
+  } catch (err) {
+    console.error(err)
+    return res.status(500).json({ message: 'Error al traer los datos del usuario' })
+  }
+}
+
 controllerUs.getAdmin = async (req, res) => {
   try {
     const { id } = req.params

@@ -153,15 +153,12 @@ controller.postUser = async (req, res) => {
 
     const { identificacion, nombre, telefono, dispositivos } = req.body
 
-    // Crear la instancia basada en la identificación
     const instancia = generateUniqueInstanceName(identificacion)
 
-    // Validar que la identificación no supere los 12 dígitos
     if (identificacion.length > 12) {
       return res.status(400).json({ "message": "Has superado la cantidad de dígitos de la identificación. No puede tener más de 12 dígitos" })
     }
 
-    // Verificar si ya existe un cliente con la misma identificación
     const existingIdentificacionQuery = `SELECT id FROM cliente WHERE identificacion = $1`
     const existingIdentificacionValues = [identificacion]
     const existingIdentificacionResult = await client.query(existingIdentificacionQuery, existingIdentificacionValues)
@@ -170,7 +167,6 @@ controller.postUser = async (req, res) => {
       return res.status(400).json({ "message": "Esta identificación ya existe." })
     }
 
-    // Verificar si ya existe un cliente con el mismo número de teléfono
     const existingTelefonoQuery = `SELECT id FROM cliente WHERE telefono = $1`
     const existingTelefonoValues = [telefono]
     const existingTelefonoResult = await client.query(existingTelefonoQuery, existingTelefonoValues)
@@ -179,7 +175,6 @@ controller.postUser = async (req, res) => {
       return res.status(400).json({ "message": "Este número de teléfono ya existe." })
     }
 
-    // Insertar cliente en la base de datos
     const clienteQuery = `
       INSERT INTO cliente (identificacion, nombre, telefono, instancia)
       VALUES ($1, $2, $3, $4)
@@ -190,14 +185,13 @@ controller.postUser = async (req, res) => {
     const clienteId = clienteResult.rows[0].id
     const identificacionCliente = clienteResult.rows[0].identificacion
 
-    // Verificar e insertar los dispositivos si existen
+    // Si hay dispositivos, registrar los dispositivos
     if (dispositivos && dispositivos.length > 0) {
       for (const dispositivo of dispositivos) {
         if (!dispositivo.login_user || dispositivo.login_user.trim() === '') {
           return res.status(400).json({ "message": "El campo login_user no puede estar vacío para los dispositivos." })
         }
 
-        // Verificar si el dispositivo con ese login_user ya existe
         const existingDeviceQuery = `SELECT id FROM dispositivo WHERE login_user = $1`
         const existingDeviceValues = [dispositivo.login_user]
         const existingDeviceResult = await client.query(existingDeviceQuery, existingDeviceValues)
@@ -206,7 +200,6 @@ controller.postUser = async (req, res) => {
           return res.status(400).json({ "message": `El usuario ${dispositivo.login_user} ya existe en la lista de usuarios.` })
         }
 
-        // Insertar el dispositivo en la base de datos
         const dispositivoQuery = `
           INSERT INTO dispositivo(id_cliente, login_user, clave)
           VALUES($1, $2, $3)
@@ -216,28 +209,19 @@ controller.postUser = async (req, res) => {
       }
     }
 
-    // Crear el esquema basado en la identificación del cliente
     await createSchema(identificacionCliente)
-
-    // Crear la tabla 'ventas' dentro del esquema del cliente
     createTableInSchema(identificacionCliente, 'ventas')
-
-    // Crear la instancia para el cliente con los datos necesarios
     createInstanceForClient(clienteId, identificacionCliente, instancia)
 
-    // Confirmar la transacción
     await client.query('COMMIT')
     console.log(identificacion, nombre, telefono, dispositivos)
 
-    // Responder con éxito
-    res.status(200).send({ "message": 'Cliente y dispositivos registrados correctamente.' })
+    res.status(200).send({ "message": 'Cliente registrado correctamente.' })
   } catch (err) {
-    // Revertir la transacción en caso de error
     await client.query('ROLLBACK')
-    console.error({ "message": 'Error al registrar cliente y dispositivos:', err })
-    res.status(500).send({ "message": 'Error al registrar cliente y dispositivos.' })
+    console.error({ "message": 'Error al registrar cliente:', err })
+    res.status(500).send({ "message": 'Error al registrar cliente.' })
   } finally {
-    // Liberar el cliente de la conexión
     client.release()
   }
 }
@@ -333,20 +317,21 @@ function generateVerificationCode() {
 }
 
 controller.updateUser = async (req, res) => {
-  const client = await pool.connect();
+  const client = await pool.connect()
   try {
-    const { id } = req.params;
-    const { dispositivos, ...edit } = req.body;
+    const { id } = req.params
+    const { dispositivos, ...edit } = req.body
 
-    await client.query('BEGIN');
+    console.log(dispositivos, edit)
 
-    // Actualizar datos del usuario
-    const getUserQuery = `SELECT nombre, telefono, est_financiero, suscripcion FROM cliente WHERE id=$1`;
-    const currentUser = await client.query(getUserQuery, [id]);
+    await client.query('BEGIN')
+
+    const getUserQuery = `SELECT nombre, telefono, est_financiero, suscripcion FROM cliente WHERE id=$1`
+    const currentUser = await client.query(getUserQuery, [id])
 
     if (currentUser.rows.length === 0) {
-      await client.query('ROLLBACK');
-      return res.status(404).json({ message: 'Usuario no encontrado.' });
+      await client.query('ROLLBACK')
+      return res.status(404).json({ message: 'Usuario no encontrado.' })
     }
 
     const updatedUser = {
@@ -354,58 +339,54 @@ controller.updateUser = async (req, res) => {
       telefono: edit.telefono || currentUser.rows[0].telefono,
       est_financiero: edit.est_financiero || currentUser.rows[0].est_financiero,
       suscripcion: edit.suscripcion || currentUser.rows[0].suscripcion,
-    };
+    }
 
     const updateUserQuery = `
       UPDATE cliente 
       SET nombre=$1, telefono=$2, est_financiero=$3, suscripcion=$4
       WHERE id=$5
-    `;
+    `
     await client.query(updateUserQuery, [
       updatedUser.nombre,
       updatedUser.telefono,
       updatedUser.est_financiero,
       updatedUser.suscripcion,
       id,
-    ]);
+    ])
 
-    // Obtener todos los dispositivos existentes para este usuario
-    const getDispositivosQuery = `SELECT login_user FROM dispositivo WHERE id_cliente = $1`;
-    const existingDispositivos = await client.query(getDispositivosQuery, [id]);
-    const existingLogins = existingDispositivos.rows.map(d => d.login_user);
+    if (dispositivos && dispositivos.length > 0) {
+      for (const dispositivo of dispositivos) {
+        if (dispositivo.login_user && dispositivo.clave) {
+          const checkLoginUserQuery = `
+            SELECT id_cliente FROM dispositivo WHERE login_user = $1 AND id_cliente != $2
+          `
+          const existingUser = await client.query(checkLoginUserQuery, [dispositivo.login_user, id])
 
-    const insertDispositivosQuery = `
-      INSERT INTO dispositivo (id_cliente, login_user, clave)
-      VALUES ($1, $2, $3)
-      ON CONFLICT (login_user) DO NOTHING
-    `;
+          if (existingUser.rows.length > 0) {
+            await client.query('ROLLBACK')
+            return res.status(200).json({ message: `El nombre de usuario '${dispositivo.login_user}' ya existe.` })
+          }
 
-    for (const dispositivo of dispositivos) {
-      console.log("Procesando dispositivo:", dispositivo);
-
-      if (dispositivo.login_user && dispositivo.clave) {
-        // Verificar si el dispositivo ya existe en el array obtenido
-        if (!existingLogins.includes(dispositivo.login_user)) {
-          const result = await client.query(insertDispositivosQuery, [id, dispositivo.login_user, dispositivo.clave]);
-          console.log("Insertando dispositivo:", dispositivo.login_user, dispositivo.clave);
-          console.log("Filas afectadas:", result.rowCount); // Verifica si realmente se insertó
-        } else {
-          console.log(`Dispositivo con login_user ${dispositivo.login_user} ya existe.`);
+          const insertDispositivosQuery = `
+            INSERT INTO dispositivo (id_cliente, login_user, clave)
+            VALUES ($1, $2, $3)
+            ON CONFLICT (login_user) DO NOTHING
+          `
+          await client.query(insertDispositivosQuery, [id, dispositivo.login_user, dispositivo.clave])
         }
       }
     }
 
-    await client.query('COMMIT');
-    res.status(200).json({ message: 'Datos del usuario y dispositivos actualizados correctamente.' });
-
+    await client.query('COMMIT')
+    res.status(200).json({ message: 'Datos del usuario y dispositivos actualizados correctamente.' })
   } catch (err) {
-    await client.query('ROLLBACK');
-    console.error(err);
-    res.status(500).json({ message: 'Error al editar los datos de este usuario y dispositivos.' });
+    await client.query('ROLLBACK')
+    console.error(err)
+    res.status(500).json({ message: 'Error al editar los datos del usuario y dispositivos.' })
   } finally {
-    client.release();
+    client.release()
   }
-};
+}
 
 controller.deleteUser = async (req, res) => {
   try {
@@ -424,6 +405,23 @@ controller.deleteUser = async (req, res) => {
   } catch (err) {
     console.error(err)
     return res.status(500).json({ "message": 'Error al eliminar este usuario' })
+  }
+}
+
+controller.deleteDevice = async (req, res) => {
+  try {
+    const { login_user } = req.params
+
+    const result = await bd.query('DELETE FROM dispositivo WHERE login_user = $1', [login_user])
+
+    if (result.rowCount > 0) {
+      res.status(200).json({ message: 'Dispositivo eliminado correctamente' })
+    } else {
+      res.status(404).json({ message: 'Dispositivo no encontrado' })
+    }
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ message: 'Error al eliminar el dispositivo' })
   }
 }
 

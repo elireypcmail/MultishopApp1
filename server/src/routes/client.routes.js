@@ -21,6 +21,7 @@ clientRouter.post(_var.CREATE_USER, controller.postUser)
 clientRouter.post(_var.LOGIN_USER, controller.loginUser)
 clientRouter.patch(_var.UPDATE_USER, controller.updateUser)
 clientRouter.delete(_var.DELETE_USER, controller.deleteUser)
+clientRouter.delete(_var.DELETE_DEVICE, controller.deleteDevice)
 
 clientRouter.post("/api/getMonthlyAverage", services.getAuditoriaPromedio)
 
