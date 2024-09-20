@@ -88,7 +88,7 @@ export default function TableNotify() {
         </form>
       </div>
 
-      <div className="relative overflow-y-auto shadow-md sm:rounded-lg">
+      <div className="lista relative overflow-y-auto shadow-md sm:rounded-lg">
         <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
           <thead className="text-xs text-gray-100 uppercase dark:bg-gray-100 dark:text-gray-400 thead">
             <tr>

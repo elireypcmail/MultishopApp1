@@ -100,7 +100,7 @@ export default function MovTable({ data }) {
         </form>
       </div>
 
-      <div className="relative overflow-y-auto shadow-md sm:rounded-lg">
+      <div className="lista relative overflow-y-auto shadow-md sm:rounded-lg">
         <table className="w-full text-sm text-center rtl:text-right text-gray-500">
           <thead className="text-xs text-gray-100 uppercase thead">
             <tr>
