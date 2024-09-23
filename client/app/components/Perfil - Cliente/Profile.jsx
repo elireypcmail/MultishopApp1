@@ -141,14 +141,15 @@ export default function UserProfile({ data }) {
         ...userData,
         est_financiero: selectedOptions.est_financiero,
         suscripcion: selectedOptions.suscripcion,
-        dispositivos: filas,
       }
       const response = await updateUser(id, updatedUserData)
       
       if (response && response.status === 200 && response.data.message === 'Datos del usuario y dispositivos actualizados correctamente.') {
         notifySucces('Datos actualizados correctamente')
-      } else if (response && response.data.message && response.data.message.endsWith('ya existe.')) {
-        notifyError(`Error: ${response.data.message}`)
+
+        setTimeout(() => {
+          push('/client')
+        }, 2000)
       } else  {
         notifyError('Error al actualizar los datos')
       }

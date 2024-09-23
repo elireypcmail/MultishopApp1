@@ -1,9 +1,16 @@
+import { useState, useEffect } from "react"
 import { RemoveDevice } from "../Icons"
+import { useRouter } from "next/router"
+import { updateUser } from "@api/Put"
 import { deleteDevice } from '@api/Delete'
 import toast from 'react-hot-toast'
 
 export default function TableDev({ dispositivos, onChange }) {
-  const notifySucces = (msg) => { toast.success(msg) }
+  const router = useRouter()
+  const notifySuccess = (msg) => { toast.success(msg) }
+  const notifyError = (msg) => { toast.error(msg) }
+
+  const { userId } = router.query
 
   const handleChange = (e, index) => {
     const { name, value } = e.target
@@ -21,16 +28,31 @@ export default function TableDev({ dispositivos, onChange }) {
       }
   
       await deleteDevice(dispositivo.login_user) 
-      notifySucces('Usuario eliminado')
+      notifySuccess('Usuario eliminado')
       const nuevosDispositivos = [...dispositivos]
       nuevosDispositivos.splice(index, 1)
       onChange(nuevosDispositivos)
     } catch (err) {
       console.error('Error al eliminar el dispositivo:', err)
+      notifyError('Error al eliminar el usuario')
     }
   } 
 
-  const onSave = () => { notifySucces(`Usuario guardado!`) }
+  const onSave = async () => {
+    try {
+      const response = await updateUser(userId, { dispositivos })
+      if (response && response.status === 200 && response.data.message === 'Datos del usuario y dispositivos actualizados correctamente.') {
+        notifySuccess('Usuarios guardados correctamente')
+      } else if (response && response.data.message && response.data.message.endsWith('ya existe.')) {
+          notifyError(`Error: ${response.data.message}`)
+      } else {
+        notifyError('Error al guardar los usuarios')
+      }
+    } catch (error) {
+      console.error('Error al guardar los usuarios:', error)
+      notifyError('Error al guardar los usuarios')
+    }
+  }
 
   return (
     <div className="lista relative overflow-y-auto shadow-md sm:rounded-lg">
@@ -66,7 +88,7 @@ export default function TableDev({ dispositivos, onChange }) {
                 />
               </td>
               <td>
-                <button className="bookmarkBtn" onClick={ onSave }>
+                <button className="bookmarkBtn" onClick={onSave}>
                   <span className="IconContainer">
                     <svg viewBox="0 0 384 512" height="0.9em" className="icon">
                       <path
