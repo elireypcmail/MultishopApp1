@@ -15,7 +15,7 @@ export default function TableDev({ dispositivos, onChange }) {
   const handleChange = (e, index) => {
     const { name, value } = e.target
     const nuevosDispositivos = [...dispositivos]
-    nuevosDispositivos[index] = { ...nuevosDispositivos[index], [name]: value }
+    nuevosDispositivos[index] = { ...nuevosDispositivos[index], [name]: value.toUpperCase() }
     onChange(nuevosDispositivos)
   }
 

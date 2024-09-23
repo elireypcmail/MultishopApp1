@@ -42,7 +42,7 @@
   backdrop-filter: blur(2px);
   border: 1px solid rgba(0, 0, 0, 0.105);
   border-radius: 10px;
-  height: 55vh;
+  height: 60vh;
 }
 
 .form-cusL2 {
@@ -102,9 +102,19 @@
 }
 
 
+@media (min-width: 1024px) {
+  .form-login{
+    height: 70vh;
+  }
+}
+
 @media (max-width: 768px) {
   .form-cusL {
     width: 90%;
+  }
+
+  .form-login{
+    height: 60vh;
   }
 }
 

@@ -7,8 +7,8 @@
   grid-template-columns: 1fr 1.2fr 1.4fr;
   grid-auto-flow: row;
   grid-template-areas:
-    "user form form"
-    "user form form"
+    "user form use"
+    "user form use"
     "footer footer footer";
 }
 
@@ -32,6 +32,7 @@
   justify-content: flex-start;
   margin-left: 88px;
   margin-bottom: 19px;
+  width: 100%;
 
   .icon-us{
     display: flex;
@@ -62,7 +63,6 @@
   width: 95%;
   display: flex;
   justify-content: flex-start;
-  margin-left: 25px;
   align-items: center;
   flex-direction: row;
 }
@@ -235,17 +235,35 @@
   }
 
   .user {
-    margin-left: 88px;
+    margin-left: 8px;
     margin-bottom: 19px;
+
+    .icon-us .useri{
+      margin-left: 25px;
+    }
   }
 
   .form {
     margin-top: 115px;
+
+    .create, .one{
+      width: 100%;
+      margin-left: 0;
+
+      .span, .span2{
+        width: 90%;
+      }
+    }
   }
 
   .btn {
-    margin-left: 143px;
+    margin-left: 14px;
+    width: 100%;
     margin-top: 19px;
+
+    .btns{
+      width: 90%;
+    }
   }
 }
 
