@@ -5,7 +5,7 @@ const db = pool
 
 controllerUs.getadmins = async (req, res) => {
   try {
-    const sql =  `SELECT * FROM users`
+    const sql =  `SELECT * FROM users ORDER BY username ASC`
     const admins = await db.query(sql)
     if (admins.rowCount > 0) {
       return res.status(200).json({ "message": "Listado de Admins", "data": admins.rows })
