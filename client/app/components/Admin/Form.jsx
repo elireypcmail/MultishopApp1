@@ -1,9 +1,9 @@
-import { useState }       from "react"
+import { useState } from "react"
 import toast, { Toaster } from 'react-hot-toast'
-import Loading            from "../Loading"
-import { registroAdmin }  from '@api/Post'
+import Loading from "../Loading"
+import { registroAdmin } from '@api/Post'
 
-export default function AdminTable() {
+export default function AdminTable({ onClose, addAdmin }) {
   const [admin, setAdmin] = useState({
     username: "",
     email: "",
@@ -13,7 +13,7 @@ export default function AdminTable() {
   const [emailError, setEmailError] = useState('')
 
   const notifySucces = (msg) => { toast.success(msg) }
-  const notifyError  = (msg) => { toast.error(msg) }
+  const notifyError = (msg) => { toast.error(msg) }
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -30,13 +30,19 @@ export default function AdminTable() {
     try {
       let res = await registroAdmin(admin)
       if (res.status == 200) {
-        if (res.status == 200 && res.data.message == 'El correo electrónico ya está registrado') {
+        if (res.data.message == 'El correo electrónico ya está registrado') {
           notifyError('Este correo ya existe')
         }
         if (res.data.message == 'Usuario creado correctamente') {
           notifySucces('Admin registrado exitosamente')
+          addAdmin({ ...admin, id: res.data.id }) // Asumiendo que el backend devuelve el ID del nuevo admin
+          setTimeout(() => {
+            onClose()
+          }, 2000)
         } 
-      } else { notifyError('Ha ocurrido un error al crear el administrador') }
+      } else { 
+        notifyError('Ha ocurrido un error al crear el administrador') 
+      }
 
       limpiarCampos()
     } catch (err) { 

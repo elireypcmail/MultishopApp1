@@ -250,9 +250,9 @@ export default function UserProfile({ data }) {
                         onChange={handleSelectChange}
                       >
                         <option value="">Seleccione</option>
-                        <option value="30">30 (días)</option>
-                        <option value="40">40 (días)</option>
-                        <option value="60">60 (días)</option>
+                        <option value="35">35 (días)</option>
+                        <option value="45">45 (días)</option>
+                        <option value="65">65 (días)</option>
                       </select>
                     </span>
                     <span className='us1'>

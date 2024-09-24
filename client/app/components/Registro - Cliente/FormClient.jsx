@@ -69,10 +69,7 @@ export default function FormClient({}) {
   const newClient = async (e) => {
     e.preventDefault()
 
-    if (nombreError) {
-      notifyError('El nombre no puede contener letras mayúsculas')
-      return
-    } else if (idtError) {
+    if (idtError) {
       notifyError('El formato de la identificación es incorrecto')
       return
     } else if (telError) {
@@ -83,6 +80,8 @@ export default function FormClient({}) {
     setLoading(true)
 
     let res = await registroCliente(cliente)
+    console.log(res);
+    
     try {
       if (res.success) {
         notifySuccess('Cliente y dispositivos registrados correctamente')

@@ -65,6 +65,18 @@
   border-radius: 35px;
 }
 
+@media (min-width: 1024px) {
+  .nav{
+    .button {
+      width: 30%;
+      background: none;
+      display: flex;
+      justify-content: flex-end;
+      right: -71%;
+    }
+  }
+}
+
 @media (max-width: 767px){
   .button{
     width: 38%;

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { RemoveDevice } from "../Icons"
 import { useRouter } from "next/router"
 import { updateUser } from "@api/Put"
@@ -20,31 +20,57 @@ export default function TableDev({ dispositivos, onChange }) {
   }
 
   const eliminarDispositivo = async (index) => {
-    try {
-      const dispositivo = dispositivos[index]  
-      if (!dispositivo.login_user) {
-        console.error("El dispositivo no tiene un login_user válido")
-        return
-      }
-  
-      await deleteDevice(dispositivo.login_user) 
-      notifySuccess('Usuario eliminado')
-      const nuevosDispositivos = [...dispositivos]
-      nuevosDispositivos.splice(index, 1)
+    const dispositivo = dispositivos[index]
+    
+    // Si los campos están en blanco, simplemente elimina la fila sin llamar a la API
+    if (!dispositivo.login_user && !dispositivo.clave) {
+      const nuevosDispositivos = dispositivos.filter((_, idx) => idx !== index)
       onChange(nuevosDispositivos)
-    } catch (err) {
-      console.error('Error al eliminar el dispositivo:', err)
-      notifyError('Error al eliminar el usuario')
+      notifySuccess('Fila eliminada')
+      return
     }
-  } 
+
+    // Si hay un login_user, procede con la eliminación normal
+    if (dispositivo.login_user) {
+      try {
+        await deleteDevice(dispositivo.login_user)
+        notifySuccess('Usuario eliminado')
+        const nuevosDispositivos = dispositivos.filter((_, idx) => idx !== index)
+        onChange(nuevosDispositivos)
+      } catch (err) {
+        console.error('Error al eliminar el dispositivo:', err)
+        notifyError('Error al eliminar el usuario')
+      }
+    } else {
+      // Si no hay login_user pero hay otros datos, elimina la fila localmente
+      const nuevosDispositivos = dispositivos.filter((_, idx) => idx !== index)
+      onChange(nuevosDispositivos)
+      notifySuccess('Fila eliminada')
+    }
+  }
 
   const onSave = async () => {
     try {
-      const response = await updateUser(userId, { dispositivos })
+      // Filtrar dispositivos vacíos antes de enviar
+      const dispositivosValidos = dispositivos.filter(d => d.login_user || d.clave)
+      const response = await updateUser(userId, { dispositivos: dispositivosValidos })
       if (response && response.status === 200 && response.data.message === 'Datos del usuario y dispositivos actualizados correctamente.') {
         notifySuccess('Usuarios guardados correctamente')
-      } else if (response && response.data.message && response.data.message.endsWith('ya existe.')) {
-          notifyError(`Error: ${response.data.message}`)
+        // Actualizar la lista de dispositivos para eliminar las filas vacías
+        onChange(dispositivosValidos)
+      } else if (response && response.data.message && response.data.message.includes('ya existe')) {
+        notifyError(`Error: ${response.data.message}`)
+        
+        const existingLoginUser = response.data.message.split("'")[1]
+        const existingDeviceIndex = dispositivos.findIndex(d => d.login_user === existingLoginUser)
+        
+        if (existingDeviceIndex !== -1) {
+          setTimeout(() => {
+            const nuevosDispositivos = [...dispositivos]
+            nuevosDispositivos[existingDeviceIndex] = { login_user: '', clave: '' }
+            onChange(nuevosDispositivos)
+          }, 1000)
+        }
       } else {
         notifyError('Error al guardar los usuarios')
       }
