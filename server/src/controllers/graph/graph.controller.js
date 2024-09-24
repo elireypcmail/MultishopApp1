@@ -19,7 +19,7 @@ const calculateResults = (data, filtro, fechaInicio) => {
   const groupedData = {}
   const startDate = new Date(fechaInicio)
   const sixMonthsAgo = new Date(startDate)
-  sixMonthsAgo.setMonth(startDate.getMonth() - 6) // Obtener fecha hace 6 meses desde fechaInicio
+  sixMonthsAgo.setMonth(startDate.getMonth() - 6) 
 
   data.forEach(row => {
     let key
@@ -27,18 +27,18 @@ const calculateResults = (data, filtro, fechaInicio) => {
 
     switch (filtro) {
       case 'dias':
-        key = row.fecha.toISOString().split('T')[0] // YYYY-MM-DD
+        key = row.fecha.toISOString().split('T')[0] 
         break
       case 'semanas':
         let startOfWeek = new Date(date)
-        startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay())
+        startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay()) 
         if (startOfWeek < startDate) {
           startOfWeek = startDate
         }
-        key = startOfWeek.toISOString().split('T')[0] // YYYY-MM-DD
+        key = startOfWeek.toISOString().split('T')[0] 
         break
       case 'meses':
-        key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}` // YYYY-MM
+        key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
         break
     }
 
@@ -50,12 +50,18 @@ const calculateResults = (data, filtro, fechaInicio) => {
     groupedData[key].count += 1
   })
 
-  // Convertir el objeto agrupado en un array de resultados
+  let totalSum = 0
+  let totalCount = 0
+
   for (const [periodo, values] of Object.entries(groupedData)) {
+    const promedio = (values.total / values.count)
+    totalSum += promedio
+    totalCount += 1
+
     results.push({
       periodo,
       total_valor: values.total.toFixed(2),
-      promedio_valor: (values.total / values.count).toFixed(2),
+      promedio_valor: promedio.toFixed(2),
     })
   }
 
@@ -64,12 +70,14 @@ const calculateResults = (data, filtro, fechaInicio) => {
   if (filtro === 'meses') {
     results = results.filter(result => {
       const [year, month] = result.periodo.split('-')
-      const resultDate = new Date(year, month - 1) // -1 porque los meses en JS son 0-indexed
+      const resultDate = new Date(year, month - 1)
       return resultDate >= sixMonthsAgo
     })
   }
 
-  return results
+  const promedioTotal = totalSum / totalCount
+
+  return { results, promedioTotal: promedioTotal.toFixed(2) }
 }
 
 const determineFilterType = (fechaInicio, fechaFin) => {

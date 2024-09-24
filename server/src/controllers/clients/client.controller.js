@@ -306,6 +306,10 @@ controller.loginUser = async (req, res) => {
       return res.status(403).send({ message: 'Suscripción expirada. Comunícate con los administradores' })
     }
 
+    if (est_financiero === 'Inactivo') {
+      return res.status(403).send({ message: 'Suscripción expirada. Comunícate con los administradores' })
+    }
+
     if (diasRestantes <= 5) {
       await client.query(`
         INSERT INTO notificacion (id_user, notify_type, id_dispositivo) 
@@ -316,17 +320,24 @@ controller.loginUser = async (req, res) => {
 
       const token = await services.generarToken(userId, true, login_user, tiempoSuscripcion)
       await services.registrarAuditoria(userId, 'Inicio de sesión exitoso', login_user)
-
+        console.log('ddddddddddddd');
+        
       return res.status(200).send({
         tokenCode: token,
         identificacion,
         message: `A partir de hoy te quedan ${diasRestantes} día(s) de suscripción. Recuerda comunicarte con los administradores para renovar tu suscripción.`,
         notifyWarning: true
       })
-    }
+    } else {
+      connectToClientSchema(identificacion, nombreCliente)
 
-    if (est_financiero === 'Inactivo') {
-      return res.status(403).send({ message: 'Suscripción expirada. Comunícate con los administradores' })
+      const token = await services.generarToken(userId, true, login_user, tiempoSuscripcion)
+      await services.registrarAuditoria(userId, 'Inicio de sesión exitoso', login_user)
+        
+      return res.status(200).send({
+        tokenCode: token,
+        identificacion,
+      })
     }
   } catch (error) {
     console.error({ message: 'Error en inicio de sesión:', error })
