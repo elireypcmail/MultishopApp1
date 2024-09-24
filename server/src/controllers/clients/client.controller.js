@@ -13,6 +13,7 @@ import services from '../../services/user.services.js'
 import service  from '../../services/twilio.services.js'
 import jwt      from 'jsonwebtoken'
 import _var     from '../../../global/_var.js'
+import moment   from 'moment'
 
 const controller = {}
 const bd = pool
@@ -198,7 +199,6 @@ controller.postUser = async (req, res) => {
     const clienteId = clienteResult.rows[0].id
     const identificacionCliente = clienteResult.rows[0].identificacion
 
-    // Si hay dispositivos, registrar los dispositivos
     if (dispositivos && dispositivos.length > 0) {
       for (const dispositivo of dispositivos) {
         if (!dispositivo.login_user || dispositivo.login_user.trim() === '') {
@@ -240,10 +240,11 @@ controller.postUser = async (req, res) => {
 }
 
 controller.loginUser = async (req, res) => {
-  const { login_user, clave } = req.body 
+  const { login_user, clave } = req.body
 
+  let client
   try {
-    const client = await pool.connect()
+    client = await pool.connect()
 
     const dispositivoQuery = `
       SELECT id_cliente, clave 
@@ -254,7 +255,7 @@ controller.loginUser = async (req, res) => {
     const dispositivoResult = await client.query(dispositivoQuery, dispositivoValues)
 
     if (dispositivoResult.rows.length === 0) {
-      return res.status(200).json({ message: "Este usuario no existe." })
+      return res.status(404).json({ message: "Este usuario no existe." })
     }
 
     const dispositivoValido = dispositivoResult.rows[0]
@@ -267,17 +268,17 @@ controller.loginUser = async (req, res) => {
       const intentosResult = await client.query(intentosQuery, [userId])
       const intentosFallidos = intentosResult.rows[0]?.intento
 
-      if (intentosFallidos >= 2) {
+      if (intentosFallidos >= 3) {
         await client.query('INSERT INTO notificacion (id_user, notify_type, id_dispositivo) VALUES ($1, $2, $3)', [userId, 'Se ha ingresado mal la contraseña más de 3 veces', login_user])
-        return res.status(200).send({ message: 'Intentos fallidos expirados. Comunícate con los administradores' })
+        return res.status(403).send({ message: 'Intentos fallidos expirados. Comunícate con los administradores' })
       }
 
       await client.query('UPDATE cliente SET intento = intento + 1 WHERE id = $1', [userId])
-      return res.status(200).send({ message: 'Contraseña incorrecta' })
+      return res.status(401).send({ message: 'Contraseña incorrecta' })
     }
 
     const clienteQuery = `
-      SELECT identificacion, nombre, suscripcion, est_financiero 
+      SELECT identificacion, nombre, suscripcion, est_financiero, fecha_corte 
       FROM cliente 
       WHERE id = $1
     `
@@ -288,24 +289,50 @@ controller.loginUser = async (req, res) => {
       return res.status(404).json({ message: "Cliente no encontrado" })
     }
 
-    const { identificacion, nombre: nombreCliente, suscripcion: tiempoSuscripcion, est_financiero } = cliente
+    const { identificacion, nombre: nombreCliente, suscripcion: tiempoSuscripcion, est_financiero, fecha_corte } = cliente
 
-    if (est_financiero === 'Inactivo') {
-      return res.status(200).send({ message: 'Suscripción expirada. Comunícate con los administradores' })
+    const fechaActual = moment().startOf('day')
+    const fechaCorte = moment(fecha_corte).startOf('day')
+    const diasRestantes = fechaCorte.diff(fechaActual, 'days')
+
+    if (diasRestantes < 0) {
+      await client.query('UPDATE cliente SET est_financiero = $1 WHERE id = $2', ['Inactivo', userId])
+
+      await client.query(`
+        INSERT INTO notificacion (id_user, notify_type, id_dispositivo) 
+        VALUES ($1, $2, $3)
+      `, [userId, `La suscripción del cliente ${nombreCliente} ha expirado y ha sido marcado como Inactivo.`, login_user])
+
+      return res.status(403).send({ message: 'Suscripción expirada. Comunícate con los administradores' })
     }
 
-    connectToClientSchema(identificacion, nombreCliente)
+    if (diasRestantes <= 5) {
+      await client.query(`
+        INSERT INTO notificacion (id_user, notify_type, id_dispositivo) 
+        VALUES ($1, $2, $3)
+      `, [userId, `Al cliente ${nombreCliente} le quedan ${diasRestantes} días de suscripción.`, login_user])
 
-    const token = await services.generarToken(userId, true, login_user, tiempoSuscripcion)
+      connectToClientSchema(identificacion, nombreCliente)
 
-    await services.registrarAuditoria(userId, 'Inicio de sesión exitoso', login_user)
+      const token = await services.generarToken(userId, true, login_user, tiempoSuscripcion)
+      await services.registrarAuditoria(userId, 'Inicio de sesión exitoso', login_user)
 
-    client.release()
+      return res.status(200).send({
+        tokenCode: token,
+        identificacion,
+        message: `A partir de hoy te quedan ${diasRestantes} día(s) de suscripción. Recuerda comunicarte con los administradores para renovar tu suscripción.`,
+        notifyWarning: true
+      })
+    }
 
-    return res.status(200).json({ tokenCode: token, identificacion })
+    if (est_financiero === 'Inactivo') {
+      return res.status(403).send({ message: 'Suscripción expirada. Comunícate con los administradores' })
+    }
   } catch (error) {
     console.error({ message: 'Error en inicio de sesión:', error })
-    res.status(500).send({ message: 'Error en inicio de sesión' })
+    return res.status(500).send({ message: 'Error en inicio de sesión' })
+  } finally {
+    if (client) { client.release() }
   }
 }
 
