@@ -421,8 +421,14 @@ controller.updateUser = async (req, res) => {
           const existingUser = await client.query(checkLoginUserQuery, [dispositivo.login_user, id])
 
           if (existingUser.rows.length > 0) {
+            const getClienteNameQuery = `
+              SELECT nombre FROM cliente WHERE id = $1
+            `
+            const clienteResult = await client.query(getClienteNameQuery, [existingUser.rows[0].id_cliente])
+            const clienteNombre = clienteResult.rows[0].nombre
+
             await client.query('ROLLBACK')
-            return res.status(200).json({ message: `El nombre de usuario '${dispositivo.login_user}' ya existe.` })
+            return res.status(200).json({ message: `El nombre de usuario '${dispositivo.login_user}' ya existe en el cliente: '${clienteNombre}'.` })
           }
 
           const insertDispositivosQuery = `
