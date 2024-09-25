@@ -81,11 +81,9 @@ async function connectToClientSchema(identificacion, nombre_cliente, instance) {
 
     //const [ prefix, baseInstance, number ] = instance.split('_')
 
-    // Set the search path to the client's schema
     await db.query(`SET search_path TO "${identificacion}"`)
     console.log(`Cliente '${identificacion}' conectado a su schema '${identificacion}'.`)
 
-    // List all tables in the schema
     const tablesQuery = `
       SELECT table_name
       FROM information_schema.tables

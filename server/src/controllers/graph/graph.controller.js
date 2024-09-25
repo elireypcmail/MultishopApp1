@@ -83,7 +83,7 @@ const calculateResults = (data, filtro, fechaInicio) => {
 const determineFilterType = (fechaInicio, fechaFin) => {
   const startDate = new Date(fechaInicio)
   const endDate = new Date(fechaFin)
-  const daysDiff = (endDate - startDate) / (1000 * 60 * 60 * 24) // Diferencia en días
+  const daysDiff = (endDate - startDate) / (1000 * 60 * 60 * 24) 
 
   if (daysDiff <= 15) {
     return 'dias'

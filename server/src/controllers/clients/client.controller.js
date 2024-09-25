@@ -129,7 +129,7 @@ controller.checkToken = async (req, res) => {
     const token = authHeader.split(' ')[1]
     const decodedToken = jwt.verify(token, _var.TOKEN_KEY)
 
-    const expiraEn = new Date(decodedToken.expiraEn * 1000) // Convertir el timestamp a una fecha real
+    const expiraEn = new Date(decodedToken.expiraEn * 1000)
     const tiempoActual = Date.now()
 
     if (expiraEn < tiempoActual) {

@@ -6,7 +6,7 @@ const db = pool
 function formatDate(date) {
   const formattedDate = new Date(date)
   const day = formattedDate.getDate()
-  const month = formattedDate.getMonth() + 1 // Sumamos 1 porque los meses van de 0 a 11
+  const month = formattedDate.getMonth() + 1 
   const year = formattedDate.getFullYear()
   return `${day}/${month}/${year}`
 }
@@ -41,7 +41,6 @@ controllerNoti.notifyClient = async (req, res) => {
 
 controllerNoti.findByDate = async (req, res) => {
   try {
-    // Buscar la fecha en formato de "YYYY-MM-DD"
     const { userId, inicio, fin } = req.body 
 
     const client = await db.connect()
