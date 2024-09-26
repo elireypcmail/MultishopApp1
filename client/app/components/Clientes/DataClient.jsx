@@ -12,14 +12,14 @@ export default function DataClient() {
   })
   const [searchResults, setSearchResults] = useState([])
   const router = useRouter()
-
+  
   const handleInputChange = async (e) => {
     const { value } = e.target
     setFilter({ letra: value })
-
+    
     try {
       const results = await filtrarClientesPorLetra(value)
-      setSearchResults(results.data.data)
+      setSearchResults([...results.data.data])
     } catch (error) {
       console.error('Error al realizar la búsqueda:', error)
     }
@@ -46,7 +46,7 @@ export default function DataClient() {
             </form>
           </div>
 
-          <UserTable searchResults={searchResults} />
+          <UserTable searchResults={[...searchResults]} />
 
           <button
             type="button"

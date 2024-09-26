@@ -60,12 +60,12 @@ export default function Navbar({ data }) {
                   variant="light"
                   className="button p-0 bg-transparent"
                 >
-                  <div className="ad flex items-center">
-                    <div className='adm flex items-center'>
+                  <div className="ad flex items-center px-[30px]">
+                    <div className='adm flex items-center w-full'>
                       <span className='name mr-2'>{data}</span>  
                     </div>
-                    <div className="admin">
-                      <Image src={admin} className='admin' alt='Admin' priority />
+                    <div className='flex items-center justify-center w-[50px]'>
+                      <Image src={admin} width='50px' height='50px' className='object-cover' alt='Admin' priority />
                     </div>
                   </div>
                 </Button>

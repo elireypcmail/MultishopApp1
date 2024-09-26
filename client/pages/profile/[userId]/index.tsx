@@ -1,7 +1,8 @@
-import UserProfile from "@c/Perfil - Cliente/Profile"
+import UserProfile   from "@c/Perfil - Cliente/Profile"
 import { getCookie } from "@g/cookies"
 import Navbar        from "@c/Navbar"
 import Menu          from "@c/Menu"
+import { getUser }   from '@api/Get'
 
 export default function ClientProfile({ datapro, data } : any) {
   return(
@@ -23,7 +24,10 @@ export default function ClientProfile({ datapro, data } : any) {
   )
 }
 
-export const getServerSideProps = async ({ req }: any) => {
+export const getServerSideProps = async ({ req, params }: any) => {
+  const { userId } = params
+  const user = await getUser(userId)
+  
   const profileCookie = getCookie('profile', req)
   const adminCookie = getCookie('Admins', req)
 
@@ -51,7 +55,7 @@ export const getServerSideProps = async ({ req }: any) => {
 
   return {
     props: {
-      datapro: datapro,
+      datapro: user?.data?.data || [],
       data: data
     }
   }

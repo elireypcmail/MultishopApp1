@@ -14,6 +14,10 @@ import logo from '@p/multi2.png'
 import ModalDev from '../Dispositivos/Modal'
 import ModalMov from '../Movimientos/Movements'
 import MovNotify from '../Notificaciones/MovNotify'
+import {
+  getDaysDifference,
+  parseDateFromDDMMYYYY,
+} from '@g/dateComparison'
 
 export default function UserProfile({ data }) {
   const [userData, setUserData] = useState(data)
@@ -21,6 +25,10 @@ export default function UserProfile({ data }) {
     est_financiero: userData?.est_financiero,
     suscripcion: userData?.suscripcion,
   })
+
+  let p = parseDateFromDDMMYYYY(userData.fecha_corte)
+  let m = getDaysDifference(p)
+  let putas = typeof m != 'boolean' && m > 0 ? true : false
 
   const notifySucces = (msg) => { toast.success(msg) }
   const notifyError = (msg) => { toast.error(msg) }
@@ -257,13 +265,22 @@ export default function UserProfile({ data }) {
                     </span>
                     <span className='us1'>
                       <label className='labels'>Fecha de corte de la suscripción</label>
-                      <div className="input-with-icon">
+                      <div className='flex gap-[10px] items-start'>
                         <input 
-                          className='us2' 
-                          type="text" 
+                          className='us2 w-full'
+                          type="text"
                           value={userData ? userData?.fecha_corte : ''} 
                           readOnly 
                         />
+                        {
+                          putas &&
+                          <button
+                            className='bg-[#146C94] text-white h-[55px] px-[12px] rounded-[5px]'
+                            onClick={() => console.log('putas')} // Falta enviar el id del usuario para establecer la nueva fecha de corte
+                          >
+                            Renovar
+                          </button>
+                        }
                       </div>
                     </span>
                     <span className='us1'>

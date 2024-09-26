@@ -20,7 +20,7 @@ const bd = pool
 
 controller.getUsers = async (req, res) => {
   try {
-    const sql = `SELECT id, identificacion, nombre, est_financiero FROM cliente ORDER BY nombre ASC`
+    const sql = `SELECT * FROM cliente ORDER BY nombre ASC`
     const user = await bd.query(sql)
 
     if (user?.rows.length > 0) res.status(200).json({
