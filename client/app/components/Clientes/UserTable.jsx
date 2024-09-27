@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/router'
-import { getUsers } from '@api/Get'
+import { useRouter }   from 'next/router'
+import { getUsers }    from '@api/Get'
+import { updateState } from '@api/Put'
 import { getDaysDifference } from '@g/dateComparison'
 
 import {
@@ -26,6 +27,8 @@ export default function UserTable({ searchResults }) {
     } else {
       loadUsers()
     }
+    console.log(users);
+    
   }, [searchResults])
 
   const loadUsers = async () => {
@@ -45,13 +48,16 @@ export default function UserTable({ searchResults }) {
   
   let u = [...displayUsers]
 
-  u.map((us) => {
+  u.map(async (us) => {
     let v = getDaysDifference(us.fecha_corte)
 
     if (v == true) activos.push(us)
     else if (!v) {
       us['est_financiero'] = 'Inactivo'
       inactivos.push(us)
+
+      const res = await updateState(us['id'])
+      console.log(res)
     }
     else if (v > 0 && v <= 5) {
       us['est_financiero'] = 'Prorroga'
@@ -60,7 +66,9 @@ export default function UserTable({ searchResults }) {
     else {
       us['est_financiero'] = 'Inactivo'
       inactivos.push(us)
-      // Enviar el id del usuario para cambiar el status a Inactivo
+      const res = await updateState(us['id'])
+      console.log(res)
+      
     }
   })
 
