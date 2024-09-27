@@ -26,9 +26,9 @@ export default function UserProfile({ data }) {
     suscripcion: userData?.suscripcion,
   })
 
-  let p = parseDateFromDDMMYYYY(userData.fecha_corte)
+  let p = parseDateFromDDMMYYYY(data?.fecha_corte)
   let m = getDaysDifference(p)
-  let putas = typeof m != 'boolean' && m > 0 ? true : false
+  let valid = typeof m != 'boolean' && m > 0 ? true : false
 
   const notifySucces = (msg) => { toast.success(msg) }
   const notifyError = (msg) => { toast.error(msg) }
@@ -273,10 +273,10 @@ export default function UserProfile({ data }) {
                           readOnly 
                         />
                         {
-                          putas &&
+                          valid &&
                           <button
                             className='bg-[#146C94] text-white h-[55px] px-[12px] rounded-[5px]'
-                            onClick={() => console.log('putas')} // Falta enviar el id del usuario para establecer la nueva fecha de corte
+                            onClick={() => console.log('valid')} // Falta enviar el id del usuario para establecer la nueva fecha de corte
                           >
                             Renovar
                           </button>

@@ -16,7 +16,7 @@ export default function ClientProfile({ datapro, data } : any) {
             <Menu />
           </div>
           <div className='main'>
-            <UserProfile data={datapro} />
+            { datapro?.id && <UserProfile data={datapro} /> }
           </div>
         </div>
       </div>
@@ -55,7 +55,7 @@ export const getServerSideProps = async ({ req, params }: any) => {
 
   return {
     props: {
-      datapro: user?.data?.data || [],
+      datapro: user?.data?.data,
       data: data
     }
   }
