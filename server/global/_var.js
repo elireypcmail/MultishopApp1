@@ -39,11 +39,8 @@ const _var = {
   UPDATE_USER:   process.env.UPDATE_USER,
   DELETE_USER:   process.env.DELETE_USER,
   DELETE_DEVICE: process.env.DELETE_DEVICE,
-<<<<<<< HEAD
   RENOVAR_FECHA: process.env.RENOVAR_FECHA,
-=======
   PUT_ESTATE:    process.env.CAMBIAR_ESTAD,
->>>>>>> 6b2cfef60d57f42fcc1b3ba4e93250cab9f4c0cc
 
   // - Users
   GET_USERS: process.env.GET_ADMINS,
