@@ -21,6 +21,10 @@ const calculateResults = (data, filtro, fechaInicio) => {
   const sixMonthsAgo = new Date(startDate)
   sixMonthsAgo.setMonth(startDate.getMonth() - 6) 
 
+  let totalSum = 0
+  let totalCount = 0
+  let totalGeneral = 0 
+
   data.forEach(row => {
     let key
     const date = new Date(row.fecha)
@@ -48,10 +52,9 @@ const calculateResults = (data, filtro, fechaInicio) => {
 
     groupedData[key].total += parseFloat(row.valor)
     groupedData[key].count += 1
-  })
 
-  let totalSum = 0
-  let totalCount = 0
+    totalGeneral += parseFloat(row.valor)
+  })
 
   for (const [periodo, values] of Object.entries(groupedData)) {
     const promedio = (values.total / values.count)
@@ -76,8 +79,8 @@ const calculateResults = (data, filtro, fechaInicio) => {
   }
 
   const promedioTotal = totalSum / totalCount
-
-  return { results, promedioTotal: promedioTotal.toFixed(2) }
+  
+  return { results, promedioTotal: promedioTotal.toFixed(2), totalGeneral: totalGeneral.toFixed(2) }
 }
 
 const determineFilterType = (fechaInicio, fechaFin) => {
