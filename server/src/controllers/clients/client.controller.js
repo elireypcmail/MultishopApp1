@@ -489,4 +489,27 @@ controller.deleteDevice = async (req, res) => {
   }
 }
 
+controller.cambiarEstadoInactivo = async (req, res) => {
+  try {
+    const { id } = req.params
+    
+    const query = `
+      UPDATE cliente
+      SET est_financiero = 'Inactivo'
+      WHERE id = $1
+    `
+    
+    const result = await bd.query(query, [id])
+    
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: 'Cliente no encontrado' })
+    }
+
+    res.status(200).json({ message: 'Estado financiero cambiado a Inactivo correctamente' })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ message: 'Error al cambiar el estado de Activo a Inactivo del cliente' })
+  }
+}
+
 export default controller
