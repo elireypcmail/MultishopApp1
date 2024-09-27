@@ -17,8 +17,7 @@ export function parseDateFromDDMMYYYY(dateString) {
     return null
   }
 
-  let tmp = dateString.split('/')
-  const day = parseInt(tmp[0]), month = parseInt(tmp[1]), year = parseInt(tmp[2])
+  const [day, month, year] = dateString.split('/').map(Number)
 
   if (isNaN(day) || isNaN(month) || isNaN(year)) {
     console.error('Invalid date values:', { day, month, year })

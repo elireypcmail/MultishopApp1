@@ -1,13 +1,23 @@
 import instance from '@g/api'
 import v from '@g/_var'
 
+async function renovarFechaCorte (id, date) {
+  console.log(id)
+  try {
+    const res = await instance.post(`${v.RENOVARDATE}`, { userId: id, corte: date })
+    return res.data
+  } catch (err) {
+    console.log(err)
+  }
+}
+
 async function registroCliente(data) {
   try {
     const res = await instance.post(`${v.REGISTRO_C}`, data)
     return { success: true, data: res.data } 
   } catch (err) { 
     console.error(err)
-    return { success: false, error: err } 
+    return { success: false, error: err }
   }
 }
 
@@ -52,5 +62,6 @@ export {
   loginAdmin,
   filtrarClientesPorLetra,
   filterNotify,
-  filterMove
+  filterMove,
+  renovarFechaCorte,
 }

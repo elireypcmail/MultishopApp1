@@ -8,6 +8,7 @@ import {
   generateUniqueInstanceName,
   createInstanceForClient
 } from '../../services/instance.services.js'
+import { addMonthToDate } from '../../../global/dateManager.js'
 import pool     from '../../models/db.connect.js'
 import services from '../../services/user.services.js'
 import service  from '../../services/twilio.services.js'
@@ -487,6 +488,19 @@ controller.deleteDevice = async (req, res) => {
     console.error(err)
     res.status(500).json({ message: 'Error al eliminar el dispositivo' })
   }
+}
+
+controller.renovarFechaCorte = async (req, res) => {
+  const { userId, corte } = req.body
+  const newDate = addMonthToDate(corte)
+
+  try {
+    let query = `UPDATE cliente SET fecha_corte = '${newDate}', est_financiero = 'Activo' WHERE id = ${userId}`
+    const r = await bd.query(query)
+    
+    if (r.rowCount > 0) res.status(200).json({ status: true, newDate })
+    else res.status(404).json({ status: false })
+  } catch (err) { console.log(err) }
 }
 
 export default controller

@@ -7,6 +7,7 @@ import toast, { Toaster } from 'react-hot-toast'
 import { useRouter } from 'next/router'
 import { useDisclosure } from '@nextui-org/react'
 import { getUser } from '@api/Get'
+import { renovarFechaCorte } from '@api/Post'
 import { deleteClient } from '@api/Delete'
 import { updateUser } from '@api/Put'
 import Image from 'next/image'
@@ -21,6 +22,7 @@ import {
 
 export default function UserProfile({ data }) {
   const [userData, setUserData] = useState(data)
+  const [valid, setValid] = useState(false)
   const [selectedOptions, setSelectedOptions] = useState({
     est_financiero: userData?.est_financiero,
     suscripcion: userData?.suscripcion,
@@ -28,7 +30,6 @@ export default function UserProfile({ data }) {
 
   let p = parseDateFromDDMMYYYY(data?.fecha_corte)
   let m = getDaysDifference(p)
-  let valid = typeof m != 'boolean' && m > 0 ? true : false
 
   const notifySucces = (msg) => { toast.success(msg) }
   const notifyError = (msg) => { toast.error(msg) }
@@ -51,6 +52,7 @@ export default function UserProfile({ data }) {
   useEffect(() => {
     if (id) {
       fetchUserData(id)
+      setValid(typeof m != 'boolean' && m > 0 ? true : false)
     }
   }, [id])
 
@@ -237,7 +239,7 @@ export default function UserProfile({ data }) {
                     <span className='us1'>
                       <label className='labels'>Dirección de instancia</label>
                       <div className="input-with-icon">
-                        <input 
+                        <input
                           className='us2' 
                           type="text" 
                           id='copy' 
@@ -273,13 +275,29 @@ export default function UserProfile({ data }) {
                           readOnly 
                         />
                         {
-                          valid &&
+                          valid
+                            ?
                           <button
+                            type='button'
                             className='bg-[#146C94] text-white h-[55px] px-[12px] rounded-[5px]'
-                            onClick={() => console.log('valid')} // Falta enviar el id del usuario para establecer la nueva fecha de corte
+                            onClick={async (e) => {
+                              e.preventDefault()
+                              const r = await renovarFechaCorte(data.id, data.fecha_corte)
+                              if (r.status) {
+                                let u = { ...userData }
+                                u['est_financiero'] = 'Activo'
+                                let n = r.newDate.toString()
+                                let [y,m,d] = n.split('-').map(Number)
+                                u['fecha_corte'] = `${d}/${m}/${y}`
+                                setUserData(u)
+                                setValid(false)
+                              }
+                            }}
                           >
                             Renovar
                           </button>
+                            :
+                          <></>
                         }
                       </div>
                     </span>
