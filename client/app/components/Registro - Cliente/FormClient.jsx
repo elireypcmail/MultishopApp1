@@ -164,14 +164,6 @@ export default function FormClient({}) {
               />
               {telError && <p className="text-red-500 text-sm">{telError}</p>}
             </span>
-
-            {/* <span className="span">
-              <label className="title">Dispositivos</label>
-              <button type="button" className="btn1" onClick={onOpen}>
-                Añadir dispositivos
-              </button>
-              <ModalDev isOpen={isOpen} onClose={onClose} dispositivos={cliente.dispositivos} onChange={handleDispositivosChange} />
-            </span> */}
           </div>
         </div>
 

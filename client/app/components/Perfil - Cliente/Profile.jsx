@@ -1,19 +1,26 @@
-'use client' // Añadir esta línea al inicio del componente
+'use client'
 
-import { Profile, Delete, Copy } from '../Icons'
-import { useState, useEffect } from 'react'
+import { 
+  Profile, 
+  Delete, 
+  Copy, 
+  BarGraph, 
+  CircularGraph, 
+  LineGraph 
+} from '../Icons'
+import { useState, useEffect, useRef } from 'react'
 import { setCookie, removeCookie } from '@g/cookies'
 import toast, { Toaster } from 'react-hot-toast'
-import { useRouter } from 'next/router'
-import { useDisclosure } from '@nextui-org/react'
-import { getUser } from '@api/Get'
+import { useRouter }      from 'next/router'
+import { useDisclosure }  from '@nextui-org/react'
+import { getUser }        from '@api/Get'
 import { renovarFechaCorte } from '@api/Post'
 import { deleteClient } from '@api/Delete'
-import { updateUser } from '@api/Put'
-import Image from 'next/image'
-import logo from '@p/multi2.png'
-import ModalDev from '../Dispositivos/Modal'
-import ModalMov from '../Movimientos/Movements'
+import { updateUser }   from '@api/Put'
+import Image     from 'next/image'
+import logo      from '@p/multi2.png'
+import ModalDev  from '../Dispositivos/Modal'
+import ModalMov  from '../Movimientos/Movements'
 import MovNotify from '../Notificaciones/MovNotify'
 import {
   getDaysDifference,
@@ -27,6 +34,9 @@ export default function UserProfile({ data }) {
     est_financiero: userData?.est_financiero,
     suscripcion: userData?.suscripcion,
   })
+  const [graphType, setGraphType] = useState(data?.type_graph || 'Torta')
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const dropdownRef = useRef(null)
 
   let p = parseDateFromDDMMYYYY(data?.fecha_corte)
   let m = getDaysDifference(p)
@@ -54,6 +64,17 @@ export default function UserProfile({ data }) {
       fetchUserData(id)
       setValid(typeof m != 'boolean' && m > 0 ? true : false)
     }
+
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
   }, [id])
 
   const fetchUserData = async (id) => {
@@ -71,6 +92,7 @@ export default function UserProfile({ data }) {
           suscripcion: data?.suscripcion,
           fecha_corte: data?.fecha_corte,
           dispositivos: data?.dispositivos,
+          type_graph: data?.type_graph || 'Torta',
         }
 
         const Json = JSON.stringify(profile)
@@ -78,6 +100,7 @@ export default function UserProfile({ data }) {
 
         setUserData(response.data.data)
         setFilas(response.data.data.dispositivos)
+        setGraphType(data?.type_graph || 'Torta')
       } else {
         console.error('Error al obtener los datos del usuario:', response)
       }
@@ -151,7 +174,9 @@ export default function UserProfile({ data }) {
         ...userData,
         est_financiero: selectedOptions.est_financiero,
         suscripcion: selectedOptions.suscripcion,
+        type_graph: graphType,
       }
+      
       const response = await updateUser(id, updatedUserData)
       
       if (response && response.status === 200 && response.data.message === 'Datos del usuario y dispositivos actualizados correctamente.') {
@@ -169,22 +194,76 @@ export default function UserProfile({ data }) {
     }
   }
 
+  const toggleDropdown = () => {
+    setIsDropdownOpen(!isDropdownOpen)
+  }
+
+  const handleGraphTypeChange = (type) => {
+    setGraphType(type)
+    setIsDropdownOpen(false)
+  }
+
+  const renderGraphIcon = () => {
+    switch (graphType) {
+      case 'Torta':
+        return <CircularGraph className="w-5 h-5" />
+      case 'Barra':
+        return <BarGraph className="w-5 h-5" />
+      case 'Línea':
+        return <LineGraph className="w-5 h-5" />
+      default:
+        return <CircularGraph className="w-5 h-5" />
+    }
+  }
+
+  const graphOptions = [
+    { type: 'Torta', icon: CircularGraph },
+    { type: 'Barra', icon: BarGraph },
+    { type: 'Línea', icon: LineGraph },
+  ].filter(option => option.type !== graphType)
+
   return (
     <>
       <div className="main">
         <Toaster position="top-right" reverseOrder={true} duration={5000} />
         <div className="data">
           <div className="profile">
-            <div className='pro'>
-              <div className="name">
-                <Profile />
-                <span className='us-pro'>{userData ? userData?.nombre : 'Cargando...'}</span>
+          <div className='pro'>
+            <div className="name flex items-center">
+              <Profile />
+              <span className='us-pro ml-2'>{userData ? userData?.nombre : 'Cargando...'}</span>
+              <div className="relative ml-2" ref={dropdownRef}>
+                <button
+                  onClick={toggleDropdown}
+                  className="text-white font-medium rounded-lg text-sm px-3 py-2.5 text-center inline-flex items-center"
+                  type="button"
+                >
+                  {renderGraphIcon()}
+                </button>
+                {isDropdownOpen && (
+                  <div className="z-10 absolute left-0 mt-2 bg-[#fcfcfccf] divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
+                    <ul className="py-2 px-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownRightEndButton">
+                      {graphOptions.map((option) => (
+                        <li key={option.type}>
+                          <button
+                            onClick={() => handleGraphTypeChange(option.type)}
+                            className="flex items-center w-full px-4 py-2 hover:bg-[rgba(209,213,219,0.31)] dark:hover:bg-gray-600 dark:hover:text-white"
+                          >
+                            <option.icon className="mr-3 h-5 w-5" />
+                            {option.type}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
-              <button className='del' onClick={eliminarCliente}>
-                <span className='delete'>Eliminar</span>
-                <Delete />
-              </button>
             </div>
+            <button className='del' onClick={eliminarCliente}>
+              <span className='delete'>Eliminar</span>
+              <Delete />
+            </button>
+          </div>
 
             <div className='us'>
               <form action="" className='form-us'>
