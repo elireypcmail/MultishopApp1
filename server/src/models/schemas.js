@@ -79,8 +79,6 @@ async function connectToClientSchema(identificacion, nombre_cliente, instance) {
     const clientSchema = clienteResult.rows[0].instancia
     console.log('clienteResult' + clientSchema)
 
-    //const [ prefix, baseInstance, number ] = instance.split('_')
-
     await db.query(`SET search_path TO "${identificacion}"`)
     console.log(`Cliente '${identificacion}' conectado a su schema '${identificacion}'.`)
 
@@ -93,8 +91,6 @@ async function connectToClientSchema(identificacion, nombre_cliente, instance) {
 
     const ventaQuery = `SELECT * FROM ${identificacion}.ventas`
     const ventaResult = await client.query(ventaQuery)
-
-    console.log(`Datos de la tabla 'venta' en el schema '${clientSchema}':`, ventaResult.rows)
   } catch (error) {
     console.error('Error al conectar al cliente a su schema:', error)
   } finally {

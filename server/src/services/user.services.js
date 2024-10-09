@@ -62,8 +62,6 @@ services.verifyToken = (req, res, next) => {
         const currentTime = Date.now()
         const remainingTime = expireEn - currentTime
         const remainingDays = Math.floor(remainingTime / (1000 * 60 * 60 * 24))
-
-        console.log(`Faltan ${remainingDays} días de suscripción`)
       }, 60000)
 
       return intervalId

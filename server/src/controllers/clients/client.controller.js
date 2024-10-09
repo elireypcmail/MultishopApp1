@@ -48,6 +48,7 @@ controller.getUser = async (req, res) => {
         c.est_financiero, 
         c.instancia, 
         c.suscripcion, 
+        c.type_graph,
         TO_CHAR(c.fecha_corte, 'DD/MM/YYYY') AS fecha_corte,
         d.login_user AS usuario_dispositivo, 
         d.clave                             
@@ -74,7 +75,8 @@ controller.getUser = async (req, res) => {
         dispositivos: user.rows.map(row => ({
           login_user: row.usuario_dispositivo,  
           clave: row.clave
-        }))
+        })),
+        type_graph: user.rows[0].type_graph
       }
 
       return res.status(200).json({ message: 'Usuario encontrado', data: userData })
@@ -164,7 +166,7 @@ controller.postUser = async (req, res) => {
   try {
     await client.query('BEGIN')
 
-    const { identificacion, nombre, telefono, dispositivos } = req.body
+    const { identificacion, nombre, telefono, type_graph, dispositivos } = req.body
 
     const instancia = generateUniqueInstanceName(identificacion)
 
@@ -188,14 +190,14 @@ controller.postUser = async (req, res) => {
       return res.status(400).json({ "message": "Este número de teléfono ya existe." })
     }
 
-    const fechaCorte = `CURRENT_DATE + INTERVAL '30 days'`
+    const fechaCorte = `CURRENT_DATE + INTERVAL '35 days'`
 
     const clienteQuery = `
-      INSERT INTO cliente (identificacion, nombre, telefono, instancia, fecha_corte)
-      VALUES ($1, $2, $3, $4, ${fechaCorte})
+      INSERT INTO cliente (identificacion, nombre, telefono, instancia, type_graph, fecha_corte)
+      VALUES ($1, $2, $3, $4, $5, ${fechaCorte})
       RETURNING id, identificacion
     `
-    const clienteValues = [identificacion, nombre, telefono, instancia]
+    const clienteValues = [identificacion, nombre, telefono, instancia, type_graph]
     const clienteResult = await client.query(clienteQuery, clienteValues)
     const clienteId = clienteResult.rows[0].id
     const identificacionCliente = clienteResult.rows[0].identificacion
@@ -279,7 +281,7 @@ controller.loginUser = async (req, res) => {
     }
 
     const clienteQuery = `
-      SELECT identificacion, nombre, suscripcion, est_financiero, fecha_corte 
+      SELECT identificacion, nombre, suscripcion, est_financiero, fecha_corte, type_graph
       FROM cliente 
       WHERE id = $1
     `
@@ -290,7 +292,9 @@ controller.loginUser = async (req, res) => {
       return res.status(404).json({ message: "Cliente no encontrado" })
     }
 
-    const { identificacion, nombre: nombreCliente, suscripcion: tiempoSuscripcion, est_financiero, fecha_corte } = cliente
+    const { identificacion, nombre: nombreCliente, suscripcion: tiempoSuscripcion, est_financiero, fecha_corte, type_graph } = cliente
+    console.log(type_graph);
+    
 
     const fechaActual = moment().startOf('day')
     const fechaCorte = moment(fecha_corte).startOf('day')
@@ -321,11 +325,11 @@ controller.loginUser = async (req, res) => {
 
       const token = await services.generarToken(userId, true, login_user, tiempoSuscripcion)
       await services.registrarAuditoria(userId, 'Inicio de sesión exitoso', login_user)
-        console.log('ddddddddddddd');
         
       return res.status(200).send({
         tokenCode: token,
         identificacion,
+        type_graph,
         message: `A partir de hoy te quedan ${diasRestantes} día(s) de suscripción. Recuerda comunicarte con los administradores para renovar tu suscripción.`,
         notifyWarning: true
       })
@@ -338,6 +342,7 @@ controller.loginUser = async (req, res) => {
       return res.status(200).send({
         tokenCode: token,
         identificacion,
+        type_graph,
       })
     }
   } catch (error) {
@@ -378,7 +383,7 @@ controller.updateUser = async (req, res) => {
 
     await client.query('BEGIN')
 
-    const getUserQuery = `SELECT nombre, telefono, est_financiero, suscripcion, fecha_corte FROM cliente WHERE id=$1`
+    const getUserQuery = `SELECT nombre, telefono, est_financiero, suscripcion, fecha_corte, type_graph FROM cliente WHERE id=$1`
     const currentUser = await client.query(getUserQuery, [id])
 
     if (currentUser.rows.length === 0) {
@@ -391,7 +396,11 @@ controller.updateUser = async (req, res) => {
       telefono: edit.telefono || currentUser.rows[0].telefono,
       est_financiero: edit.est_financiero || currentUser.rows[0].est_financiero,
       suscripcion: edit.suscripcion || currentUser.rows[0].suscripcion,
+      type_graph: edit.type_graph || currentUser.rows[0].type_graph
     }
+
+    console.log(updatedUser.type_graph);
+    
 
     const nuevaFechaCorteQuery = `
       SELECT CURRENT_DATE + INTERVAL '${updatedUser.suscripcion} days' AS nueva_fecha_corte
@@ -401,15 +410,16 @@ controller.updateUser = async (req, res) => {
 
     const updateUserQuery = `
       UPDATE cliente 
-      SET nombre=$1, telefono=$2, est_financiero=$3, suscripcion=$4, fecha_corte=$5
-      WHERE id=$6
+      SET nombre=$1, telefono=$2, est_financiero=$3, suscripcion=$4, fecha_corte=$5, type_graph=$6
+      WHERE id=$7
     `
     await client.query(updateUserQuery, [
       updatedUser.nombre,
       updatedUser.telefono,
       updatedUser.est_financiero,
       updatedUser.suscripcion,
-      nuevaFechaCorte, 
+      nuevaFechaCorte,
+      updatedUser.type_graph, 
       id,
     ])
 
