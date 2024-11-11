@@ -13,9 +13,7 @@ async function createSchema(identificacion) {
       `SELECT 1 FROM pg_roles WHERE rolname = $1`,
       [`${schemaName}_user`]
     )
-    if (rowCount === 0) {
-      await connection.query(`CREATE ROLE "${schemaName}_user"`)
-    }
+    if (rowCount === 0) await connection.query(`CREATE ROLE "${schemaName}_user"`)
 
     await connection.query(`GRANT ALL ON SCHEMA "${schemaName}" TO "${schemaName}_user"`)
 
@@ -32,12 +30,10 @@ async function deleteSchema(clientId) {
   console.log(clientId)
   const connection = await db.connect()
   try {
-    const clientQuery = `SELECT identificacion FROM cliente WHERE id = $1`
+    const clientQuery  = `SELECT identificacion FROM cliente WHERE id = $1`
     const clientResult = await connection.query(clientQuery, [clientId])
 
-    if (clientResult.rows.length === 0) {
-      throw new Error(`No se encontró ningún cliente con el ID ${clientId}`)
-    }
+    if (clientResult.rows.length === 0) throw new Error(`No se encontró ningún cliente con el ID ${clientId}`) 
 
     const identificacionCliente = clientResult.rows[0].identificacion
 
@@ -72,9 +68,7 @@ async function connectToClientSchema(identificacion, nombre_cliente, instance) {
     const clienteValues = [identificacion, nombre_cliente]
     const clienteResult = await client.query(clienteQuery, clienteValues)
 
-    if (clienteResult.rows.length === 0) {
-      throw new Error('Cliente no encontrado o instancia incorrecta.')
-    }
+    if (clienteResult.rows.length === 0) throw new Error('Cliente no encontrado o instancia incorrecta.')
 
     const clientSchema = clienteResult.rows[0].instancia
     console.log('clienteResult' + clientSchema)
@@ -87,10 +81,10 @@ async function connectToClientSchema(identificacion, nombre_cliente, instance) {
       FROM information_schema.tables
       WHERE table_schema = $1
     `
-    const tablesResult = await client.query(tablesQuery, [clientSchema])
 
-    const ventaQuery = `SELECT * FROM ${identificacion}.ventas`
-    const ventaResult = await client.query(ventaQuery)
+    const tablesResult = await client.query(tablesQuery, [clientSchema])
+    const ventaQuery   = `SELECT * FROM ${identificacion}.ventas`
+    const ventaResult  = await client.query(ventaQuery)
   } catch (error) {
     console.error('Error al conectar al cliente a su schema:', error)
   } finally {
@@ -103,32 +97,36 @@ async function createTableInSchema(nombreCliente, nombreTabla) {
     const query = `
         CREATE TABLE "${nombreCliente}"."${nombreTabla}" (
           id Serial NOT NULL, 
-          fecha date NOT NULL, 
+          fecha date NOT NULL,
           cantidadfac integer NOT NULL DEFAULT 0,
-          totalcosto decimal(25,2) NOT NULL DEFAULT 0,
-          totalut decimal(25,2) NOT NULL DEFAULT 0, 
-          totalventa decimal(25,2) NOT NULL DEFAULT 0,
-          cantidadund integer NOT NULL DEFAULT 0, 
-          clientesa integer NOT NULL DEFAULT 0, 
-          clientesf integer NOT NULL DEFAULT 0, 
-          clientesn integer NOT NULL DEFAULT 0, 
-          valor_tp decimal(25,2) NOT NULL DEFAULT 0,
-          valor_up decimal(25,2) NOT NULL DEFAULT 0,
-          valor_uxb decimal(25,2) NOT NULL DEFAULT 0,
+          totalcosto numeric(25,2) NOT NULL DEFAULT 0,
+          totalut numeric(25,2) NOT NULL DEFAULT 0,
+          totalventa numeric(25,2) NOT NULL DEFAULT 0,
+          cantidadund integer NOT NULL DEFAULT 0,
+          clientesa integer NOT NULL DEFAULT 0,
+          clientesf integer NOT NULL DEFAULT 0,
+          clientesn integer NOT NULL DEFAULT 0,
+          valor_tp numeric(25,2) NOT NULL DEFAULT 0,
+          valor_up numeric(25,2) NOT NULL DEFAULT 0,
+          valor_uxb numeric(25,2) NOT NULL DEFAULT 0,
           cantidadfac_cd integer NOT NULL DEFAULT 0,
-          totalventa_cd decimal(25,2) NOT NULL DEFAULT 0,
+          totalventa_cd numeric(25,2) NOT NULL DEFAULT 0,
           sincroniza smallint DEFAULT 0,
-          sincronizaf timestamp NOT NULL,
-          cod_clibs character varying(20) NOT NULL DEFAULT '',
-          nom_clibs character varying(240) NOT NULL DEFAULT '',
-          totalventa_bs decimal(25,2) NOT NULL DEFAULT 0,
-          cod_art_bs character varying(20) NOT NULL DEFAULT '',
-          nom_art_bs character varying(240) NOT NULL DEFAULT '',
-          totalventa_bs_art decimal(25,2) NOT NULL DEFAULT 0,
-          cod_op_bs character varying(20) NOT NULL DEFAULT '',
-          nom_op_bs character varying(240) NOT NULL DEFAULT '',
-          totalventa_bs_op decimal(25,2) NOT NULL DEFAULT 0,
-          margendeldia decimal(25,2) NOT NULL DEFAULT 0,
+          sincronizaf timestamp without time zone NOT NULL,
+          cod_clibs character varying(20) COLLATE pg_catalog."default" NOT NULL DEFAULT ''::character varying,
+          nom_clibs character varying(240) COLLATE pg_catalog."default" NOT NULL DEFAULT ''::character varying,
+          totalventa_bs numeric(25,2) NOT NULL DEFAULT 0,
+          cod_art_bs character varying(20) COLLATE pg_catalog."default" NOT NULL DEFAULT ''::character varying,
+          nom_art_bs character varying(240) COLLATE pg_catalog."default" NOT NULL DEFAULT ''::character varying,
+          totalventa_bs_art numeric(25,2) NOT NULL DEFAULT 0,
+          cod_op_bs character varying(20) COLLATE pg_catalog."default" NOT NULL DEFAULT ''::character varying,
+          nom_op_bs character varying(240) COLLATE pg_catalog."default" NOT NULL DEFAULT ''::character varying,
+          totalventa_bs_op numeric(25,2) NOT NULL DEFAULT 0,
+          margendeldia numeric(25,2) NOT NULL DEFAULT 0,
+          cod_fab_bs character varying(20) COLLATE pg_catalog."default" NOT NULL DEFAULT ''::character varying,
+          nom_fab_bs character varying(240) COLLATE pg_catalog."default" NOT NULL DEFAULT ''::character varying,
+          totalventa_fab_bs numeric(25,2) NOT NULL DEFAULT 0,
+          unidades_art_bs numeric(25,2) NOT NULL DEFAULT 0,
           CONSTRAINT pk_id PRIMARY KEY (id),
           CONSTRAINT idx_fecha UNIQUE (fecha)
         );

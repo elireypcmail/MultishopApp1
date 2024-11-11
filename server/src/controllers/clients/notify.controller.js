@@ -5,9 +5,9 @@ const db = pool
 
 function formatDate(date) {
   const formattedDate = new Date(date)
-  const day = formattedDate.getDate()
+  const day   = formattedDate.getDate()
   const month = formattedDate.getMonth() + 1 
-  const year = formattedDate.getFullYear()
+  const year  = formattedDate.getFullYear()
   return `${day}/${month}/${year}`
 }
 
@@ -25,7 +25,7 @@ controllerNoti.notifyClient = async (req, res) => {
     `
     const notificacionesValues = [id]
     const notificacionesResult = await client.query(notificacionesQuery, notificacionesValues)
-    const notificaciones = notificacionesResult.rows.map((notificacion) => ({
+    const notificaciones       = notificacionesResult.rows.map((notificacion) => ({
       ...notificacion,
       fecha: formatDate(notificacion.fecha), 
     }))
@@ -53,11 +53,9 @@ controllerNoti.findByDate = async (req, res) => {
     `
     const notificacionesValues = [userId, inicio, fin]
     const notificacionesResult = await client.query(notificacionesQuery, notificacionesValues)
-    const notificaciones = notificacionesResult.rows
+    const notificaciones       = notificacionesResult.rows
 
-    if (notificaciones.length === 0) {
-      return  res.status(404).json({ "message": "No se encontraron notificaciones con esa fecha."})
-    }
+    if (notificaciones.length === 0) return  res.status(404).json({ "message": "No se encontraron notificaciones con esa fecha."})
 
     res.status(200).json({ "userId": userId, "data": notificaciones })
 

@@ -1,5 +1,20 @@
 'use client'
 
+import { useState, useEffect, useRef } from 'react'
+import { setCookie, removeCookie }     from '@g/cookies'
+import toast, { Toaster }              from 'react-hot-toast'
+import { useRouter }                   from 'next/router'
+import { useDisclosure }               from '@nextui-org/react'
+import { getUser }                     from '@api/Get'
+import { renovarFechaCorte }           from '@api/Post'
+import { deleteClient }                from '@api/Delete'
+import { updateUser }                  from '@api/Put'
+import Image                           from 'next/image'
+import logo                            from '@p/multi2.png'
+import ModalDev                        from '../Dispositivos/Modal'
+import ModalMov                        from '../Movimientos/Movements'
+import MovNotify                       from '../Notificaciones/MovNotify'
+import { format, parse }               from 'date-fns'
 import { 
   Profile, 
   Delete, 
@@ -8,20 +23,6 @@ import {
   CircularGraph, 
   LineGraph 
 } from '../Icons'
-import { useState, useEffect, useRef } from 'react'
-import { setCookie, removeCookie } from '@g/cookies'
-import toast, { Toaster } from 'react-hot-toast'
-import { useRouter }      from 'next/router'
-import { useDisclosure }  from '@nextui-org/react'
-import { getUser }        from '@api/Get'
-import { renovarFechaCorte } from '@api/Post'
-import { deleteClient } from '@api/Delete'
-import { updateUser }   from '@api/Put'
-import Image     from 'next/image'
-import logo      from '@p/multi2.png'
-import ModalDev  from '../Dispositivos/Modal'
-import ModalMov  from '../Movimientos/Movements'
-import MovNotify from '../Notificaciones/MovNotify'
 import {
   getDaysDifference,
   parseDateFromDDMMYYYY,
@@ -42,7 +43,7 @@ export default function UserProfile({ data }) {
   let m = getDaysDifference(p)
 
   const notifySucces = (msg) => { toast.success(msg) }
-  const notifyError = (msg) => { toast.error(msg) }
+  const notifyError  = (msg) => { toast.error(msg) }
 
   const [filas, setFilas] = useState([
     { telefono: '', mac: '', niv_auth: '', clave: '' },
@@ -154,10 +155,19 @@ export default function UserProfile({ data }) {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
-    setUserData((prevUserData) => ({
-      ...prevUserData,
-      [name]: value,
-    }))
+    if (name === 'fecha_corte') {
+      const date = parse(value, 'yyyy-MM-dd', new Date())
+      const formattedDate = format(date, 'dd/MM/yyyy')
+      setUserData(prevData => ({
+        ...prevData,
+        [name]: formattedDate
+      }))
+    } else {
+      setUserData(prevData => ({
+        ...prevData,
+        [name]: value
+      }))
+    }
   }
 
   const handleSelectChange = (e) => {
@@ -174,18 +184,16 @@ export default function UserProfile({ data }) {
         ...userData,
         est_financiero: selectedOptions.est_financiero,
         suscripcion: selectedOptions.suscripcion,
+        dispositivos: filas,
         type_graph: graphType,
       }
       
-      const response = await updateUser(id, updatedUserData)
+      const response = await updateUser(userData.id, updatedUserData)
       
       if (response && response.status === 200 && response.data.message === 'Datos del usuario y dispositivos actualizados correctamente.') {
         notifySucces('Datos actualizados correctamente')
-
-        setTimeout(() => {
-          push('/client')
-        }, 2000)
-      } else  {
+        setUserData(updatedUserData)
+      } else {
         notifyError('Error al actualizar los datos')
       }
     } catch (error) {
@@ -349,13 +357,12 @@ export default function UserProfile({ data }) {
                       <div className='flex gap-[10px] items-start'>
                         <input 
                           className='us2 w-full'
-                          type="text"
-                          value={userData ? userData?.fecha_corte : ''} 
-                          readOnly 
+                          type="date"
+                          name="fecha_corte"
+                          value={userData?.fecha_corte ? format(parse(userData.fecha_corte, 'dd/MM/yyyy', new Date()), 'yyyy-MM-dd') : ''}
+                          onChange={handleInputChange} 
                         />
-                        {
-                          valid
-                            ?
+                        {valid && (
                           <button
                             type='button'
                             className='bg-[#146C94] text-white h-[55px] px-[12px] rounded-[5px]'
@@ -375,9 +382,7 @@ export default function UserProfile({ data }) {
                           >
                             Renovar
                           </button>
-                            :
-                          <></>
-                        }
+                        )}
                       </div>
                     </span>
                     <span className='us1'>
@@ -390,7 +395,6 @@ export default function UserProfile({ data }) {
                         onClose={onCloseDev}
                         dispositivos={filas}
                         onChange={handleDispositivosChange}
-                        eliminarFila={eliminarFila}
                       />
                     </span>
                   </div>

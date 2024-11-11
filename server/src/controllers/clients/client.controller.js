@@ -1,27 +1,29 @@
+import { addMonthToDate } from '../../../global/dateManager.js'
+import pool               from '../../models/db.connect.js'
+import services           from '../../services/user.services.js'
+import service            from '../../services/twilio.services.js'
+import jwt                from 'jsonwebtoken'
+import _var               from '../../../global/_var.js'
+import moment             from 'moment'
 import {
   createSchema,
   deleteSchema,
   connectToClientSchema,
   createTableInSchema
-} from '../../models/schemas.js'
+} 
+from '../../models/schemas.js'
 import {
   generateUniqueInstanceName,
   createInstanceForClient
-} from '../../services/instance.services.js'
-import { addMonthToDate } from '../../../global/dateManager.js'
-import pool     from '../../models/db.connect.js'
-import services from '../../services/user.services.js'
-import service  from '../../services/twilio.services.js'
-import jwt      from 'jsonwebtoken'
-import _var     from '../../../global/_var.js'
-import moment   from 'moment'
+} 
+from '../../services/instance.services.js'
 
 const controller = {}
 const bd = pool
 
 controller.getUsers = async (req, res) => {
   try {
-    const sql = `SELECT * FROM cliente ORDER BY nombre ASC`
+    const sql  = `SELECT * FROM cliente ORDER BY nombre ASC`
     const user = await bd.query(sql)
 
     if (user?.rows.length > 0) res.status(200).json({
@@ -129,10 +131,10 @@ controller.checkToken = async (req, res) => {
       return res.status(401).send({ "message": 'Token no proporcionado' })
     }
 
-    const token = authHeader.split(' ')[1]
+    const token        = authHeader.split(' ')[1]
     const decodedToken = jwt.verify(token, _var.TOKEN_KEY)
 
-    const expiraEn = new Date(decodedToken.expiraEn * 1000)
+    const expiraEn     = new Date(decodedToken.expiraEn * 1000)
     const tiempoActual = Date.now()
 
     if (expiraEn < tiempoActual) {
@@ -167,14 +169,13 @@ controller.postUser = async (req, res) => {
     await client.query('BEGIN')
 
     const { identificacion, nombre, telefono, type_graph, dispositivos } = req.body
-
     const instancia = generateUniqueInstanceName(identificacion)
 
     if (identificacion.length > 12) {
       return res.status(400).json({ "message": "Has superado la cantidad de dígitos de la identificación. No puede tener más de 12 dígitos" })
     }
 
-    const existingIdentificacionQuery = `SELECT id FROM cliente WHERE identificacion = $1`
+    const existingIdentificacionQuery  = `SELECT id FROM cliente WHERE identificacion = $1`
     const existingIdentificacionValues = [identificacion]
     const existingIdentificacionResult = await client.query(existingIdentificacionQuery, existingIdentificacionValues)
 
@@ -190,16 +191,17 @@ controller.postUser = async (req, res) => {
       return res.status(400).json({ "message": "Este número de teléfono ya existe." })
     }
 
-    const fechaCorte = `CURRENT_DATE + INTERVAL '35 days'`
+    const fechaCorte  = `CURRENT_DATE + INTERVAL '35 days'`
+    const suscripcion = 35  
 
     const clienteQuery = `
-      INSERT INTO cliente (identificacion, nombre, telefono, instancia, type_graph, fecha_corte)
-      VALUES ($1, $2, $3, $4, $5, ${fechaCorte})
+      INSERT INTO cliente (identificacion, nombre, telefono, instancia, type_graph, fecha_corte, suscripcion)
+      VALUES ($1, $2, $3, $4, $5, ${fechaCorte}, $6)
       RETURNING id, identificacion
     `
-    const clienteValues = [identificacion, nombre, telefono, instancia, type_graph]
-    const clienteResult = await client.query(clienteQuery, clienteValues)
-    const clienteId = clienteResult.rows[0].id
+    const clienteValues         = [identificacion, nombre, telefono, instancia, type_graph, suscripcion]
+    const clienteResult         = await client.query(clienteQuery, clienteValues)
+    const clienteId             = clienteResult.rows[0].id
     const identificacionCliente = clienteResult.rows[0].identificacion
 
     if (dispositivos && dispositivos.length > 0) {
@@ -208,7 +210,7 @@ controller.postUser = async (req, res) => {
           return res.status(400).json({ "message": "El campo login_user no puede estar vacío para los dispositivos." })
         }
 
-        const existingDeviceQuery = `SELECT id FROM dispositivo WHERE login_user = $1`
+        const existingDeviceQuery  = `SELECT id FROM dispositivo WHERE login_user = $1`
         const existingDeviceValues = [dispositivo.login_user]
         const existingDeviceResult = await client.query(existingDeviceQuery, existingDeviceValues)
 
@@ -257,9 +259,7 @@ controller.loginUser = async (req, res) => {
     const dispositivoValues = [login_user]
     const dispositivoResult = await client.query(dispositivoQuery, dispositivoValues)
 
-    if (dispositivoResult.rows.length === 0) {
-      return res.status(404).json({ message: "Este usuario no existe." })
-    }
+    if (dispositivoResult.rows.length === 0) return res.status(404).json({ message: "Este usuario no existe." })
 
     const dispositivoValido = dispositivoResult.rows[0]
     const { id_cliente: userId, clave: claveDispositivo } = dispositivoValido
@@ -267,8 +267,8 @@ controller.loginUser = async (req, res) => {
     if (clave !== claveDispositivo) {
       await services.registrarAuditoria(userId, 'Intento de inicio de sesión fallido', login_user, { claveIntentada: clave })
 
-      const intentosQuery = `SELECT intento FROM cliente WHERE id = $1`
-      const intentosResult = await client.query(intentosQuery, [userId])
+      const intentosQuery    = `SELECT intento FROM cliente WHERE id = $1`
+      const intentosResult   = await client.query(intentosQuery, [userId])
       const intentosFallidos = intentosResult.rows[0]?.intento
 
       if (intentosFallidos >= 3) {
@@ -286,18 +286,15 @@ controller.loginUser = async (req, res) => {
       WHERE id = $1
     `
     const clienteResult = await client.query(clienteQuery, [userId])
-    const cliente = clienteResult.rows[0]
+    const cliente       = clienteResult.rows[0]
 
-    if (!cliente) {
-      return res.status(404).json({ message: "Cliente no encontrado" })
-    }
+    if (!cliente) return res.status(404).json({ message: "Cliente no encontrado" })
 
     const { identificacion, nombre: nombreCliente, suscripcion: tiempoSuscripcion, est_financiero, fecha_corte, type_graph } = cliente
-    console.log(type_graph);
+    console.log(type_graph)
     
-
-    const fechaActual = moment().startOf('day')
-    const fechaCorte = moment(fecha_corte).startOf('day')
+    const fechaActual   = moment().startOf('day')
+    const fechaCorte    = moment(fecha_corte).startOf('day')
     const diasRestantes = fechaCorte.diff(fechaActual, 'days')
 
     if (diasRestantes < 0) {
@@ -311,9 +308,7 @@ controller.loginUser = async (req, res) => {
       return res.status(403).send({ message: 'Suscripción expirada. Comunícate con los administradores' })
     }
 
-    if (est_financiero === 'Inactivo') {
-      return res.status(403).send({ message: 'Suscripción expirada. Comunícate con los administradores' })
-    }
+    if (est_financiero === 'Inactivo'){ return res.status(403).send({ message: 'Suscripción expirada. Comunícate con los administradores' }) }
 
     if (diasRestantes <= 5) {
       await client.query(`
@@ -356,7 +351,7 @@ controller.loginUser = async (req, res) => {
 controller.code = async (req, res) => {
   try {
     const { code } = req.body
-    const result = await service.compareVerificationCodes(code)
+    const result   = await service.compareVerificationCodes(code)
 
     if (result.status === 400) {
       return res.status(400).json(result)
@@ -371,6 +366,11 @@ controller.code = async (req, res) => {
 
 function generateVerificationCode() {
   return Math.floor(1000 + Math.random() * 9000)
+}
+
+const convertirFechaFormato = (fecha) => {
+  const [dia, mes, año] = fecha.split('/')
+  return `${año}-${mes}-${dia}`
 }
 
 controller.updateUser = async (req, res) => {
@@ -392,21 +392,15 @@ controller.updateUser = async (req, res) => {
     }
 
     const updatedUser = {
-      nombre: edit.nombre || currentUser.rows[0].nombre,
-      telefono: edit.telefono || currentUser.rows[0].telefono,
+      nombre:         edit.nombre || currentUser.rows[0].nombre,
+      telefono:       edit.telefono || currentUser.rows[0].telefono,
       est_financiero: edit.est_financiero || currentUser.rows[0].est_financiero,
-      suscripcion: edit.suscripcion || currentUser.rows[0].suscripcion,
-      type_graph: edit.type_graph || currentUser.rows[0].type_graph
+      suscripcion:    edit.suscripcion || currentUser.rows[0].suscripcion,
+      fecha_corte:    edit.fecha_corte ? convertirFechaFormato(edit.fecha_corte) : currentUser.rows[0].fecha_corte,
+      type_graph:     edit.type_graph || currentUser.rows[0].type_graph
     }
 
     console.log(updatedUser.type_graph);
-    
-
-    const nuevaFechaCorteQuery = `
-      SELECT CURRENT_DATE + INTERVAL '${updatedUser.suscripcion} days' AS nueva_fecha_corte
-    `
-    const nuevaFechaCorteResult = await client.query(nuevaFechaCorteQuery)
-    const nuevaFechaCorte = nuevaFechaCorteResult.rows[0].nueva_fecha_corte
 
     const updateUserQuery = `
       UPDATE cliente 
@@ -418,7 +412,7 @@ controller.updateUser = async (req, res) => {
       updatedUser.telefono,
       updatedUser.est_financiero,
       updatedUser.suscripcion,
-      nuevaFechaCorte,
+      updatedUser.fecha_corte,
       updatedUser.type_graph, 
       id,
     ])
@@ -445,7 +439,7 @@ controller.updateUser = async (req, res) => {
           const insertDispositivosQuery = `
             INSERT INTO dispositivo (id_cliente, login_user, clave)
             VALUES ($1, $2, $3)
-            ON CONFLICT (login_user) DO NOTHING
+            ON CONFLICT (login_user) DO UPDATE SET clave = EXCLUDED.clave
           `
           await client.query(insertDispositivosQuery, [id, dispositivo.login_user, dispositivo.clave])
         }
@@ -506,7 +500,7 @@ controller.renovarFechaCorte = async (req, res) => {
 
   try {
     let query = `UPDATE cliente SET fecha_corte = '${newDate}', est_financiero = 'Activo' WHERE id = ${userId}`
-    const r = await bd.query(query)
+    const r   = await bd.query(query)
     
     if (r.rowCount > 0) res.status(200).json({ status: true, newDate })
     else res.status(404).json({ status: false })
@@ -522,12 +516,9 @@ controller.cambiarEstadoInactivo = async (req, res) => {
       SET est_financiero = 'Inactivo'
       WHERE id = $1
     `
-    
+
     const result = await bd.query(query, [id])
-    
-    if (result.rowCount === 0) {
-      return res.status(404).json({ message: 'Cliente no encontrado' })
-    }
+    if (result.rowCount === 0) return res.status(404).json({ message: 'Cliente no encontrado' })
 
     res.status(200).json({ message: 'Estado financiero cambiado a Inactivo correctamente' })
   } catch (err) {
@@ -535,6 +526,5 @@ controller.cambiarEstadoInactivo = async (req, res) => {
     res.status(500).json({ message: 'Error al cambiar el estado de Activo a Inactivo del cliente' })
   }
 }
-
 
 export default controller

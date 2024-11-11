@@ -59,7 +59,7 @@ service.saveVerification = async (userId, phoneNumber, verificationCode) => {
     `
     const insertValues = [userId, phoneNumber, verificationCode]
 
-    const { rows } = await client.query(insertQuery, insertValues)
+    const { rows }       = await client.query(insertQuery, insertValues)
     const verificationId = rows[0].id
 
     client.release()
@@ -109,14 +109,14 @@ service.compareVerificationCode = async (enteredCode) => {
 
 service.saveVerificationCode = async (userId, telefono, verificationCode) => {
   try {
-    const client = await pool.connect();
+    const client = await pool.connect()
     const insertQuery = `
       INSERT INTO vericacion_code (userid, telefono, code)
       VALUES ($1, $2, $3)
       RETURNING id
     `
-    const insertValues = [userId, telefono, verificationCode]
-    const { rows } = await client.query(insertQuery, insertValues)
+    const insertValues   = [userId, telefono, verificationCode]
+    const { rows }       = await client.query(insertQuery, insertValues)
     const verificationId = rows[0].id
     client.release()
     return verificationId
@@ -136,8 +136,8 @@ service.compareVerificationCodes = async (enteredCode) => {
       LIMIT 1
     `
     const selectValues = [enteredCode]
-    const { rows } = await client.query(selectQuery, selectValues)
-    const storedCode = rows[0].code
+    const { rows }     = await client.query(selectQuery, selectValues)
+    const storedCode   = rows[0].code
     client.release()
     return storedCode === enteredCode
   } catch (error) {

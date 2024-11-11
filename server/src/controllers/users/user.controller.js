@@ -5,11 +5,9 @@ const db = pool
 
 controllerUs.getadmins = async (req, res) => {
   try {
-    const sql =  `SELECT * FROM users ORDER BY username ASC`
+    const sql    =  `SELECT * FROM users ORDER BY username ASC`
     const admins = await db.query(sql)
-    if (admins.rowCount > 0) {
-      return res.status(200).json({ "message": "Listado de Admins", "data": admins.rows })
-    }
+    if (admins.rowCount > 0) return res.status(200).json({ "message": "Listado de Admins", "data": admins.rows })
     return res.status(404).json({ "message": "No hay administradores registrados"})
   } catch (err) {
     console.error(err)
@@ -20,17 +18,15 @@ controllerUs.getadmins = async (req, res) => {
 controllerUs.getAdminByEmail = async (req, res) => {
   try {
     const { email } = req.params
-    const sql = `SELECT * FROM users WHERE email = $1`
-    const admin = await pool.query(sql, [email])
+    const sql       = `SELECT * FROM users WHERE email = $1`
+    const admin     = await pool.query(sql, [email])
 
-    if (admin.rows.length === 0) {
-      return res.status(404).json({ message: 'Usuario no encontrado' })
-    }
+    if (admin.rows.length === 0) return res.status(404).json({ message: 'Usuario no encontrado' })
 
     const adminData = {
-      id: admin.rows[0].id,
+      id:       admin.rows[0].id,
       username: admin.rows[0].username,
-      email: admin.rows[0].email,
+      email:    admin.rows[0].email,
       password: admin.rows[0].password,
     }
 
@@ -72,7 +68,7 @@ controllerUs.filtrarAdminsPorLetra = async (req, res) => {
     const { letra } = req.body 
 
     const client = await pool.connect()
-    const query = `
+    const query  = `
       SELECT * FROM users
       WHERE LOWER(username) LIKE '%' || LOWER($1) || '%';
     `
@@ -96,17 +92,13 @@ controllerUs.register = async (req, res) => {
     const sqlUser = `SELECT * FROM users WHERE email = $1;`
     let userExist = await db.query(sqlUser, [ newUser?.email ])
 
-    if (userExist.rows.length > 0) {
-      return res.status(200).json({ "message": 'El correo electrónico ya está registrado' })
-    }
+    if (userExist.rows.length > 0) return res.status(200).json({ "message": 'El correo electrónico ya está registrado' })
 
-    const sql = `INSERT INTO users ( username, email, password ) VALUES ($1, $2, $3)`
+    const sql    = `INSERT INTO users ( username, email, password ) VALUES ($1, $2, $3)`
     const values = [ newUser?.username, newUser?.email, newUser?.password ]
 
     const result = await db.query(sql, [ newUser?.username, newUser?.email, newUser?.password ])
-    if (result.rowCount === 1) {
-      return res.status(200).json({ 'message': 'Usuario creado correctamente', 'data': values })
-    } 
+    if (result.rowCount === 1) return res.status(200).json({ 'message': 'Usuario creado correctamente', 'data': values })
     return res.json({ 'message': 'No se pudo crear el usuario' })
   } catch (err) {
     console.error(err)
@@ -118,20 +110,15 @@ controllerUs.login = async (req, res) => {
   try {
     const user = req.body
 
-    const sql = `SELECT * FROM users WHERE email = $1;`
+    const sql      = `SELECT * FROM users WHERE email = $1;`
     const userData = [user.email]
 
     const client = await pool.connect()
     const result = await client.query(sql, userData)
     client.release()
 
-    if (result.rows.length === 0) {
-      return res.status(200).json({ "message": "Este correo no existe o no es correcto. Intente de nuevo." })
-    }
-
-    if (user.password !== result.rows[0].password) {
-      return res.status(200).json({ "message": "Contraseña incorrecta" })
-    }
+    if (result.rows.length === 0)  return res.status(200).json({ "message": "Este correo no existe o no es correcto. Intente de nuevo." })
+    if (user.password !== result.rows[0].password) return res.status(200).json({ "message": "Contraseña incorrecta" })
 
     return res.status(200).json({ "message": "Sesión iniciada correctamente", "data": result.rows[0] }) 
   } catch (err) {
@@ -143,14 +130,14 @@ controllerUs.login = async (req, res) => {
 controllerUs.updateAdmin = async (req, res) => {
   const client = await pool.connect()
   try {
-    const { id } = req.params
+    const { id }      = req.params
     const { ...edit } = req.body
 
     await client.query('BEGIN')
 
-    let updateAdminQuery = 'UPDATE users SET'
+    let updateAdminQuery    = 'UPDATE users SET'
     const updateAdminValues = []
-    const params = []
+    const params            = []
 
     Object.keys(edit).forEach((key, index) => {
       if (edit[key]) {

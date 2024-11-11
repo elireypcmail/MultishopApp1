@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { useRouter }   from 'next/router'
-import { getUsers }    from '@api/Get'
-import { updateState } from '@api/Put'
-import { getDaysDifference } from '@g/dateComparison'
+import { useRouter }           from 'next/router'
+import { getUsers }            from '@api/Get'
+import { updateState }         from '@api/Put'
+import { getDaysDifference }   from '@g/dateComparison'
 
 import {
   Accordion,
@@ -12,7 +12,7 @@ import {
 } from '@mui/material'
 
 export default function UserTable({ searchResults }) {
-  const [users, setUsers] = useState([])
+  const [users, setUsers]       = useState([])
   const [expanded, setExpanded] = useState('panel1')
   const { push } = useRouter()
 

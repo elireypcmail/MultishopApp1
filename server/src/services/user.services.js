@@ -47,19 +47,15 @@ services.verifyToken = (req, res, next) => {
   try {
     const authHeader = req.headers.authorization
 
-    if (!authHeader) {
-      return res.status(401).send({ message: 'Token no proporcionado' })
-    }
+    if (!authHeader) return res.status(401).send({ message: 'Token no proporcionado' })
 
     const token = authHeader.split(" ")[1]
 
-    if (!token) {
-      return res.status(401).send({ message: 'Token no proporcionado' })
-    }
+    if (!token) return res.status(401).send({ message: 'Token no proporcionado' })
 
     const startBackgroundProcess = (expireEn) => {
-      const intervalId = setInterval(() => {
-        const currentTime = Date.now()
+      const intervalId      = setInterval(() => {
+        const currentTime   = Date.now()
         const remainingTime = expireEn - currentTime
         const remainingDays = Math.floor(remainingTime / (1000 * 60 * 60 * 24))
       }, 60000)
@@ -73,8 +69,8 @@ services.verifyToken = (req, res, next) => {
         return res.status(401).send({ message: 'Token inválido' })
       }
 
-      const expireEn = decodedToken.expiraEn
-      const expireDate = new Date(expireEn * 1000)
+      const expireEn     = decodedToken.expiraEn
+      const expireDate   = new Date(expireEn * 1000)
       const tiempoActual = Date.now()
 
       const intervalId = startBackgroundProcess(expireDate)
@@ -95,7 +91,7 @@ services.verifyToken = (req, res, next) => {
 }
 
 services.formatTime = (totalSeconds) => {
-  const hours = Math.floor(totalSeconds / 3600)
+  const hours   = Math.floor(totalSeconds / 3600)
   const minutes = Math.floor((totalSeconds % 3600) / 60)
 
   const formattedTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
@@ -148,14 +144,12 @@ services.getAuditoriaDate = async (req, res) => {
       AND fecha BETWEEN $2 AND $3
       ORDER BY fecha DESC
     `
-    const movimientosValue = [ id, inicio, fin ]
+    const movimientosValue  = [ id, inicio, fin ]
     const movimientosResult = await client.query(movimientosQuery, movimientosValue)
-    const movimientos = movimientosResult.rows
+    const movimientos       = movimientosResult.rows
 
-    if (movimientos.length === 0) {
-      return  res.status(404).json({ "message": "No se encontraron movimientos con esa fecha."})
-    }
-
+    if (movimientos.length === 0) return  res.status(404).json({ "message": "No se encontraron movimientos con esa fecha."})
+    
     res.status(200).json({ "userId": id, "data": movimientos })
 
     client.release()
