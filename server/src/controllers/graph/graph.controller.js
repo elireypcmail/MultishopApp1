@@ -146,13 +146,15 @@ const getTopKPIs = async (nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi
   switch (filtro) {
     case 'dias':
       groupByClause = 'fecha'
-      limitClause = 'LIMIT 5'
+      limitClause = 'LIMIT 10'
       break
     case 'semanas':
       groupByClause = "DATE_TRUNC('week', fecha)"
+      limitClause = 'LIMIT 10'
       break
     case 'meses':
       groupByClause = "DATE_TRUNC('month', fecha)"
+      limitClause = 'LIMIT 10'
       break
   }
 
@@ -164,7 +166,7 @@ const getTopKPIs = async (nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi
         WHERE fecha BETWEEN $1 AND $2
         GROUP BY id, periodo
         ORDER BY total_ventas DESC
-        LIMIT 1
+        ${limitClause}
       `
       break
 
@@ -175,7 +177,7 @@ const getTopKPIs = async (nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi
         WHERE fecha BETWEEN $1 AND $2
         GROUP BY id, periodo, cod_clibs, nom_clibs
         ORDER BY total_ventas DESC
-        LIMIT 1
+        ${limitClause}
       `
       break
 
@@ -192,7 +194,7 @@ const getTopKPIs = async (nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi
 
     case 'FabricantesConMasVentas':
       query = `
-        SELECT id, ${groupByClause} AS periodo, cod_fab_bs, nom_fab_bs, MAX(totalventa_fab_bs) AS total_ventas
+        SELECT id, ${groupByClause} AS periodo, cod_fab_bs, nom_fab_bs, MAX(totalventa_fab_bs) AS total_ventas , FLOOR(unidades_art_bs) AS Unidades_vendidas
         FROM ${tableName}
         WHERE fecha BETWEEN $1 AND $2
         GROUP BY id, periodo, cod_fab_bs, nom_fab_bs
@@ -251,7 +253,7 @@ const obtenerLimiteSegunFiltro = (fechaInicio, fechaFin) => {
     return semanas
   } else {
     const mesesDiff = (endDate.getFullYear() - startDate.getFullYear()) * 12 + (endDate.getMonth() - startDate.getMonth())
-    return Math.min(mesesDiff, 6) 
+    return Math.max(Math.min(mesesDiff, 10), 10);
   }
 }
 
@@ -275,7 +277,7 @@ const obtenerFechaKPI = async (data, tableName) => {
 
 const obtenerTopValoresVentas = (resultados, limite) => {
   if (!resultados || resultados.length === 0) return []
-  
+
   const filasConValores = resultados.map(row => {
     console.log('esto es el row: ' + row)
     
