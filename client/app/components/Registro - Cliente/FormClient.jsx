@@ -12,6 +12,7 @@ export default function FormClient({}) {
     nombre: "",
     telefono: "",
     suscripcion: "",
+    type_graph: "Torta",
     dispositivos: []
   })
   const [loading, setLoading] = useState(false)
@@ -46,21 +47,27 @@ export default function FormClient({}) {
 
   const handleChange = (e) => {
     const { name, value } = e.target
-    setCliente({ ...cliente, [name]: value })
+    let updatedValue = value
+  
+    if (name === 'identificacion') {
+      updatedValue = value.toLowerCase()
+      validarIdentificacion(updatedValue)
+    }
+  
+    setCliente({ ...cliente, [name]: updatedValue })
+  
     switch (name) {
-      case 'identificacion':
-        validarIdentificacion(value)
-        break
       case 'telefono':
         validarTelefono(value)
         break
       case 'nombre':
-        validarNombre(value)  
+        validarNombre(value)
         break
       default:
         break
     }
   }
+  
 
   const handleDispositivosChange = (dispositivos) => {
     setCliente({ ...cliente, dispositivos: dispositivos })
@@ -80,7 +87,7 @@ export default function FormClient({}) {
     setLoading(true)
 
     let res = await registroCliente(cliente)
-    console.log(res);
+    console.log(res)
     
     try {
       if (res.success) {
