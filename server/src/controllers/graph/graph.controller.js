@@ -4,11 +4,47 @@ const graphController = {}
 
 const fetchData = async (nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi) => {
   const tableName = `"${nombreCliente}"."${nombreTabla}"`
-  const query = `
-    SELECT fecha, ${kpi} AS valor
-    FROM ${tableName}
-    WHERE fecha BETWEEN $1 AND $2
-  `
+  let query 
+  
+  if(kpi == "ticketDeVenta"){
+    query = `
+      SELECT fecha,
+      (SUM(totalventa) / SUM(cantidadFac)) AS valor
+      FROM ${tableName}
+      WHERE fecha BETWEEN $1 AND $2
+      GROUP BY fecha
+    `
+  }else if(kpi == "unidadesVendidas"){
+    query = `
+      SELECT fecha,
+      (SUM(cantidadund) / SUM(cantidadFac)) AS valor
+      FROM ${tableName}
+      WHERE fecha BETWEEN $1 AND $2
+      GROUP BY fecha
+    `
+  }else if(kpi == "valorDeLaUnidadPromedio"){
+    query = `
+      SELECT fecha,
+      (SUM(totalventa) / SUM(cantidadund)) AS valor
+      FROM ${tableName}
+      WHERE fecha BETWEEN $1 AND $2
+      GROUP BY fecha
+    `
+  }else if(kpi == "margenDeUtilidad"){
+    query = `
+      SELECT fecha,
+      (SUM(totalut) * 100 / SUM(cantidadund)) AS valor
+      FROM ${tableName}
+      WHERE fecha BETWEEN $1 AND $2
+      GROUP BY fecha
+    `
+  }else{
+    query = `
+      SELECT fecha, ${kpi} AS valor
+      FROM ${tableName}
+      WHERE fecha BETWEEN $1 AND $2
+    `
+  }
 
   const result = await pool.query(query, [fechaInicio, fechaFin])
   return result.rows
@@ -194,7 +230,7 @@ const getTopKPIs = async (nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi
 
     case 'FabricantesConMasVentas':
       query = `
-        SELECT id, ${groupByClause} AS periodo, cod_fab_bs, nom_fab_bs, MAX(totalventa_fab_bs) AS total_ventas , FLOOR(unidades_art_bs) AS Unidades_vendidas
+        SELECT id, ${groupByClause} AS periodo, cod_fab_bs, nom_fab_bs, MAX(totalventa_fab_bs) AS total_ventas , FLOOR(unidades_fab_bs) AS Unidades_vendidas
         FROM ${tableName}
         WHERE fecha BETWEEN $1 AND $2
         GROUP BY id, periodo, cod_fab_bs, nom_fab_bs
@@ -213,6 +249,17 @@ const getTopKPIs = async (nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi
         ${limitClause}
       `
       break
+
+      case 'Inventario':
+        query = `
+          SELECT id, ${groupByClause} AS periodo, cantidad_und_inv , total_usdca_inv, total_usdcp_inv, total_bsca_inv, total_bscp_inv
+          FROM ${tableName}
+          WHERE fecha BETWEEN $1 AND $2
+          GROUP BY id, periodo
+          ORDER BY periodo DESC
+          ${limitClause}
+        `
+        break
 
     default:
       return { error: 'KPI no reconocido' }
@@ -298,8 +345,9 @@ const obtenerTopValoresVentas = (resultados, limite) => {
 graphController.getCustomKPI = async (req, res) => {
   try {
     const { nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi } = req.body
+    console.log(nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi)
 
-    const customKPIs = ['DiaMasExitoso', 'VentaMasExitosa', 'CajerosConMasVentas', 'FabricantesConMasVentas', 'ProductosTOP']
+    const customKPIs = ['DiaMasExitoso', 'VentaMasExitosa', 'CajerosConMasVentas', 'FabricantesConMasVentas', 'ProductosTOP', 'Inventario']
     if (!customKPIs.includes(kpi)) {
       return res.status(400).json({ error: 'KPI no reconocido para cálculo personalizado' })
     }
