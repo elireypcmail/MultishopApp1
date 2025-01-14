@@ -3,41 +3,58 @@ import pool from '../../models/db.connect.js'
 const graphController = {}
 
 const fetchData = async (nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi) => {
+  console.log(kpi)
+
   const tableName = `"${nombreCliente}"."${nombreTabla}"`
   let query 
   
+  const determineDate = determineFilterType(fechaInicio, fechaFin)
+  // console.log(determineDate)
+
   if(kpi == "ticketDeVenta"){
-    query = `
-      SELECT fecha,
-      (SUM(totalventa) / SUM(cantidadFac)) AS valor
-      FROM ${tableName}
-      WHERE fecha BETWEEN $1 AND $2
-      GROUP BY fecha
-    `
+    if(determineDate == "semanas" || determineDate == "meses"){
+      query = `SELECT fecha, totalventa AS valor1 , cantidadfac AS valor2 FROM ${tableName} WHERE fecha BETWEEN $1 AND $2`
+    }else{
+      query = `
+        SELECT fecha,
+        (totalventa / cantidadfac) AS valor
+        FROM ${tableName}
+        WHERE fecha BETWEEN $1 AND $2
+      `
+    }
   }else if(kpi == "unidadesVendidas"){
-    query = `
-      SELECT fecha,
-      (SUM(cantidadund) / SUM(cantidadFac)) AS valor
-      FROM ${tableName}
-      WHERE fecha BETWEEN $1 AND $2
-      GROUP BY fecha
-    `
+    if(determineDate == "semanas" || determineDate == "meses"){
+      query = `SELECT fecha, cantidadund AS valor1 , cantidadfac AS valor2 FROM ${tableName} WHERE fecha BETWEEN $1 AND $2`
+    }else{
+      query = `
+        SELECT fecha,
+        (cantidadund / cantidadFac) AS valor
+        FROM ${tableName}
+        WHERE fecha BETWEEN $1 AND $2
+      `
+    }
   }else if(kpi == "valorDeLaUnidadPromedio"){
-    query = `
-      SELECT fecha,
-      (SUM(totalventa) / SUM(cantidadund)) AS valor
-      FROM ${tableName}
-      WHERE fecha BETWEEN $1 AND $2
-      GROUP BY fecha
-    `
+    if(determineDate == "semanas" || determineDate == "meses"){
+      query = `SELECT fecha, totalventa AS valor1 , cantidadund AS valor2 FROM ${tableName} WHERE fecha BETWEEN $1 AND $2`
+    }else{
+      query = `
+        SELECT fecha,
+        (totalventa / cantidadund) AS valor
+        FROM ${tableName}
+        WHERE fecha BETWEEN $1 AND $2
+      `
+    }
   }else if(kpi == "margenDeUtilidad"){
-    query = `
-      SELECT fecha,
-      (SUM(totalut) * 100 / SUM(cantidadund)) AS valor
-      FROM ${tableName}
-      WHERE fecha BETWEEN $1 AND $2
-      GROUP BY fecha
-    `
+    if(determineDate == "semanas" || determineDate == "meses"){
+      query = `SELECT fecha, (totalut * 100) AS valor1 , cantidadund AS valor2 FROM ${tableName} WHERE fecha BETWEEN $1 AND $2`
+    }else{
+      query = `
+        SELECT fecha,
+        ((totalut * 100) / cantidadund) AS valor
+        FROM ${tableName}
+        WHERE fecha BETWEEN $1 AND $2
+      `
+    }
   }else{
     query = `
       SELECT fecha, ${kpi} AS valor
@@ -46,7 +63,12 @@ const fetchData = async (nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi)
     `
   }
 
+  // console.log(query)
+
   const result = await pool.query(query, [fechaInicio, fechaFin])
+
+  // console.log(result.rows)
+
   return result.rows
 }
 
@@ -55,45 +77,67 @@ const calculateResults = (data, filtro, fechaInicio) => {
   const groupedData = {}
   const startDate = new Date(fechaInicio)
   const sixMonthsAgo = new Date(startDate)
-  sixMonthsAgo.setMonth(startDate.getMonth() - 6) 
+  sixMonthsAgo.setMonth(startDate.getMonth() - 6)
 
   let totalSum = 0
   let totalCount = 0
-  let totalGeneral = 0 
+  let totalGeneral = 0
 
   data.forEach(row => {
     let key
     const date = new Date(row.fecha)
 
+    // Determinar la clave según el filtro
     switch (filtro) {
       case 'dias':
-        key = row.fecha.toISOString().split('T')[0] 
+        key = row.fecha.toISOString().split('T')[0]
         break
       case 'semanas':
         let startOfWeek = new Date(date)
-        startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay()) 
+        startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay())
         if (startOfWeek < startDate) {
           startOfWeek = startDate
         }
-        key = startOfWeek.toISOString().split('T')[0] 
+        key = startOfWeek.toISOString().split('T')[0]
         break
       case 'meses':
         key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
         break
     }
 
+    // Inicializar el grupo si no existe
     if (!groupedData[key]) {
-      groupedData[key] = { total: 0, count: 0 }
+      groupedData[key] = { total: 0, count: 0, sumValor1: 0, sumValor2: 0 }
     }
 
-    groupedData[key].total += parseFloat(row.valor)
+    // Actualizar los valores del grupo
+    groupedData[key].total += parseFloat(row.valor || 0)
     groupedData[key].count += 1
 
-    totalGeneral += parseFloat(row.valor)
+    if (row.valor1 && row.valor2) {
+      groupedData[key].sumValor1 += parseFloat(row.valor1 || 0)
+      groupedData[key].sumValor2 += parseFloat(row.valor2 || 0)
+    }
+
+    // Calcular totalGeneral considerando la nueva lógica
+    if (row.valor) {
+      totalGeneral += parseFloat(row.valor)
+    } else if (row.valor1 && row.valor2) {
+      totalGeneral += parseFloat(row.valor1) / parseFloat(row.valor2)
+    }
   })
 
+  // Calcular resultados agrupados
   for (const [periodo, values] of Object.entries(groupedData)) {
-    const promedio = (values.total / values.count)
+    let promedio
+
+    if (values.sumValor2 > 0 && values.sumValor1 > 0) {
+      values.total = (values.sumValor1 / values.sumValor2) 
+      promedio = (values.sumValor1 / values.sumValor2) / values.count
+    } else {
+      promedio = values.total / values.count
+    }
+
     totalSum += promedio
     totalCount += 1
 
@@ -104,6 +148,7 @@ const calculateResults = (data, filtro, fechaInicio) => {
     })
   }
 
+  // Ordenar y filtrar resultados
   results.sort((a, b) => new Date(a.periodo) - new Date(b.periodo))
 
   if (filtro === 'meses') {
@@ -114,9 +159,14 @@ const calculateResults = (data, filtro, fechaInicio) => {
     })
   }
 
+  // Calcular promedios generales
   const promedioTotal = totalSum / totalCount
-  
-  return { results, promedioTotal: promedioTotal.toFixed(2), totalGeneral: totalGeneral.toFixed(2) }
+
+  return {
+    results,
+    promedioTotal: promedioTotal.toFixed(2),
+    totalGeneral: totalGeneral.toFixed(2),
+  }
 }
 
 const determineFilterType = (fechaInicio, fechaFin) => {
@@ -161,7 +211,13 @@ graphController.filterData = async (req, res) => {
       return res.status(404).json({ 'error': 'No se encontraron datos para el rango de fechas proporcionado' })
     }
 
-    const results = calculateResults(data, filtro, fechaInicio)
+    let results
+
+    // if (kpi == "ticketDeVenta" || kpi == "unidadesVendidas" || kpi == "valorDeLaUnidadPromedio" || kpi == "margenDeUtilidad") {
+    //   results = calculateResults2(data, filtro, fechaInicio)
+    // }
+
+    results = calculateResults(data, filtro, fechaInicio)
     console.log(results)
     
     return res.json(results)
@@ -173,7 +229,7 @@ graphController.filterData = async (req, res) => {
 
 const getTopKPIs = async (nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi) => {
   const tableName = `"${nombreCliente}"."${nombreTabla}"`
-  const filtro    = determineFilterType(fechaInicio, fechaFin)
+  const filtro = determineFilterType(fechaInicio, fechaFin)
 
   let query = ''
   let groupByClause = ''
@@ -201,7 +257,7 @@ const getTopKPIs = async (nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi
         FROM ${tableName}
         WHERE fecha BETWEEN $1 AND $2
         GROUP BY id, periodo
-        ORDER BY total_ventas DESC
+        ORDER BY periodo DESC, total_ventas DESC
         ${limitClause}
       `
       break
@@ -212,7 +268,7 @@ const getTopKPIs = async (nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi
         FROM ${tableName}
         WHERE fecha BETWEEN $1 AND $2
         GROUP BY id, periodo, cod_clibs, nom_clibs
-        ORDER BY total_ventas DESC
+        ORDER BY periodo DESC, total_ventas DESC
         ${limitClause}
       `
       break
@@ -223,7 +279,7 @@ const getTopKPIs = async (nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi
         FROM ${tableName}
         WHERE fecha BETWEEN $1 AND $2
         GROUP BY id, periodo, cod_op_bs, nom_op_bs
-        ORDER BY total_ventas DESC
+        ORDER BY periodo DESC, total_ventas DESC
         ${limitClause}
       `
       break
@@ -234,7 +290,7 @@ const getTopKPIs = async (nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi
         FROM ${tableName}
         WHERE fecha BETWEEN $1 AND $2
         GROUP BY id, periodo, cod_fab_bs, nom_fab_bs
-        ORDER BY total_ventas DESC
+        ORDER BY periodo DESC, total_ventas DESC
         ${limitClause}
       `
       break
@@ -245,41 +301,43 @@ const getTopKPIs = async (nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi
         FROM ${tableName}
         WHERE fecha BETWEEN $1 AND $2
         GROUP BY id, periodo, cod_art_bs, nom_art_bs
-        ORDER BY total_ventas DESC
+        ORDER BY periodo DESC, total_ventas DESC
         ${limitClause}
       `
       break
 
-      case 'Inventario':
-        query = `
-          SELECT id, ${groupByClause} AS periodo, cantidad_und_inv , total_usdca_inv, total_usdcp_inv, total_bsca_inv, total_bscp_inv
-          FROM ${tableName}
-          WHERE fecha BETWEEN $1 AND $2
-          GROUP BY id, periodo
-          ORDER BY periodo DESC
-          ${limitClause}
-        `
-        break
+    case 'Inventario':
+      query = `
+        SELECT id, ${groupByClause} AS periodo, cantidad_und_inv , total_usdca_inv, total_usdcp_inv, total_bsca_inv, total_bscp_inv
+        FROM ${tableName}
+        WHERE fecha BETWEEN $1 AND $2
+        GROUP BY id, periodo, cantidad_und_inv , total_usdca_inv, total_usdcp_inv, total_bsca_inv, total_bscp_inv
+        ORDER BY periodo DESC
+      `
+      break
 
     default:
       return { error: 'KPI no reconocido' }
   }
 
-  const result           = await pool.query(query, [fechaInicio, fechaFin])
-  const limite           = obtenerLimiteSegunFiltro(fechaInicio, fechaFin)
+  const result = await pool.query(query, [fechaInicio, fechaFin])
+  const limite = obtenerLimiteSegunFiltro(fechaInicio, fechaFin)
   const topValoresVentas = obtenerTopValoresVentas(result.rows, limite)
-  const dateKPIs         = await obtenerFechaKPI(topValoresVentas, tableName)
-  
-  console.log(dateKPIs)
+  const dateKPIs = await obtenerFechaKPI(topValoresVentas, tableName)
+
+  // console.log(dateKPIs)
 
   topValoresVentas.forEach((item, index) => {
-    delete item.periodo 
+    delete item.periodo
     item.fecha = dateKPIs[index].fecha
   })
 
-  console.log(`Las filas con los ${limite} valores más altos de total_ventas son:`, topValoresVentas)
-  console.log(topValoresVentas)
-  
+  // Ordenar por fecha descendente en caso de ser necesario
+  topValoresVentas.sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
+
+  // console.log(`Las filas con los ${limite} valores más altos de total_ventas son:`, topValoresVentas)
+  // console.log(topValoresVentas)
+
   return topValoresVentas
 }
 
@@ -300,7 +358,7 @@ const obtenerLimiteSegunFiltro = (fechaInicio, fechaFin) => {
     return semanas
   } else {
     const mesesDiff = (endDate.getFullYear() - startDate.getFullYear()) * 12 + (endDate.getMonth() - startDate.getMonth())
-    return Math.max(Math.min(mesesDiff, 10), 10);
+    return Math.max(Math.min(mesesDiff, 10), 10)
   }
 }
 
