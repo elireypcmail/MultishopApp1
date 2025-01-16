@@ -46,11 +46,11 @@ const fetchData = async (nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi)
     }
   }else if(kpi == "margenDeUtilidad"){
     if(determineDate == "semanas" || determineDate == "meses"){
-      query = `SELECT fecha, (totalut * 100) AS valor1 , cantidadund AS valor2 FROM ${tableName} WHERE fecha BETWEEN $1 AND $2`
+      query = `SELECT fecha, (totalut * 100) AS valor1 , valor_tp AS valor2 FROM ${tableName} WHERE fecha BETWEEN $1 AND $2`
     }else{
       query = `
         SELECT fecha,
-        ((totalut * 100) / cantidadund) AS valor
+        ((totalut * 100) / valor_tp) AS valor
         FROM ${tableName}
         WHERE fecha BETWEEN $1 AND $2
       `
@@ -63,11 +63,11 @@ const fetchData = async (nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi)
     `
   }
 
-  // console.log(query)
+  console.log(query)
 
   const result = await pool.query(query, [fechaInicio, fechaFin])
 
-  // console.log(result.rows)
+  console.log(result.rows)
 
   return result.rows
 }
@@ -253,58 +253,61 @@ const getTopKPIs = async (nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi
   switch (kpi) {
     case 'DiaMasExitoso':
       query = `
-        SELECT id, ${groupByClause} AS periodo, MAX(cantidadfac) AS numero_operaciones, MAX(totalventa) AS total_ventas, MAX(cantidadund) AS unidades_vendidas
+        SELECT id, ${groupByClause} AS periodo, cantidadfac AS numero_operaciones, MAX(totalventa) AS total_ventas, cantidadund AS unidades_vendidas , clientesa, clientesf, clientesn
         FROM ${tableName}
         WHERE fecha BETWEEN $1 AND $2
-        GROUP BY id, periodo
-        ORDER BY periodo DESC, total_ventas DESC
-        ${limitClause}
+        GROUP BY id
+        ORDER BY total_ventas DESC
+        LIMIT 1
       `
       break
 
+    
     case 'VentaMasExitosa':
       query = `
         SELECT id, ${groupByClause} AS periodo, cod_clibs, nom_clibs, MAX(totalventa_bs) AS total_ventas
         FROM ${tableName}
         WHERE fecha BETWEEN $1 AND $2
         GROUP BY id, periodo, cod_clibs, nom_clibs
-        ORDER BY periodo DESC, total_ventas DESC
-        ${limitClause}
+        ORDER BY total_ventas DESC
+        LIMIT 1
       `
       break
 
-    case 'CajerosConMasVentas':
-      query = `
-        SELECT id, ${groupByClause} AS periodo, cod_op_bs, nom_op_bs, MAX(totalventa_bs_op) AS total_ventas
-        FROM ${tableName}
-        WHERE fecha BETWEEN $1 AND $2
-        GROUP BY id, periodo, cod_op_bs, nom_op_bs
-        ORDER BY periodo DESC, total_ventas DESC
-        ${limitClause}
-      `
-      break
+      case 'CajerosConMasVentas':
+        query = `
+          SELECT cod_op_bs, nom_op_bs, SUM(totalventa_bs_op) AS total_ventas
+          FROM ${tableName}
+          WHERE fecha BETWEEN $1 AND $2
+          GROUP BY cod_op_bs, nom_op_bs
+          ORDER BY total_ventas DESC
+          ${limitClause}
+        `
+        break      
+      
 
     case 'FabricantesConMasVentas':
       query = `
-        SELECT id, ${groupByClause} AS periodo, cod_fab_bs, nom_fab_bs, MAX(totalventa_fab_bs) AS total_ventas , FLOOR(unidades_fab_bs) AS Unidades_vendidas
+        SELECT 
+          nom_fab_bs, 
+          SUM(totalventa_fab_bs) AS total_ventas, 
+          SUM(unidades_fab_bs) AS unidades_vendidas
         FROM ${tableName}
         WHERE fecha BETWEEN $1 AND $2
-        GROUP BY id, periodo, cod_fab_bs, nom_fab_bs
-        ORDER BY periodo DESC, total_ventas DESC
-        ${limitClause}
+        GROUP BY nom_fab_bs
+        ORDER BY total_ventas DESC
       `
       break
 
     case 'ProductosTOP':
       query = `
-        SELECT id, ${groupByClause} AS periodo, cod_art_bs, nom_art_bs, MAX(totalventa_bs) AS total_ventas
+        SELECT ${groupByClause} AS periodo, cod_art_bs, nom_art_bs, SUM(totalventa_bs) AS total_ventas
         FROM ${tableName}
         WHERE fecha BETWEEN $1 AND $2
-        GROUP BY id, periodo, cod_art_bs, nom_art_bs
-        ORDER BY periodo DESC, total_ventas DESC
-        ${limitClause}
+        GROUP BY periodo, cod_art_bs, nom_art_bs
+        ORDER BY total_ventas DESC
       `
-      break
+      break  
 
     case 'Inventario':
       query = `
@@ -322,21 +325,25 @@ const getTopKPIs = async (nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi
 
   const result = await pool.query(query, [fechaInicio, fechaFin])
   const limite = obtenerLimiteSegunFiltro(fechaInicio, fechaFin)
-  const topValoresVentas = obtenerTopValoresVentas(result.rows, limite)
+  const topValoresVentas = obtenerTopValoresVentas(result.rows, limite, kpi)
   const dateKPIs = await obtenerFechaKPI(topValoresVentas, tableName)
 
-  // console.log(dateKPIs)
+  console.log(result.rows)
 
   topValoresVentas.forEach((item, index) => {
-    delete item.periodo
-    item.fecha = dateKPIs[index].fecha
+    delete item.periodo;
+    const localDate = new Date(dateKPIs[index].fecha);  // Convertir la fecha UTC a local
+    item.fecha = localDate.toISOString();  // Formatear la fecha al formato ISO 8601
   })
+  
 
   // Ordenar por fecha descendente en caso de ser necesario
   topValoresVentas.sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
 
   // console.log(`Las filas con los ${limite} valores más altos de total_ventas son:`, topValoresVentas)
-  // console.log(topValoresVentas)
+  console.log(topValoresVentas)
+
+
 
   return topValoresVentas
 }
@@ -380,25 +387,21 @@ const obtenerFechaKPI = async (data, tableName) => {
   return kpiWithDates
 }
 
-const obtenerTopValoresVentas = (resultados, limite) => {
+const obtenerTopValoresVentas = (resultados, limite, kpi) => {
   if (!resultados || resultados.length === 0) return []
 
-  const filasConValores = resultados.map(row => {
-    console.log('esto es el row: ' + row)
-    
-    return {
-      total_ventas: parseFloat(row.total_ventas), 
-      ...row 
-    }
-  })
+  const filasConValores = resultados.map(row => ({
+    total_ventas: parseFloat(row.total_ventas), 
+    ...row 
+  }))
 
-  console.log('Filas:', filasConValores)
-  
+  // console.log('Filas:', filasConValores)
+
   const filasOrdenadas = filasConValores.sort((a, b) => b.total_ventas - a.total_ventas)
-  const topFilasVentas = filasOrdenadas.slice(0, limite)
 
-  return topFilasVentas
+  return (kpi === 'Inventario' || kpi === 'ProductosTOP') ? filasOrdenadas : filasOrdenadas.slice(0, limite);
 }
+
 
 graphController.getCustomKPI = async (req, res) => {
   try {
