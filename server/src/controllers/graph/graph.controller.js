@@ -28,7 +28,7 @@ const fetchData = async (nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi)
     }else{
       query = `
         SELECT fecha,
-        (cantidadund / cantidadFac) AS valor
+          (CAST(cantidadund AS DECIMAL) / cantidadFac) AS valor
         FROM ${tableName}
         WHERE fecha BETWEEN $1 AND $2
       `
@@ -132,8 +132,8 @@ const calculateResults = (data, filtro, fechaInicio) => {
     let promedio
 
     if (values.sumValor2 > 0 && values.sumValor1 > 0) {
-      values.total = (values.sumValor1 / values.sumValor2) 
-      promedio = (values.sumValor1 / values.sumValor2) / values.count
+      values.total = parseFloat(values.sumValor1 / values.sumValor2) 
+      promedio = parseFloat(values.sumValor1 / values.sumValor2) / values.count
     } else {
       promedio = values.total / values.count
     }
@@ -301,10 +301,10 @@ const getTopKPIs = async (nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi
 
     case 'ProductosTOP':
       query = `
-        SELECT ${groupByClause} AS periodo, cod_art_bs, nom_art_bs, SUM(totalventa_bs) AS total_ventas
+        SELECT cod_art_bs, nom_art_bs, SUM(totalventa_bs_art) AS total_ventas
         FROM ${tableName}
         WHERE fecha BETWEEN $1 AND $2
-        GROUP BY periodo, cod_art_bs, nom_art_bs
+        GROUP BY cod_art_bs, nom_art_bs
         ORDER BY total_ventas DESC
       `
       break  
