@@ -132,6 +132,9 @@ async function createTableInSchema(nombreCliente, nombreTabla) {
           nom_fab_bs character varying(240) COLLATE pg_catalog."default" NOT NULL DEFAULT ''::character varying,
           totalventa_fab_bs numeric(25,2) NOT NULL DEFAULT 0,
           unidades_fab_bs numeric(25,2) NOT NULL DEFAULT 0,
+          totalcompra numeric(25,2) NOT NULL DEFAULT 0,
+          codemp character varying(20) NOT NULL DEFAULT ''::character varying,
+          nomemp character varying(240) NOT NULL DEFAULT ''::character varying,
           CONSTRAINT pk_id PRIMARY KEY (id),
           CONSTRAINT idx_fecha UNIQUE (fecha)
         );
