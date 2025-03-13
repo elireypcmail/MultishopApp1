@@ -331,6 +331,18 @@ controller.loginUser = async (req, res) => {
     } else {
       connectToClientSchema(identificacion, nombreCliente)
 
+      let type_comp
+
+      const companiesQuery = `SELECT COUNT(DISTINCT codemp) as count_codemp FROM ${identificacion}.ventas`
+      const companiesResult = await client.query(companiesQuery)
+      const countCodemp = companiesResult.rows[0].count_codemp
+
+      if (countCodemp > 1) {
+        type_comp = 'Multiple'
+      } else {
+        type_comp = 'Unico'
+      }
+
       const token = await services.generarToken(userId, true, login_user, tiempoSuscripcion)
       await services.registrarAuditoria(userId, 'Inicio de sesión exitoso', login_user)
         
@@ -338,6 +350,7 @@ controller.loginUser = async (req, res) => {
         tokenCode: token,
         identificacion,
         type_graph,
+        type_comp
       })
     }
   } catch (error) {
