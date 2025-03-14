@@ -101,11 +101,12 @@ services.formatTime = (totalSeconds) => {
 services.registrarAuditoria = async (id_usuario, accion, id_dispositivo = null, additional_info = null) => {
   const client = await pool.connect()
   try {
+    const fechaActual = new Date().toISOString()
     const query = `
-      INSERT INTO auditoria (id_usuario, accion, id_dispositivo, additional_info)
-      VALUES ($1, $2, $3, $4)
+      INSERT INTO auditoria (id_usuario, accion, id_dispositivo, additional_info, fecha)
+      VALUES ($1, $2, $3, $4, $5)
     `
-    const values = [id_usuario, accion, id_dispositivo, additional_info]
+    const values = [id_usuario, accion, id_dispositivo, additional_info, fechaActual]
     await client.query(query, values)
   } catch (error) {
     console.error('Error al registrar auditoría:', error)
