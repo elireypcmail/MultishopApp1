@@ -637,16 +637,33 @@ const getTopKPIs = async (nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi
       `
       break
 
+      case 'flujoDeCaja':
+        query = `
+          SELECT DISTINCT ON (codemp)  
+              codemp,
+              nomemp,
+              SUM(totusd) AS totusd, 
+              SUM(totcop) AS totcop, 
+              SUM(totbs) AS totbs
+          FROM ${tableName}
+          WHERE fecha BETWEEN $1 AND $2
+          GROUP BY codemp, nomemp
+          ORDER BY codemp
+        `
+        break
+
     default:
       return { error: 'KPI no reconocido' }
   }
+
+  // console.log(query)
 
   const result = await pool.query(query, [fechaInicio, fechaFin])
   const limite = obtenerLimiteSegunFiltro(fechaInicio, fechaFin, kpi)
   const topValoresVentas = obtenerTopValoresVentas(result.rows, limite, kpi)
   const dateKPIs = await obtenerFechaKPI(topValoresVentas, tableName)
 
-  console.log(result.rows)
+  // console.log(result.rows)
 
   topValoresVentas.forEach((item, index) => {
     delete item.periodo;
@@ -720,21 +737,18 @@ const obtenerTopValoresVentas = (resultados, limite, kpi) => {
 graphController.getCustomKPI = async (req, res) => {
   try {
     const { nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi, typeCompanies } = req.body
+
+    console.log("Valores top")
+
     console.log(nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi, typeCompanies)
 
-    const customKPIs = ['DiaMasExitoso', 'VentaMasExitosa', 'CajerosConMasVentas', 'FabricantesConMasVentas', 'ProductosTOP', 'Inventario']
+    const customKPIs = ['DiaMasExitoso', 'VentaMasExitosa', 'CajerosConMasVentas', 'FabricantesConMasVentas', 'ProductosTOP', 'Inventario', 'flujoDeCaja']
     if (!customKPIs.includes(kpi)) {
       return res.status(400).json({ error: 'KPI no reconocido para cálculo personalizado' })
     }
 
-    let data
+    let data = await getTopKPIs(nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi)
 
-    if (typeCompanies == "Multiple") {
-      data = await getTopKPIs(nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi)
-      console.log("Analisis estadistico multiples empresas")
-    }else{
-      data = await getTopKPIs(nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi)
-    }
 
     if (data.length === 0) {
       return res.status(404).json({ error: 'No se encontraron datos para el rango de fechas proporcionado' })
