@@ -319,6 +319,8 @@ controller.loginUser = async (req, res) => {
     const fechaCorte    = moment(fecha_corte).startOf('day')
     const diasRestantes = fechaCorte.diff(fechaActual, 'days')
 
+    console.log(diasRestantes)
+
     if (diasRestantes <= 0) {
       const fechaActual = new Date().toISOString()
 
