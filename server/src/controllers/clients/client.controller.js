@@ -4,7 +4,8 @@ import services           from '../../services/user.services.js'
 import service            from '../../services/twilio.services.js'
 import jwt                from 'jsonwebtoken'
 import _var               from '../../../global/_var.js'
-import moment             from 'moment'
+// import moment             from 'moment'
+import moment             from 'moment-timezone'
 import {
   createSchema,
   deleteSchema,
@@ -315,14 +316,12 @@ controller.loginUser = async (req, res) => {
     const { identificacion, nombre: nombreCliente, suscripcion: tiempoSuscripcion, est_financiero, fecha_corte, type_graph } = cliente
     console.log({identificacion, nombre: nombreCliente, suscripcion: tiempoSuscripcion, est_financiero, fecha_corte, type_graph})
     
-    const fechaActual   = moment().startOf('day')
+    // const fechaActual   = moment().startOf('day')
+    const fechaActual = moment().tz("America/Caracas").startOf('day').format("YYYY-MM-DD");
+    console.log(fechaActual)
     const fechaCorte    = moment(fecha_corte).startOf('day')
     const diasRestantes = fechaCorte.diff(fechaActual, 'days')
-
-    // const fechaActual   = moment().tz('America/Caracas').startOf('day');
-    // const fechaCorte    = moment(fecha_corte).tz('America/Caracas').startOf('day');
-    // const diasRestantes = fechaCorte.diff(fechaActual, 'days');
-
+    
     console.log(fechaActual)
     console.log(fechaCorte)
     console.log(diasRestantes)
