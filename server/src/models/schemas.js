@@ -138,7 +138,7 @@ async function createTableInSchema(nombreCliente, nombreTabla) {
           nomempc character varying(10) NOT NULL DEFAULT ''::character varying,
           totusd numeric(25,2) NOT NULL DEFAULT 0,
           totcop numeric(25,2) NOT NULL DEFAULT 0,
-          totbs numeric(25,2) NOT NULL DEFAULT 0;
+          totbs numeric(25,2) NOT NULL DEFAULT 0,
           CONSTRAINT pk_id PRIMARY KEY (id)
         );
       `
