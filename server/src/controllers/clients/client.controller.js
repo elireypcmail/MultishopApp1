@@ -249,7 +249,7 @@ controller.postUser = async (req, res) => {
 
 controller.loginUser = async (req, res) => {
   const { login_user, clave } = req.body
-
+  
   let client
   try {
     client = await pool.connect()
@@ -313,12 +313,18 @@ controller.loginUser = async (req, res) => {
     if (!cliente) return res.status(404).json({ message: "Cliente no encontrado" })
 
     const { identificacion, nombre: nombreCliente, suscripcion: tiempoSuscripcion, est_financiero, fecha_corte, type_graph } = cliente
-    console.log(type_graph)
+    console.log({identificacion, nombre: nombreCliente, suscripcion: tiempoSuscripcion, est_financiero, fecha_corte, type_graph})
     
     const fechaActual   = moment().startOf('day')
     const fechaCorte    = moment(fecha_corte).startOf('day')
     const diasRestantes = fechaCorte.diff(fechaActual, 'days')
 
+    // const fechaActual   = moment().tz('America/Caracas').startOf('day');
+    // const fechaCorte    = moment(fecha_corte).tz('America/Caracas').startOf('day');
+    // const diasRestantes = fechaCorte.diff(fechaActual, 'days');
+
+    console.log(fechaActual)
+    console.log(fechaCorte)
     console.log(diasRestantes)
 
     if (diasRestantes <= 0) {
