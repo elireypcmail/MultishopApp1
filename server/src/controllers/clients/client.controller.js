@@ -136,6 +136,7 @@ controller.checkToken = async (req, res) => {
 
     const expiraEn     = new Date(decodedToken.expiraEn * 1000)
     const tiempoActual = Date.now()
+    const diasRestantes = decodedToken.diasRestantes
 
     if (expiraEn < tiempoActual) {
       decodedToken.suscripcionActiva = false
@@ -153,6 +154,8 @@ controller.checkToken = async (req, res) => {
       decodedToken.suscripcionActiva = false
       console.log(decodedToken)
       res.status(401).send({ "message": 'El token ha expirado' })
+    } else if (diasRestantes <= 5) {
+      res.status(200).send({ "message": `Faltan ${diasRestantes} días para el vencimiento de tu suscripción. Contáctanos` })
     } else {
       res.status(200).send({ "message": 'Suscripción activa' })
     }
@@ -266,18 +269,37 @@ controller.loginUser = async (req, res) => {
 
     if (clave !== claveDispositivo) {
       await services.registrarAuditoria(userId, 'Intento de inicio de sesión fallido', login_user, { claveIntentada: clave })
-
+      
       const intentosQuery    = `SELECT intento FROM cliente WHERE id = $1`
       const intentosResult   = await client.query(intentosQuery, [userId])
       const intentosFallidos = intentosResult.rows[0]?.intento
-
+      
       if (intentosFallidos >= 3) {
-        await client.query('INSERT INTO notificacion (id_user, notify_type, id_dispositivo) VALUES ($1, $2, $3)', [userId, 'Se ha ingresado mal la contraseña más de 3 veces', login_user])
+        const fechaActual = new Date().toISOString()
+
+        await client.query('INSERT INTO notificacion (id_user, notify_type, id_dispositivo, fecha) VALUES ($1, $2, $3, $4)', [userId, 'Se ha ingresado mal la contraseña más de 3 veces', login_user, fechaActual])
+
+        await client.query('UPDATE cliente SET est_financiero = $1 WHERE id = $2', ['Inactivo', userId])
+
         return res.status(403).send({ message: 'Intentos fallidos expirados. Comunícate con los administradores' })
       }
 
       await client.query('UPDATE cliente SET intento = intento + 1 WHERE id = $1', [userId])
-      return res.status(401).send({ message: 'Contraseña incorrecta' })
+      return res.status(401).send({ message: 'Nombre de Usuario o Contraseña Incorrectos. Por favor verifique!' })
+    }
+
+    const intentosQuery    = `SELECT intento FROM cliente WHERE id = $1`
+    const intentosResult   = await client.query(intentosQuery, [userId])
+    const intentosFallidos = intentosResult.rows[0]?.intento
+
+    if (intentosFallidos >= 3) {
+      const fechaActual = new Date().toISOString()
+
+      await client.query('INSERT INTO notificacion (id_user, notify_type, id_dispositivo, fecha) VALUES ($1, $2, $3, $4)', [userId, 'Se ha ingresado mal la contraseña más de 3 veces', login_user, fechaActual])
+
+      await client.query('UPDATE cliente SET est_financiero = $1 WHERE id = $2', ['Inactivo', userId])
+
+      return res.status(403).send({ message: 'Intentos fallidos expirados. Comunícate con los administradores' })
     }
 
     const clienteQuery = `
@@ -297,35 +319,52 @@ controller.loginUser = async (req, res) => {
     const fechaCorte    = moment(fecha_corte).startOf('day')
     const diasRestantes = fechaCorte.diff(fechaActual, 'days')
 
-    if (diasRestantes < 0) {
+    if (diasRestantes <= 0) {
+      const fechaActual = new Date().toISOString()
+
       await client.query('UPDATE cliente SET est_financiero = $1 WHERE id = $2', ['Inactivo', userId])
 
       await client.query(`
-        INSERT INTO notificacion (id_user, notify_type, id_dispositivo) 
-        VALUES ($1, $2, $3)
-      `, [userId, `La suscripción del cliente ${nombreCliente} ha expirado y ha sido marcado como Inactivo.`, login_user])
+        INSERT INTO notificacion (id_user, notify_type, id_dispositivo, fecha) 
+        VALUES ($1, $2, $3, $4)
+      `, [userId, `La suscripción del cliente ${nombreCliente} ha expirado y ha sido marcado como Inactivo.`, login_user, fechaActual])
 
-      return res.status(403).send({ message: 'Suscripción expirada. Comunícate con los administradores' })
+      return res.status(403).send({ message: 'Su suscripción ha vencido. Por favor realice la renovación. Contáctenos' })
     }
 
-    if (est_financiero === 'Inactivo'){ return res.status(403).send({ message: 'Suscripción expirada. Comunícate con los administradores' }) }
+    if (est_financiero === 'Inactivo'){ return res.status(403).send({ message: 'Su suscripción ha vencido. Por favor realice la renovación. Contáctenos' }) }
 
     if (diasRestantes <= 5) {
+      const fechaActual = new Date().toISOString()
+
       await client.query(`
-        INSERT INTO notificacion (id_user, notify_type, id_dispositivo) 
-        VALUES ($1, $2, $3)
-      `, [userId, `Al cliente ${nombreCliente} le quedan ${diasRestantes} días de suscripción.`, login_user])
+        INSERT INTO notificacion (id_user, notify_type, id_dispositivo, fecha) 
+        VALUES ($1, $2, $3, $4)
+      `, [userId, `Al cliente ${nombreCliente} le quedan ${diasRestantes} días de suscripción.`, login_user, fechaActual])
 
       connectToClientSchema(identificacion, nombreCliente)
 
-      const token = await services.generarToken(userId, true, login_user, tiempoSuscripcion)
+      let type_comp
+
+      const companiesQuery = `SELECT COUNT(DISTINCT codemp) as count_codemp FROM ${identificacion}.ventas`
+      const companiesResult = await client.query(companiesQuery)
+      const countCodemp = companiesResult.rows[0].count_codemp
+
+      if (countCodemp > 1) {
+        type_comp = 'Multiple'
+      } else {
+        type_comp = 'Unico'
+      }
+
+      const token = await services.generarToken(userId, true, login_user, tiempoSuscripcion, diasRestantes)
       await services.registrarAuditoria(userId, 'Inicio de sesión exitoso', login_user)
         
       return res.status(200).send({
         tokenCode: token,
         identificacion,
         type_graph,
-        message: `A partir de hoy te quedan ${diasRestantes} día(s) de suscripción. Recuerda comunicarte con los administradores para renovar tu suscripción.`,
+        type_comp,
+        message: `Faltan ${diasRestantes} días para el vencimiento de tu suscripción. Contáctanos`,
         notifyWarning: true
       })
     } else {

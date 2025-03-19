@@ -5,7 +5,7 @@ import _var from '../../global/_var.js'
 const services = {}
 let message    = {}
 
-services.generarToken = async (userId, tieneSuscripcion, dispositivo, tiempoSuscripcionEnDias) => {
+services.generarToken = async (userId, tieneSuscripcion, dispositivo, tiempoSuscripcionEnDias, diasRestantes) => {
   try {
     const tiempoEnMilisegundos = tiempoSuscripcionEnDias * 24 * 60 * 60 * 1000
     const expiraEn = Date.now() + tiempoEnMilisegundos
@@ -13,6 +13,7 @@ services.generarToken = async (userId, tieneSuscripcion, dispositivo, tiempoSusc
     const payload = {
       usuarioId: userId,
       expiraEn: expiraEn,
+      diasRestantes: diasRestantes,
       suscripcionActiva: tieneSuscripcion,
       dispositivo: dispositivo,
     }

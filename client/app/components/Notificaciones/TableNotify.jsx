@@ -101,20 +101,32 @@ export default function TableNotify() {
               <th scope="col" className="px-6 py-3">
                 Fecha
               </th>
+              <th scope="col" className="px-6 py-3">
+                Hora
+              </th>
             </tr>
           </thead>
           <tbody>
           {
-            notify.map((noti) => (
-              <tr
+            notify.map((noti) => {
+              const fechaCompleta = new Date(noti?.fecha)
+
+              return (<tr
                 key={noti.id}
                 className="bg-white hover:bg-gray-50 cursor-pointer"
               >
                 <td className="px-6 py-4">{noti.notify_type}</td>
                 <td className="px-6 py-4">{noti.id_dispositivo}</td>
-                <td className="px-6 py-4">{noti.fecha}</td>
-              </tr>
-          ))}
+                <td className="px-6 py-4">{fechaCompleta.toLocaleDateString()}</td>
+                <td className="px-6 py-4">
+                    {new Date(noti?.fecha).toLocaleTimeString('es-ES', {
+                      hour: 'numeric',
+                      minute: '2-digit',
+                      hour12: true
+                    }).replace('.', '')}
+                  </td>
+              </tr>)
+            })}
           </tbody>
         </table>
       </div>
