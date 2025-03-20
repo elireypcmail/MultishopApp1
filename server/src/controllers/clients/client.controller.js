@@ -501,8 +501,6 @@ controller.updateUser = async (req, res) => {
       type_graph:     edit.type_graph || currentUser.rows[0].type_graph
     }
 
-    console.log(updatedUser.type_graph);
-
     const updateUserQuery = `
       UPDATE cliente 
       SET nombre=$1, telefono=$2, est_financiero=$3, suscripcion=$4, fecha_corte=$5, type_graph=$6
@@ -517,6 +515,15 @@ controller.updateUser = async (req, res) => {
       updatedUser.type_graph, 
       id,
     ])
+
+    if (updatedUser.est_financiero === "Activo") {
+      const queryReset = `
+        UPDATE cliente
+        SET intento = $1
+        WHERE id = $2
+      `
+      await client.query(queryReset, [0, id])
+    }
 
     if (dispositivos && dispositivos.length > 0) {
       for (const dispositivo of dispositivos) {
@@ -617,7 +624,6 @@ controller.cambiarEstadoInactivo = async (req, res) => {
       SET est_financiero = 'Inactivo'
       WHERE id = $1
     `
-
     const result = await bd.query(query, [id])
     if (result.rowCount === 0) return res.status(404).json({ message: 'Cliente no encontrado' })
 
