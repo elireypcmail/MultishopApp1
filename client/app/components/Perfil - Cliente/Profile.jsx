@@ -372,11 +372,16 @@ export default function UserProfile({ data }) {
                               if (r.status) {
                                 let u = { ...userData }
                                 u['est_financiero'] = 'Activo'
+                                setSelectedOptions((prevState) => ({
+                                  ...prevState,
+                                  est_financiero: 'Activo',
+                                }));
                                 let n = r.newDate.toString()
                                 let [y,m,d] = n.split('-').map(Number)
                                 u['fecha_corte'] = `${d}/${m}/${y}`
                                 setUserData(u)
                                 setValid(false)
+
                               }
                             }}
                           >

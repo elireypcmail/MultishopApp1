@@ -748,7 +748,7 @@ graphController.getCustomKPI = async (req, res) => {
     }
 
     let data = await getTopKPIs(nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi)
-
+    console.log(data)
 
     if (data.length === 0) {
       return res.status(404).json({ error: 'No se encontraron datos para el rango de fechas proporcionado' })

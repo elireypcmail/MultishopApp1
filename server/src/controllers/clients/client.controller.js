@@ -160,9 +160,9 @@ controller.checkToken = async (req, res) => {
       console.log(decodedToken)
       res.status(401).send({ "message": 'El token ha expirado' })
     } else if (diasRestantes <= 5 && diasRestantes > 0) {
-      res.status(200).send({ "message": `Faltan ${diasRestantes} días para el vencimiento de tu suscripción. Contáctanos` })
+      res.status(200).send({ "message": `Faltan ${diasRestantes} días para el vencimiento de su suscripción. Contáctanos` })
     } else if (diasRestantesProrroga <= 5) {
-      res.status(200).send({ "message": `Estas en periodo de Prorroga, te faltan ${diasRestantesProrroga} días para el vencimiento de tu suscripción. Contáctanos` })
+      res.status(200).send({ "message": `Su suscripción esta en periodo de Prorroga. Por favor realice la renovación. Contáctenos` })
     } else {
       res.status(200).send({ "message": 'Suscripción activa' })
     }
@@ -322,25 +322,18 @@ controller.loginUser = async (req, res) => {
     const { identificacion, nombre: nombreCliente, suscripcion: tiempoSuscripcion, est_financiero, fecha_corte, type_graph } = cliente
     console.log({identificacion, nombre: nombreCliente, suscripcion: tiempoSuscripcion, est_financiero, fecha_corte, type_graph})
     
-    // const fechaActual   = moment().startOf('day')
     let fechaActual = moment().tz("America/Caracas").startOf('day').format("YYYY-MM-DD");
-    console.log(fechaActual)
     let fechaCorte    = moment(fecha_corte).startOf('day')
     let diasRestantes = fechaCorte.diff(fechaActual, 'days')
     let diasProrroga = diasRestantes + 5
     let fechaProrroga = fechaCorte.add(diasProrroga, "days");
     let diasRestantesProrroga = fechaProrroga.diff(fechaActual, 'days')
     
-    
-    console.log("Fecha de prórroga:", fechaProrroga.format("YYYY-MM-DD"));
-    console.log("Dias restantes de la prorroga: ", diasRestantesProrroga);
+    // console.log("Fecha de prórroga:", fechaProrroga.format("YYYY-MM-DD"));
+    // console.log("Dias restantes de la prorroga: ", diasRestantesProrroga);
+    // console.log("Dias restantes : ", diasRestantes);
 
-    // console.log(fechaActual)
-    // console.log(fechaCorte)
-    // console.log(diasRestantes)
-    // console.log(diasProrroga)
-
-    console.log(diasRestantes <= 0 && diasRestantesProrroga <= 0)
+    if (est_financiero === 'Inactivo'){ return res.status(403).send({ message: 'Su usuario esta inactivo. Contáctenos' }) }
 
     if (diasRestantes <= 0) {
       if (diasRestantesProrroga <= 0) {
@@ -351,11 +344,9 @@ controller.loginUser = async (req, res) => {
           VALUES ($1, $2, $3, $4)
         `, [userId, `La suscripción del cliente ${nombreCliente} ha expirado y ha sido marcado como Inactivo.`, login_user, new Date().toISOString()]);
 
-        return res.status(403).send({ message: 'Su suscripción ha vencido. Por favor realice la renovación. Contáctenos' });
-      } else if (diasRestantesProrroga <= 5) {
+        return res.status(403).send({ message: 'Su suscripción ha vencido. Por favor realice la renovación. Contáctenos' })
 
-        console.log("Dias restantes prorroga ----")
-
+      } else if (diasRestantesProrroga <= 5 && diasRestantesProrroga > 0) {
         const fechaActual = new Date().toISOString()
 
         await client.query(`
@@ -379,23 +370,19 @@ controller.loginUser = async (req, res) => {
   
         const token = await services.generarToken(userId, true, login_user, tiempoSuscripcion, diasRestantes ,diasRestantesProrroga)
         await services.registrarAuditoria(userId, 'Inicio de sesión exitoso', login_user)
-  
+        
         return res.status(200).send({
           tokenCode: token,
           identificacion,
           type_graph,
           type_comp,
-          message: `Estas en periodo de Prorroga, te faltan ${diasRestantes} días para el vencimiento de tu suscripción. Contáctanos`,
+          message: `Su suscripción esta en periodo de Prorroga. Por favor realice la renovación. Contáctenos`,
           notifyWarning: true
         })
       }
-    }
+    } else if (diasRestantes <= 5 && diasRestantes > 0) {
 
-    console.log(diasRestantes)
-
-    if (est_financiero === 'Inactivo'){ return res.status(403).send({ message: 'Su suscripción ha vencido. Por favor realice la renovación. Contáctenos' }) }
-
-    if (diasRestantes <= 5) {
+      console.log("Dias restantes normal")
       const fechaActual = new Date().toISOString()
 
       await client.query(`
@@ -418,14 +405,13 @@ controller.loginUser = async (req, res) => {
       }
 
       const token = await services.generarToken(userId, true, login_user, tiempoSuscripcion, diasRestantes)
-      await services.registrarAuditoria(userId, 'Inicio de sesión exitoso', login_user)
 
       return res.status(200).send({
         tokenCode: token,
         identificacion,
         type_graph,
         type_comp,
-        message: `Faltan ${diasRestantes} días para el vencimiento de tu suscripción. Contáctanos`,
+        message: `Su suscripción esta en periodo de Prorroga. Por favor realice la renovación. Contáctenos`,
         notifyWarning: true
       })
     } else {
