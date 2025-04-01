@@ -464,8 +464,6 @@ controller.loginUser = async (req, res) => {
   }
 }
 
-
-
 controller.code = async (req, res) => {
   try {
     const { code } = req.body
@@ -648,6 +646,27 @@ controller.cambiarEstadoInactivo = async (req, res) => {
   } catch (err) {
     console.error(err)
     res.status(500).json({ message: 'Error al cambiar el estado de Activo a Inactivo del cliente' })
+  }
+}
+
+controller.getDateSincro = async (req, res) => {
+  try {
+    const { cliente } = req.body
+
+    let client = await pool.connect()
+
+    const lastDateQuery = `SELECT MAX(sincronizaf) as sincronizaf FROM ${cliente}.ventas;`
+    const lastDateResult = await client.query(lastDateQuery)
+    const lastdateSincro = lastDateResult.rows[0].sincronizaf    
+    
+    if (!lastdateSincro) {
+      return res.status(404).json({ message: 'Fecha de sincronización no encontrada' })
+    }else {
+      return res.status(200).json({ message: 'Usuario encontrado', data: lastdateSincro })
+    }
+  } catch (err) {
+    console.error(err)
+    return res.status(500).json({ message: 'Error al traer los datos del usuario' })
   }
 }
 

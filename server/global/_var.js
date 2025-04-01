@@ -41,6 +41,7 @@ const _var = {
   DELETE_DEVICE: process.env.DELETE_DEVICE,
   RENOVAR_FECHA: process.env.RENOVAR_FECHA,
   PUT_ESTATE:    process.env.CAMBIAR_ESTAD,
+  LAST_SINCRO:   process.env.LAST_SINCRO,
 
   // - Users
   GET_USERS: process.env.GET_ADMINS,
