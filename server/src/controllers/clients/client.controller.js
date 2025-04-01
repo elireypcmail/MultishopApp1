@@ -135,6 +135,8 @@ controller.checkToken = async (req, res) => {
     const token        = authHeader.split(' ')[1]
     const decodedToken = jwt.verify(token, _var.TOKEN_KEY)
 
+    console.log(decodedToken)
+
     const expiraEn     = new Date(decodedToken.expiraEn * 1000)
     const tiempoActual = Date.now()
     const diasRestantes = decodedToken.diasRestantes
@@ -361,6 +363,10 @@ controller.loginUser = async (req, res) => {
         const companiesQuery = `SELECT COUNT(DISTINCT codemp) as count_codemp FROM ${identificacion}.ventas`
         const companiesResult = await client.query(companiesQuery)
         const countCodemp = companiesResult.rows[0].count_codemp
+
+        const lastDateQuery = `SELECT MAX(sincronizaf) as sincronizaf FROM ${identificacion}.ventas;`
+        const lastDateResult = await client.query(lastDateQuery)
+        const lastdateSincro = lastDateResult.rows[0].sincronizaf
   
         if (countCodemp > 1) {
           type_comp = 'Multiple'
@@ -376,6 +382,7 @@ controller.loginUser = async (req, res) => {
           identificacion,
           type_graph,
           type_comp,
+          lastdateSincro,
           message: `Su suscripción esta en periodo de Prorroga. Por favor realice la renovación. Contáctenos`,
           notifyWarning: true
         })
@@ -398,6 +405,10 @@ controller.loginUser = async (req, res) => {
       const companiesResult = await client.query(companiesQuery)
       const countCodemp = companiesResult.rows[0].count_codemp
 
+      const lastDateQuery = `SELECT MAX(sincronizaf) as sincronizaf FROM ${identificacion}.ventas;`
+      const lastDateResult = await client.query(lastDateQuery)
+      const lastdateSincro = lastDateResult.rows[0].sincronizaf
+
       if (countCodemp > 1) {
         type_comp = 'Multiple'
       } else {
@@ -411,6 +422,7 @@ controller.loginUser = async (req, res) => {
         identificacion,
         type_graph,
         type_comp,
+        lastdateSincro,
         message: `Su suscripción esta en periodo de Prorroga. Por favor realice la renovación. Contáctenos`,
         notifyWarning: true
       })
@@ -423,20 +435,25 @@ controller.loginUser = async (req, res) => {
       const companiesResult = await client.query(companiesQuery)
       const countCodemp = companiesResult.rows[0].count_codemp
 
+      const lastDateQuery = `SELECT MAX(sincronizaf) as sincronizaf FROM ${identificacion}.ventas;`
+      const lastDateResult = await client.query(lastDateQuery)
+      const lastdateSincro = lastDateResult.rows[0].sincronizaf
+
       if (countCodemp > 1) {
         type_comp = 'Multiple'
       } else {
         type_comp = 'Unico'
       }
 
-      const token = await services.generarToken(userId, true, login_user, tiempoSuscripcion)
+      const token = await services.generarToken(userId, true, login_user, tiempoSuscripcion, diasRestantes)
       await services.registrarAuditoria(userId, 'Inicio de sesión exitoso', login_user)
         
       return res.status(200).send({
         tokenCode: token,
         identificacion,
         type_graph,
-        type_comp
+        type_comp,
+        lastdateSincro
       })
     }
   } catch (error) {
