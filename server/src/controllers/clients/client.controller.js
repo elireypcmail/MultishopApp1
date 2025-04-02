@@ -363,10 +363,6 @@ controller.loginUser = async (req, res) => {
         const companiesQuery = `SELECT COUNT(DISTINCT codemp) as count_codemp FROM ${identificacion}.ventas`
         const companiesResult = await client.query(companiesQuery)
         const countCodemp = companiesResult.rows[0].count_codemp
-
-        const lastDateQuery = `SELECT MAX(sincronizaf) as sincronizaf FROM ${identificacion}.ventas;`
-        const lastDateResult = await client.query(lastDateQuery)
-        const lastdateSincro = lastDateResult.rows[0].sincronizaf
   
         if (countCodemp > 1) {
           type_comp = 'Multiple'
@@ -382,7 +378,6 @@ controller.loginUser = async (req, res) => {
           identificacion,
           type_graph,
           type_comp,
-          lastdateSincro,
           message: `Su suscripción esta en periodo de Prorroga. Por favor realice la renovación. Contáctenos`,
           notifyWarning: true
         })
@@ -405,10 +400,6 @@ controller.loginUser = async (req, res) => {
       const companiesResult = await client.query(companiesQuery)
       const countCodemp = companiesResult.rows[0].count_codemp
 
-      const lastDateQuery = `SELECT MAX(sincronizaf) as sincronizaf FROM ${identificacion}.ventas;`
-      const lastDateResult = await client.query(lastDateQuery)
-      const lastdateSincro = lastDateResult.rows[0].sincronizaf
-
       if (countCodemp > 1) {
         type_comp = 'Multiple'
       } else {
@@ -422,7 +413,6 @@ controller.loginUser = async (req, res) => {
         identificacion,
         type_graph,
         type_comp,
-        lastdateSincro,
         message: `Su suscripción esta en periodo de Prorroga. Por favor realice la renovación. Contáctenos`,
         notifyWarning: true
       })
@@ -434,10 +424,6 @@ controller.loginUser = async (req, res) => {
       const companiesQuery = `SELECT COUNT(DISTINCT codemp) as count_codemp FROM ${identificacion}.ventas`
       const companiesResult = await client.query(companiesQuery)
       const countCodemp = companiesResult.rows[0].count_codemp
-
-      const lastDateQuery = `SELECT MAX(sincronizaf) as sincronizaf FROM ${identificacion}.ventas;`
-      const lastDateResult = await client.query(lastDateQuery)
-      const lastdateSincro = lastDateResult.rows[0].sincronizaf
 
       if (countCodemp > 1) {
         type_comp = 'Multiple'
@@ -452,8 +438,7 @@ controller.loginUser = async (req, res) => {
         tokenCode: token,
         identificacion,
         type_graph,
-        type_comp,
-        lastdateSincro
+        type_comp
       })
     }
   } catch (error) {
