@@ -277,29 +277,45 @@ controller.loginUser = async (req, res) => {
     const { id_cliente: userId, clave: claveDispositivo } = dispositivoValido
 
     if (clave !== claveDispositivo) {
-      await services.registrarAuditoria(userId, 'Intento de inicio de sesión fallido', login_user, { claveIntentada: clave })
-      
-      const intentosQuery    = `SELECT intento FROM cliente WHERE id = $1`
-      const intentosResult   = await client.query(intentosQuery, [userId])
-      const intentosFallidos = intentosResult.rows[0]?.intento
-      
+      await services.registrarAuditoria(userId, 'Intento de inicio de sesión fallido', login_user, { claveIntentada: clave });
+    
+      const intentosQuery    = `SELECT intento, nombre FROM cliente WHERE id = $1`;
+      const intentosResult   = await client.query(intentosQuery, [userId]);
+      const intentosFallidos = intentosResult.rows[0]?.intento;
+      const nombreCliente    = intentosResult.rows[0]?.nombre;
+    
       if (intentosFallidos >= 3) {
-        const fechaActual = new Date().toISOString()
-
-        await client.query('INSERT INTO notificacion (id_user, notify_type, id_dispositivo, fecha) VALUES ($1, $2, $3, $4)', [userId, 'Se ha ingresado mal la contraseña más de 3 veces', login_user, fechaActual])
-
-        await client.query('UPDATE cliente SET est_financiero = $1 WHERE id = $2', ['Inactivo', userId])
-
-        return res.status(403).send({ message: 'Intentos fallidos expirados. Comunícate con los administradores' })
+        const fechaActual = new Date().toISOString();
+    
+        await client.query(
+          'INSERT INTO notificacion (id_user, notify_type, id_dispositivo, fecha) VALUES ($1, $2, $3, $4)',
+          [userId, 'Se ha ingresado mal la contraseña más de 3 veces', login_user, fechaActual]
+        );
+    
+        await client.query('UPDATE cliente SET est_financiero = $1 WHERE id = $2', ['Inactivo', userId]);
+    
+        await services.sendEmail(
+          "Intentos fallidos de inicio de sesión",
+          `El cliente ${nombreCliente} ha superado el límite de intentos fallidos de inicio de sesión.`
+        );
+    
+        return res.status(403).send({ 
+          message: 'Intentos fallidos expirados. Comunícate con los administradores',
+        });
       }
-
-      await client.query('UPDATE cliente SET intento = intento + 1 WHERE id = $1', [userId])
-      return res.status(401).send({ message: 'Nombre de Usuario o Contraseña Incorrectos. Por favor verifique!' })
+    
+      await client.query('UPDATE cliente SET intento = intento + 1 WHERE id = $1', [userId]);
+    
+      return res.status(401).send({ 
+        message: 'Nombre de Usuario o Contraseña Incorrectos. Por favor verifique!' 
+      });
     }
+    
 
-    const intentosQuery    = `SELECT intento FROM cliente WHERE id = $1`
+    const intentosQuery    = `SELECT intento, nombre FROM cliente WHERE id = $1`
     const intentosResult   = await client.query(intentosQuery, [userId])
     const intentosFallidos = intentosResult.rows[0]?.intento
+    const nombreClient    = intentosResult.rows[0]?.nombre;
 
     if (intentosFallidos >= 3) {
       const fechaActual = new Date().toISOString()
@@ -307,6 +323,11 @@ controller.loginUser = async (req, res) => {
       await client.query('INSERT INTO notificacion (id_user, notify_type, id_dispositivo, fecha) VALUES ($1, $2, $3, $4)', [userId, 'Se ha ingresado mal la contraseña más de 3 veces', login_user, fechaActual])
 
       await client.query('UPDATE cliente SET est_financiero = $1 WHERE id = $2', ['Inactivo', userId])
+
+      await services.sendEmail(
+        "Intento fallido de inicio de sesión",
+        `El cliente ${nombreClient} ha agotado el limite de intentos para iniciar sesión.`
+      );
 
       return res.status(403).send({ message: 'Intentos fallidos expirados. Comunícate con los administradores' })
     }
@@ -335,7 +356,10 @@ controller.loginUser = async (req, res) => {
     // console.log("Dias restantes de la prorroga: ", diasRestantesProrroga);
     // console.log("Dias restantes : ", diasRestantes);
 
-    if (est_financiero === 'Inactivo'){ return res.status(403).send({ message: 'Su usuario esta inactivo. Contáctenos' }) }
+    if (est_financiero === 'Inactivo'){ 
+      await services.sendEmail(`Aplicación de Kpis : Usuario Inactivo - ${nombreCliente} `, `El usuario ${nombreCliente}, ha intentado acceder al sistema y su estado es inactivo`)
+      return res.status(403).send({ message: 'Su usuario esta inactivo. Contáctenos' })
+    }
 
     if (diasRestantes <= 0) {
       if (diasRestantesProrroga <= 0) {
@@ -345,6 +369,10 @@ controller.loginUser = async (req, res) => {
           INSERT INTO notificacion (id_user, notify_type, id_dispositivo, fecha) 
           VALUES ($1, $2, $3, $4)
         `, [userId, `La suscripción del cliente ${nombreCliente} ha expirado y ha sido marcado como Inactivo.`, login_user, new Date().toISOString()]);
+
+        await services.sendEmail(`Aplicación de Kpis : Suscripción Vencida - ${nombreCliente}` , `La suscripción del cliente ${nombreCliente} ha vencido.`)
+
+        // await services.sendEmail(`Aplicación de Kpis : Usuario Inactivo - ${nombreCliente} `, `El usuario ${nombreCliente}, ha intentado acceder al sistema y su estado es inactivo`)
 
         return res.status(403).send({ message: 'Su suscripción ha vencido. Por favor realice la renovación. Contáctenos' })
 
@@ -431,7 +459,7 @@ controller.loginUser = async (req, res) => {
         type_comp = 'Unico'
       }
 
-      const token = await services.generarToken(userId, true, login_user, tiempoSuscripcion, diasRestantes)
+      const token = await services.generarToken(userId, true, login_user, tiempoSuscripcion)
       await services.registrarAuditoria(userId, 'Inicio de sesión exitoso', login_user)
         
       return res.status(200).send({
@@ -640,14 +668,51 @@ controller.getDateSincro = async (req, res) => {
 
     let client = await pool.connect()
 
-    const lastDateQuery = `SELECT MAX(sincronizaf) as sincronizaf FROM ${cliente}.ventas;`
+    // const lastDateQuery = `SELECT sincronizaf, totalventa FROM ${cliente}.ventas ORDER BY sincronizaf DESC LIMIT 1;`
+    // const lastDateQuery = `SELECT sincronizaf AT TIME ZONE 'UTC' FROM ${cliente}.ventas ORDER BY sincronizaf DESC LIMIT 1;`
+    const lastDateQuery = `SELECT CAST(sincronizaf AS TEXT) as sincronizaf FROM ${cliente}.ventas ORDER BY sincronizaf DESC LIMIT 1;`
+
+
+    // select CAST(sincronizaf AS CHAR) as sincronizaf from $(cliente).ventas order by sincronizaf desc limit 1
+
     const lastDateResult = await client.query(lastDateQuery)
     const lastdateSincro = lastDateResult.rows[0].sincronizaf    
     
+    // console.log(lastDateResult)
+    // console.log(lastDateResult.rows[0].totalventa)
+
+    console.log(lastdateSincro)
+
+    const localDate = new Date(lastdateSincro).toLocaleString('es-VE', {
+      timeZone: 'America/Caracas'
+    })
+
+    // console.log(localDate)
+
     if (!lastdateSincro) {
       return res.status(404).json({ message: 'Fecha de sincronización no encontrada' })
     }else {
-      return res.status(200).json({ message: 'Usuario encontrado', data: lastdateSincro })
+      return res.status(200).json({ message: 'Usuario encontrado', data: localDate })
+    }
+  } catch (err) {
+    console.error(err)
+    return res.status(500).json({ message: 'Error al traer los datos del usuario' })
+  }
+}
+
+controller.getVersion = async (req, res) => {
+  try {
+    let client = await pool.connect()
+
+    const query = `SELECT CAST(codigo AS TEXT) as codigo FROM version ORDER BY codigo DESC LIMIT 1;`
+
+    const codigoVersion = await client.query(query)
+    const lastCodeVersion = codigoVersion.rows[0].codigo    
+    
+    if (!lastCodeVersion) {
+      return res.status(404).json({ message: 'Version no encontrada' })
+    }else {
+      return res.status(200).json({ message: 'Version Encontrada', data: lastCodeVersion })
     }
   } catch (err) {
     console.error(err)

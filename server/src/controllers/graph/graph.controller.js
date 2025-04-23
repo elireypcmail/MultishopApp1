@@ -656,14 +656,10 @@ const getTopKPIs = async (nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi
       return { error: 'KPI no reconocido' }
   }
 
-  // console.log(query)
-
   const result = await pool.query(query, [fechaInicio, fechaFin])
   const limite = obtenerLimiteSegunFiltro(fechaInicio, fechaFin, kpi)
   const topValoresVentas = obtenerTopValoresVentas(result.rows, limite, kpi)
   const dateKPIs = await obtenerFechaKPI(topValoresVentas, tableName)
-
-  // console.log(result.rows)
 
   topValoresVentas.forEach((item, index) => {
     delete item.periodo;
@@ -684,8 +680,8 @@ const obtenerLimiteSegunFiltro = (fechaInicio, fechaFin, kpi) => {
   const diasDiff = (endDate - startDate) / (1000 * 60 * 60 * 24)
   let limite = diasDiff + 1
 
-  if (kpi == "CajerosConMasVentas" || kpi == "FabricantesConMasVentas" || kpi == "ProductosTOP" || kpi == "Inventario") {
-    limite= 31
+  if (kpi == "CajerosConMasVentas" || kpi == "FabricantesConMasVentas" || kpi == "ProductosTOP" || kpi == "Inventario" || kpi == "flujoDeCaja" || kpi == "DiaMasExitoso" || kpi == "VentaMasExitosa") {
+    limite= 100
     return limite
   }
 
@@ -748,7 +744,7 @@ graphController.getCustomKPI = async (req, res) => {
     }
 
     let data = await getTopKPIs(nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi)
-    console.log(data)
+    // console.log(data)
 
     if (data.length === 0) {
       return res.status(404).json({ error: 'No se encontraron datos para el rango de fechas proporcionado' })

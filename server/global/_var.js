@@ -42,6 +42,7 @@ const _var = {
   RENOVAR_FECHA: process.env.RENOVAR_FECHA,
   PUT_ESTATE:    process.env.CAMBIAR_ESTAD,
   LAST_SINCRO:   process.env.LAST_SINCRO,
+  GET_VERSION:   process.env.GET_VERSION,
 
   // - Users
   GET_USERS: process.env.GET_ADMINS,
@@ -54,7 +55,12 @@ const _var = {
   DELETE_AD: process.env.DELETE_AD,
 
   // TOKEN KEY
-  TOKEN_KEY: process.env.TOKEN
+  TOKEN_KEY: process.env.TOKEN,
+
+  // EMAIL
+  EMAIL_ORIGIN: process.env.EMAIL_ORIGIN,
+  EMAIL_PASS:   process.env.EMAIL_PASS,
+  EMAIL_RECIPIENT: process.env.EMAIL_RECIPIENT,
 }
 
 export default _var

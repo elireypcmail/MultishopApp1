@@ -1,6 +1,8 @@
 import jwt  from 'jsonwebtoken'
 import pool from '../models/db.connect.js'
 import _var from '../../global/_var.js'
+import nodemailer from 'nodemailer'
+import bcrypt from 'bcrypt'
 
 const services = {}
 let message    = {}
@@ -189,5 +191,65 @@ services.getAuditoriaPromedio = async (req, res) => {
     res.status(500).json({ error: "Error fetching monthly average" })
   }
 }
+
+services.sendEmail = async (title, text) => {
+  try {
+    const client = await pool.connect();
+
+    const credencialesQuery = `SELECT nombre_credencial, codigo FROM credenciales;`;
+    const credencialesResult = await client.query(credencialesQuery);
+    const credenciales = credencialesResult.rows;
+
+    // Variables en texto plano desde la base de datos
+    let emailOriginPlain, emailPassPlain, emailRecepPlain;
+
+    credenciales.forEach(cred => {
+      if (cred.nombre_credencial === 'email_origin') emailOriginPlain = cred.codigo;
+      if (cred.nombre_credencial === 'email_pass')   emailPassPlain   = cred.codigo;
+      if (cred.nombre_credencial === 'email_recep')  emailRecepPlain  = cred.codigo;
+    });
+
+    // Hasheadas desde las variables de entorno
+    let emailOriginHash = _var.EMAIL_ORIGIN;
+    let emailPassHash   = _var.EMAIL_PASS;
+    let emailRecepHash  = _var.EMAIL_RECIPIENT;
+
+    // Validar: comparar texto plano (BD) contra hash (env)
+    const isOriginValid = await bcrypt.compare(emailOriginPlain, emailOriginHash);
+    const isPassValid   = await bcrypt.compare(emailPassPlain, emailPassHash);
+    const isRecepValid  = await bcrypt.compare(emailRecepPlain, emailRecepHash);
+
+    if (!isOriginValid || !isPassValid || !isRecepValid) {
+      console.error("Alguna de las credenciales no coincide con su hash");
+      return;
+    }
+
+    // Si la validación fue exitosa, se usan las credenciales en texto plano de la BD
+    let transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: emailOriginPlain,
+        pass: emailPassPlain,
+      },
+    });
+
+    let mailOptions = {
+      from: emailOriginPlain,
+      to: emailRecepPlain,
+      subject: title,
+      html: text,
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        return console.log('Error al enviar el correo:', error);
+      }
+      console.log('Correo enviado: %s', info.messageId);
+    });
+
+  } catch (error) {
+    console.error("Error executing query:", error);
+  }
+};
 
 export default services
