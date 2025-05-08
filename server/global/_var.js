@@ -42,7 +42,7 @@ const _var = {
   RENOVAR_FECHA: process.env.RENOVAR_FECHA,
   PUT_ESTATE:    process.env.CAMBIAR_ESTAD,
   LAST_SINCRO:   process.env.LAST_SINCRO,
-  GET_VERSION:   process.env.GET_VERSION,
+  GET_PARAMETERS:   process.env.GET_PARAMETERS,
 
   // - Users
   GET_USERS: process.env.GET_ADMINS,
