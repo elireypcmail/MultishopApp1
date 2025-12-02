@@ -12,10 +12,7 @@ const server = express()
 const middlewares = () => {
   server.use(express.json())
 
-  server.use(cors({
-    origin: [_var.ORIGIN, _var.ORIGIN1],
-    credentials: true
-  }))
+  server.use(cors([_var.ORIGIN, _var.ORIGIN1]))
 
   // Healthy check
   server.get('/health', async (req, res) => {
