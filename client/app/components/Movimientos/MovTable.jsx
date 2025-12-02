@@ -1,7 +1,7 @@
 import { Search } from "../Icons"
 import { useState, useEffect } from "react"
 import { getMove } from "@api/Get"
-import { filterMove } from "@api/Post"  // Asegúrate de importar tu función de filtrado
+import { filterMove } from "@api/Post"  
 import { useRouter } from "next/router"
 
 export default function MovTable({ data }) {
@@ -108,19 +108,31 @@ export default function MovTable({ data }) {
               <th scope="col" className="px-6 py-3">Usuario</th>
               <th scope="col" className="px-6 py-3">Información adicional</th>
               <th scope="col" className="px-6 py-3">Fecha</th>
+              <th scope="col" className="px-6 py-3">Hora de Inicio</th>
             </tr>
           </thead>
           <tbody>
-            {move.map((move) => (
-              <tr className="bg-white hover:bg-gray-50 cursor-pointer" key={move.id}>
-                <td className="px-6 py-4">{move?.accion}</td>
-                <td className="px-6 py-4">{move?.id_dispositivo}</td>
-                <td className="px-6 py-4">
-                  {renderAdditionalInfo(move?.additional_info)}
-                </td>
-                <td className="px-6 py-4">{new Date(move?.fecha).toLocaleDateString()}</td>
-              </tr>
-            ))}
+            {move.map((move) => {
+              const fechaCompleta = new Date(move?.fecha)
+              return (
+                <tr className="bg-white hover:bg-gray-50 cursor-pointer" key={move.id}>
+                  <td className="px-6 py-4">{move?.accion}</td>
+                  <td className="px-6 py-4">{move?.id_dispositivo}</td>
+                  <td className="px-6 py-4">
+                    {renderAdditionalInfo(move?.additional_info)}
+                  </td>
+                  <td className="px-6 py-4">{fechaCompleta.toLocaleDateString()}</td>
+                  <td className="px-6 py-4">
+                    {new Date(move?.fecha).toLocaleTimeString('es-ES', {
+                      hour: 'numeric',
+                      minute: '2-digit',
+                      hour12: true
+                    }).replace('.', '')}
+                  </td>
+
+                </tr>
+              )
+            })}
           </tbody>
         </table>
       </div>

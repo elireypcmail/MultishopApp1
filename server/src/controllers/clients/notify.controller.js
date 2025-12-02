@@ -26,8 +26,7 @@ controllerNoti.notifyClient = async (req, res) => {
     const notificacionesValues = [id]
     const notificacionesResult = await client.query(notificacionesQuery, notificacionesValues)
     const notificaciones       = notificacionesResult.rows.map((notificacion) => ({
-      ...notificacion,
-      fecha: formatDate(notificacion.fecha), 
+      ...notificacion
     }))
 
     res.status(200).json({ "userId": id, "data": notificaciones })

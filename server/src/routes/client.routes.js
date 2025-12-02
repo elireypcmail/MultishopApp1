@@ -24,6 +24,8 @@ clientRouter.patch(_var.UPDATE_USER,    controller.updateUser)
 clientRouter.put(_var.PUT_ESTATE,       controller.cambiarEstadoInactivo)
 clientRouter.delete(_var.DELETE_USER,   controller.deleteUser)
 clientRouter.delete(_var.DELETE_DEVICE, controller.deleteDevice)
+clientRouter.post(_var.LAST_SINCRO, controller.getDateSincro)
+clientRouter.get(_var.GET_PARAMETERS, controller.getParameters)
 
 clientRouter.post("/api/getMonthlyAverage", services.getAuditoriaPromedio)
 

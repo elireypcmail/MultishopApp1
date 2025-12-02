@@ -347,6 +347,8 @@ export default function UserProfile({ data }) {
                         onChange={handleSelectChange}
                       >
                         <option value="">Seleccione</option>
+                        <option value="15">15 (días)</option>
+                        <option value="25">25 (días)</option>
                         <option value="35">35 (días)</option>
                         <option value="45">45 (días)</option>
                         <option value="65">65 (días)</option>
@@ -372,11 +374,16 @@ export default function UserProfile({ data }) {
                               if (r.status) {
                                 let u = { ...userData }
                                 u['est_financiero'] = 'Activo'
+                                setSelectedOptions((prevState) => ({
+                                  ...prevState,
+                                  est_financiero: 'Activo',
+                                }));
                                 let n = r.newDate.toString()
                                 let [y,m,d] = n.split('-').map(Number)
                                 u['fecha_corte'] = `${d}/${m}/${y}`
                                 setUserData(u)
                                 setValid(false)
+
                               }
                             }}
                           >

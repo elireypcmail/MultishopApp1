@@ -13,12 +13,15 @@
   "type": "module",
   "dependencies": {
     "aws-sdk": "^2.1592.0",
+    "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.4",
     "express": "^4.18.2",
     "getmac": "^6.6.0",
     "jsonwebtoken": "^9.0.2",
     "moment": "^2.30.1",
+    "moment-timezone": "^0.5.47",
+    "nodemailer": "^6.10.1",
     "pg": "^8.11.3",
     "resend": "^3.3.0",
     "twilio": "^5.0.4"

@@ -4,7 +4,7 @@ import services           from '../../services/user.services.js'
 import service            from '../../services/twilio.services.js'
 import jwt                from 'jsonwebtoken'
 import _var               from '../../../global/_var.js'
-import moment             from 'moment'
+import moment             from 'moment-timezone'
 import {
   createSchema,
   deleteSchema,
@@ -134,8 +134,15 @@ controller.checkToken = async (req, res) => {
     const token        = authHeader.split(' ')[1]
     const decodedToken = jwt.verify(token, _var.TOKEN_KEY)
 
+    console.log(decodedToken)
+
     const expiraEn     = new Date(decodedToken.expiraEn * 1000)
     const tiempoActual = Date.now()
+    const diasRestantes = decodedToken.diasRestantes
+    const diasRestantesProrroga = decodedToken.diasRestantesProrroga
+
+    console.log("diasRestantes en token")
+    console.log(diasRestantes)
 
     if (expiraEn < tiempoActual) {
       decodedToken.suscripcionActiva = false
@@ -153,6 +160,10 @@ controller.checkToken = async (req, res) => {
       decodedToken.suscripcionActiva = false
       console.log(decodedToken)
       res.status(401).send({ "message": 'El token ha expirado' })
+    } else if (diasRestantes <= 5 && diasRestantes > 0) {
+      res.status(200).send({ "message": `Faltan ${diasRestantes} días para el vencimiento de su suscripción. Contáctanos` })
+    } else if (diasRestantesProrroga <= 5) {
+      res.status(200).send({ "message": `Su suscripción esta en periodo de Prorroga. Por favor realice la renovación. Contáctenos` })
     } else {
       res.status(200).send({ "message": 'Suscripción activa' })
     }
@@ -246,7 +257,7 @@ controller.postUser = async (req, res) => {
 
 controller.loginUser = async (req, res) => {
   const { login_user, clave } = req.body
-
+  
   let client
   try {
     client = await pool.connect()
@@ -266,18 +277,50 @@ controller.loginUser = async (req, res) => {
 
     if (clave !== claveDispositivo) {
       await services.registrarAuditoria(userId, 'Intento de inicio de sesión fallido', login_user, { claveIntentada: clave })
-
-      const intentosQuery    = `SELECT intento FROM cliente WHERE id = $1`
+      
+      const intentosQuery    = `SELECT intento, nombre FROM cliente WHERE id = $1`
       const intentosResult   = await client.query(intentosQuery, [userId])
       const intentosFallidos = intentosResult.rows[0]?.intento
+      const nombreCliente    = intentosResult.rows[0]?.nombre;
 
       if (intentosFallidos >= 3) {
-        await client.query('INSERT INTO notificacion (id_user, notify_type, id_dispositivo) VALUES ($1, $2, $3)', [userId, 'Se ha ingresado mal la contraseña más de 3 veces', login_user])
+        const fechaActual = new Date().toISOString()
+
+        await client.query('INSERT INTO notificacion (id_user, notify_type, id_dispositivo, fecha) VALUES ($1, $2, $3, $4)', [userId, 'Se ha ingresado mal la contraseña más de 3 veces', login_user, fechaActual])
+
+        await client.query('UPDATE cliente SET est_financiero = $1 WHERE id = $2', ['Inactivo', userId])
+
+        await services.sendEmail(
+          "Intentos fallidos de inicio de sesión",
+          `El cliente ${nombreCliente} ha superado el límite de intentos fallidos de inicio de sesión.`
+        )
+
         return res.status(403).send({ message: 'Intentos fallidos expirados. Comunícate con los administradores' })
       }
 
       await client.query('UPDATE cliente SET intento = intento + 1 WHERE id = $1', [userId])
-      return res.status(401).send({ message: 'Contraseña incorrecta' })
+
+      return res.status(401).send({ message: 'Nombre de Usuario o Contraseña Incorrectos. Por favor verifique!' })
+    }
+
+    const intentosQuery    = `SELECT intento FROM cliente WHERE id = $1`
+    const intentosResult   = await client.query(intentosQuery, [userId])
+    const intentosFallidos = intentosResult.rows[0]?.intento
+    const nombreClient    = intentosResult.rows[0]?.nombre;
+
+    if (intentosFallidos >= 3) {
+      const fechaActual = new Date().toISOString()
+
+      await client.query('INSERT INTO notificacion (id_user, notify_type, id_dispositivo, fecha) VALUES ($1, $2, $3, $4)', [userId, 'Se ha ingresado mal la contraseña más de 3 veces', login_user, fechaActual])
+
+      await client.query('UPDATE cliente SET est_financiero = $1 WHERE id = $2', ['Inactivo', userId])
+
+      await services.sendEmail(
+        "Intento fallido de inicio de sesión",
+        `El cliente ${nombreClient} ha agotado el limite de intentos para iniciar sesión.`
+      );
+
+      return res.status(403).send({ message: 'Intentos fallidos expirados. Comunícate con los administradores' })
     }
 
     const clienteQuery = `
@@ -291,53 +334,133 @@ controller.loginUser = async (req, res) => {
     if (!cliente) return res.status(404).json({ message: "Cliente no encontrado" })
 
     const { identificacion, nombre: nombreCliente, suscripcion: tiempoSuscripcion, est_financiero, fecha_corte, type_graph } = cliente
-    console.log(type_graph)
+    console.log({identificacion, nombre: nombreCliente, suscripcion: tiempoSuscripcion, est_financiero, fecha_corte, type_graph})
     
-    const fechaActual   = moment().startOf('day')
-    const fechaCorte    = moment(fecha_corte).startOf('day')
-    const diasRestantes = fechaCorte.diff(fechaActual, 'days')
+    let fechaActual = moment().tz("America/Caracas").startOf('day').format("YYYY-MM-DD");
+    let fechaCorte    = moment(fecha_corte).startOf('day')
+    let diasRestantes = fechaCorte.diff(fechaActual, 'days')
+    let diasProrroga = diasRestantes + 5
+    let fechaProrroga = fechaCorte.add(diasProrroga, "days");
+    let diasRestantesProrroga = fechaProrroga.diff(fechaActual, 'days')
+    
+    // console.log("Fecha de prórroga:", fechaProrroga.format("YYYY-MM-DD"));
+    // console.log("Dias restantes de la prorroga: ", diasRestantesProrroga);
+    // console.log("Dias restantes : ", diasRestantes);
 
-    if (diasRestantes < 0) {
-      await client.query('UPDATE cliente SET est_financiero = $1 WHERE id = $2', ['Inactivo', userId])
+    if (est_financiero === 'Inactivo'){ 
+      await services.sendEmail(`Aplicación de Kpis : Usuario Inactivo - ${nombreCliente} `, `El usuario ${nombreCliente}, ha intentado acceder al sistema y su estado es inactivo`)
 
-      await client.query(`
-        INSERT INTO notificacion (id_user, notify_type, id_dispositivo) 
-        VALUES ($1, $2, $3)
-      `, [userId, `La suscripción del cliente ${nombreCliente} ha expirado y ha sido marcado como Inactivo.`, login_user])
-
-      return res.status(403).send({ message: 'Suscripción expirada. Comunícate con los administradores' })
+      return res.status(403).send({ message: 'Su usuario esta inactivo. Contáctenos' })
     }
 
-    if (est_financiero === 'Inactivo'){ return res.status(403).send({ message: 'Suscripción expirada. Comunícate con los administradores' }) }
+    if (diasRestantes <= 0) {
+      if (diasRestantesProrroga <= 0) {
+        await client.query('UPDATE cliente SET est_financiero = $1 WHERE id = $2', ['Inactivo', userId]);
 
-    if (diasRestantes <= 5) {
+        await client.query(`
+          INSERT INTO notificacion (id_user, notify_type, id_dispositivo, fecha) 
+          VALUES ($1, $2, $3, $4)
+        `, [userId, `La suscripción del cliente ${nombreCliente} ha expirado y ha sido marcado como Inactivo.`, login_user, new Date().toISOString()]);
+
+        await services.sendEmail(`Aplicación de Kpis : Suscripción Vencida - ${nombreCliente}` , `La suscripción del cliente ${nombreCliente} ha vencido.`)
+
+        return res.status(403).send({ message: 'Su suscripción ha vencido. Por favor realice la renovación. Contáctenos' })
+
+      } else if (diasRestantesProrroga <= 5 && diasRestantesProrroga > 0) {
+        const fechaActual = new Date().toISOString()
+
+        await client.query(`
+          INSERT INTO notificacion (id_user, notify_type, id_dispositivo, fecha) 
+          VALUES ($1, $2, $3, $4)
+        `, [userId, `El cliente ${nombreCliente} esta en periodo de prorroga, le quedan ${diasRestantesProrroga} días de suscripción.`, login_user, fechaActual])
+  
+        connectToClientSchema(identificacion, nombreCliente)
+  
+        let type_comp
+  
+        const companiesQuery = `SELECT COUNT(DISTINCT codemp) as count_codemp FROM ${identificacion}.ventas`
+        const companiesResult = await client.query(companiesQuery)
+        const countCodemp = companiesResult.rows[0].count_codemp
+  
+        if (countCodemp > 1) {
+          type_comp = 'Multiple'
+        } else {
+          type_comp = 'Unico'
+        }
+  
+        const token = await services.generarToken(userId, true, login_user, tiempoSuscripcion, diasRestantes ,diasRestantesProrroga)
+        await services.registrarAuditoria(userId, 'Inicio de sesión exitoso', login_user)
+        
+        return res.status(200).send({
+          tokenCode: token,
+          identificacion,
+          type_graph,
+          type_comp,
+          message: `Su suscripción esta en periodo de Prorroga. Por favor realice la renovación. Contáctenos`,
+          notifyWarning: true
+        })
+      }
+    } else if (diasRestantes <= 5 && diasRestantes > 0) {
+
+      console.log("Dias restantes normal")
+      const fechaActual = new Date().toISOString()
+
       await client.query(`
-        INSERT INTO notificacion (id_user, notify_type, id_dispositivo) 
-        VALUES ($1, $2, $3)
-      `, [userId, `Al cliente ${nombreCliente} le quedan ${diasRestantes} días de suscripción.`, login_user])
+        INSERT INTO notificacion (id_user, notify_type, id_dispositivo, fecha) 
+        VALUES ($1, $2, $3, $4)
+      `, [userId, `Al cliente ${nombreCliente} le quedan ${diasRestantes} días de suscripción.`, login_user, fechaActual])
 
       connectToClientSchema(identificacion, nombreCliente)
 
-      const token = await services.generarToken(userId, true, login_user, tiempoSuscripcion)
+      let type_comp
+
+      const companiesQuery = `SELECT COUNT(DISTINCT codemp) as count_codemp FROM ${identificacion}.ventas`
+      const companiesResult = await client.query(companiesQuery)
+      const countCodemp = companiesResult.rows[0].count_codemp
+
+      if (countCodemp > 1) {
+        type_comp = 'Multiple'
+      } else {
+        type_comp = 'Unico'
+      }
+
+      
+      const token = await services.generarToken(userId, true, login_user, tiempoSuscripcion, diasRestantes)
+      
       await services.registrarAuditoria(userId, 'Inicio de sesión exitoso', login_user)
-        
+      
       return res.status(200).send({
         tokenCode: token,
         identificacion,
         type_graph,
-        message: `A partir de hoy te quedan ${diasRestantes} día(s) de suscripción. Recuerda comunicarte con los administradores para renovar tu suscripción.`,
+        type_comp,
+        message: `Su suscripción esta en periodo de Prorroga. Por favor realice la renovación. Contáctenos`,
         notifyWarning: true
       })
     } else {
       connectToClientSchema(identificacion, nombreCliente)
 
+      let type_comp
+
+      const companiesQuery = `SELECT COUNT(DISTINCT codemp) as count_codemp FROM ${identificacion}.ventas`
+      const companiesResult = await client.query(companiesQuery)
+      const countCodemp = companiesResult.rows[0].count_codemp
+
+      if (countCodemp > 1) {
+        type_comp = 'Multiple'
+      } else {
+        type_comp = 'Unico'
+      }
+
       const token = await services.generarToken(userId, true, login_user, tiempoSuscripcion)
+      
       await services.registrarAuditoria(userId, 'Inicio de sesión exitoso', login_user)
         
       return res.status(200).send({
         tokenCode: token,
         identificacion,
         type_graph,
+        type_comp
       })
     }
   } catch (error) {
@@ -400,8 +523,6 @@ controller.updateUser = async (req, res) => {
       type_graph:     edit.type_graph || currentUser.rows[0].type_graph
     }
 
-    console.log(updatedUser.type_graph);
-
     const updateUserQuery = `
       UPDATE cliente 
       SET nombre=$1, telefono=$2, est_financiero=$3, suscripcion=$4, fecha_corte=$5, type_graph=$6
@@ -416,6 +537,15 @@ controller.updateUser = async (req, res) => {
       updatedUser.type_graph, 
       id,
     ])
+
+    if (updatedUser.est_financiero === "Activo") {
+      const queryReset = `
+        UPDATE cliente
+        SET intento = $1
+        WHERE id = $2
+      `
+      await client.query(queryReset, [0, id])
+    }
 
     if (dispositivos && dispositivos.length > 0) {
       for (const dispositivo of dispositivos) {
@@ -516,7 +646,6 @@ controller.cambiarEstadoInactivo = async (req, res) => {
       SET est_financiero = 'Inactivo'
       WHERE id = $1
     `
-
     const result = await bd.query(query, [id])
     if (result.rowCount === 0) return res.status(404).json({ message: 'Cliente no encontrado' })
 
@@ -524,6 +653,61 @@ controller.cambiarEstadoInactivo = async (req, res) => {
   } catch (err) {
     console.error(err)
     res.status(500).json({ message: 'Error al cambiar el estado de Activo a Inactivo del cliente' })
+  }
+}
+
+controller.getDateSincro = async (req, res) => {
+  try {
+    const { cliente } = req.body
+
+    let client = await pool.connect()
+
+    const lastDateQuery = `SELECT CAST(sincronizaf AS TEXT) as sincronizaf FROM ${cliente}.ventas ORDER BY sincronizaf DESC LIMIT 1;`
+
+    const lastDateResult = await client.query(lastDateQuery)
+
+    client.release()
+
+    const lastdateSincro = lastDateResult.rows[0].sincronizaf    
+    
+    console.log(lastdateSincro)
+
+    const localDate = new Date(lastdateSincro).toLocaleString('es-VE', {
+      timeZone: 'America/Caracas'
+    })
+    console.log(localDate)
+
+    if (!lastdateSincro) {
+      return res.status(404).json({ message: 'Fecha de sincronización no encontrada' })
+    }else {
+      return res.status(200).json({ message: 'Usuario encontrado', data: lastdateSincro })
+    }
+  } catch (err) {
+    console.error(err)
+    return res.status(500).json({ message: 'Error al traer los datos del usuario' })
+  }
+}
+
+controller.getParameters = async (req, res) => {
+  try {
+    let client = await pool.connect()
+
+    const query = `SELECT CAST(codigo AS TEXT) as codigo, tiempo FROM parametros ORDER BY codigo DESC LIMIT 1;`
+    const parametros = await client.query(query)
+
+    client.release()
+    
+    const version = parametros.rows[0].codigo    
+    const tiempo = parametros.rows[0].tiempo    
+    
+    if (!version && !tiempo) {
+      return res.status(404).json({ message: 'Parametros no encontrados' })
+    }else {
+      return res.status(200).json({ message: 'Parametros encontrados', data: {version, tiempo} })
+    }
+  } catch (err) {
+    console.error(err)
+    return res.status(500).json({ message: 'Error al traer los datos del usuario' })
   }
 }
 

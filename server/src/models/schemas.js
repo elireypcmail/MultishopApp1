@@ -135,8 +135,11 @@ async function createTableInSchema(nombreCliente, nombreTabla) {
           totalcompra numeric(25,2) NOT NULL DEFAULT 0,
           codemp character varying(20) NOT NULL DEFAULT ''::character varying,
           nomemp character varying(240) NOT NULL DEFAULT ''::character varying,
-          CONSTRAINT pk_id PRIMARY KEY (id),
-          CONSTRAINT idx_fecha UNIQUE (fecha)
+          nomempc character varying(10) NOT NULL DEFAULT ''::character varying,
+          totusd numeric(25,2) NOT NULL DEFAULT 0,
+          totcop numeric(25,2) NOT NULL DEFAULT 0,
+          totbs numeric(25,2) NOT NULL DEFAULT 0,
+          CONSTRAINT pk_id PRIMARY KEY (id)
         );
       `
     await db.query(query)
