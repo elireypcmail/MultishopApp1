@@ -4,7 +4,8 @@
   "description": "This is the multishop application server",
   "main": "server.js",
   "scripts": {
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "start": "node server.js"
   },
   "repository": "https://github.com/SugeyCh/Multishop-app1.git",
   "author": "SugeyCh",
