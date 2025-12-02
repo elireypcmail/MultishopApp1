@@ -4,6 +4,8 @@ import _var         from '../../global/_var.js'
 import userRouter   from '../routes/user.routes.js'
 import clientRouter from '../routes/client.routes.js'
 import graphRoutes  from '../routes/graph.routes.js'
+import pool from '../models/db.connect.js'
+
 
 const server = express()
 
@@ -16,8 +18,31 @@ const middlewares = () => {
   }))
 
   // Healthy check
-  server.get('/', (req, res) => {
-    res.status(200).json({ success: true, status:"ok", message: 'API Multishop online' })
+  server.get('/health', async (req, res) => {
+    try {
+      const result = await pool.query('SELECT NOW() as db_time')
+
+      res.status(200).json({
+        status: 'ok',
+        uptime: process.uptime(),
+        timestamp: Date.now(),
+        db: {
+          connected: true,
+          time: result.rows[0].db_time
+        }
+      })
+    } catch (err) {
+      console.error('DB healthcheck failed:', err.message)
+      res.status(500).json({
+        status: 'error',
+        uptime: process.uptime(),
+        timestamp: Date.now(),
+        db: {
+          connected: false,
+          error: err.message
+        }
+      })
+    }
   })
 
   // Rutas
