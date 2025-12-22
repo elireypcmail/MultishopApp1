@@ -73,8 +73,8 @@ async function connectToClientSchema(identificacion, nombre_cliente, instance) {
     const clientSchema = clienteResult.rows[0].instancia
     console.log('clienteResult' + clientSchema)
 
-    await db.query(`SET search_path TO "${identificacion}"`)
-    console.log(`Cliente '${identificacion}' conectado a su schema '${identificacion}'.`)
+    await client.query(`SET search_path TO "${clientSchema}"`)
+    console.log(`Cliente '${identificacion}' conectado a su schema '${clientSchema}'.`)
 
     const tablesQuery = `
       SELECT table_name
@@ -83,11 +83,16 @@ async function connectToClientSchema(identificacion, nombre_cliente, instance) {
     `
 
     const tablesResult = await client.query(tablesQuery, [clientSchema])
-    const ventaQuery   = `SELECT * FROM ${identificacion}.ventas`
+    const ventaQuery   = `SELECT * FROM "${clientSchema}".ventas`
     const ventaResult  = await client.query(ventaQuery)
   } catch (error) {
     console.error('Error al conectar al cliente a su schema:', error)
   } finally {
+    try {
+      await client.query('RESET search_path')
+    } catch (resetError) {
+      console.error('Error al restablecer search_path:', resetError)
+    }
     client.release()
   }
 }
