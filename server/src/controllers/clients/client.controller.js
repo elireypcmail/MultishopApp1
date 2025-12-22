@@ -183,6 +183,7 @@ controller.postUser = async (req, res) => {
     const instancia = generateUniqueInstanceName(identificacion)
 
     if (identificacion.length > 12) {
+      await client.query('ROLLBACK')
       return res.status(400).json({ "message": "Has superado la cantidad de dígitos de la identificación. No puede tener más de 12 dígitos" })
     }
 
@@ -191,6 +192,7 @@ controller.postUser = async (req, res) => {
     const existingIdentificacionResult = await client.query(existingIdentificacionQuery, existingIdentificacionValues)
 
     if (existingIdentificacionResult.rows.length > 0) {
+      await client.query('ROLLBACK')
       return res.status(400).json({ "message": "Esta identificación ya existe." })
     }
 
@@ -199,6 +201,7 @@ controller.postUser = async (req, res) => {
     const existingTelefonoResult = await client.query(existingTelefonoQuery, existingTelefonoValues)
 
     if (existingTelefonoResult.rows.length > 0) {
+      await client.query('ROLLBACK')
       return res.status(400).json({ "message": "Este número de teléfono ya existe." })
     }
 
@@ -218,6 +221,7 @@ controller.postUser = async (req, res) => {
     if (dispositivos && dispositivos.length > 0) {
       for (const dispositivo of dispositivos) {
         if (!dispositivo.login_user || dispositivo.login_user.trim() === '') {
+          await client.query('ROLLBACK')
           return res.status(400).json({ "message": "El campo login_user no puede estar vacío para los dispositivos." })
         }
 
@@ -226,6 +230,7 @@ controller.postUser = async (req, res) => {
         const existingDeviceResult = await client.query(existingDeviceQuery, existingDeviceValues)
 
         if (existingDeviceResult.rows.length > 0) {
+          await client.query('ROLLBACK')
           return res.status(400).json({ "message": `El usuario ${dispositivo.login_user} ya existe en la lista de usuarios.` })
         }
 
