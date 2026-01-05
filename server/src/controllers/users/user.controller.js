@@ -129,11 +129,19 @@ controllerUs.login = async (req, res) => {
 
 controllerUs.updateAdmin = async (req, res) => {
   const client = await pool.connect()
+  let transactionActive = false
+  const rollbackIfActive = async () => {
+    if (!transactionActive) return false
+    transactionActive = false
+    await client.query('ROLLBACK')
+    return true
+  }
   try {
     const { id }      = req.params
     const { ...edit } = req.body
 
     await client.query('BEGIN')
+    transactionActive = true
 
     let updateAdminQuery    = 'UPDATE users SET'
     const updateAdminValues = []
@@ -155,9 +163,10 @@ controllerUs.updateAdmin = async (req, res) => {
     await client.query(updateAdminQuery, updateAdminValues)
 
     await client.query('COMMIT')
+    transactionActive = false
     res.status(200).json({ message: 'Datos del administrador actualizados correctamente' })
   } catch (err) {
-    await client.query('ROLLBACK')
+    await rollbackIfActive()
     console.error(err)
     res.status(500).json({ message: 'Error al editar los datos de este administrador' })
   } finally {

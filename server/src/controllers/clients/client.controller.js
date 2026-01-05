@@ -175,15 +175,23 @@ controller.checkToken = async (req, res) => {
 
 controller.postUser = async (req, res) => {
   const client = await bd.connect()
+  let transactionActive = false
+  const rollbackIfActive = async () => {
+    if (!transactionActive) return false
+    transactionActive = false
+    await client.query('ROLLBACK')
+    return true
+  }
 
   try {
     await client.query('BEGIN')
+    transactionActive = true
 
     const { identificacion, nombre, telefono, type_graph, dispositivos } = req.body
     const instancia = generateUniqueInstanceName(identificacion)
 
     if (identificacion.length > 12) {
-      await client.query('ROLLBACK')
+      await rollbackIfActive()
       return res.status(400).json({ "message": "Has superado la cantidad de dígitos de la identificación. No puede tener más de 12 dígitos" })
     }
 
@@ -192,7 +200,7 @@ controller.postUser = async (req, res) => {
     const existingIdentificacionResult = await client.query(existingIdentificacionQuery, existingIdentificacionValues)
 
     if (existingIdentificacionResult.rows.length > 0) {
-      await client.query('ROLLBACK')
+      await rollbackIfActive()
       return res.status(400).json({ "message": "Esta identificación ya existe." })
     }
 
@@ -201,7 +209,7 @@ controller.postUser = async (req, res) => {
     const existingTelefonoResult = await client.query(existingTelefonoQuery, existingTelefonoValues)
 
     if (existingTelefonoResult.rows.length > 0) {
-      await client.query('ROLLBACK')
+      await rollbackIfActive()
       return res.status(400).json({ "message": "Este número de teléfono ya existe." })
     }
 
@@ -221,7 +229,7 @@ controller.postUser = async (req, res) => {
     if (dispositivos && dispositivos.length > 0) {
       for (const dispositivo of dispositivos) {
         if (!dispositivo.login_user || dispositivo.login_user.trim() === '') {
-          await client.query('ROLLBACK')
+          await rollbackIfActive()
           return res.status(400).json({ "message": "El campo login_user no puede estar vacío para los dispositivos." })
         }
 
@@ -230,7 +238,7 @@ controller.postUser = async (req, res) => {
         const existingDeviceResult = await client.query(existingDeviceQuery, existingDeviceValues)
 
         if (existingDeviceResult.rows.length > 0) {
-          await client.query('ROLLBACK')
+          await rollbackIfActive()
           return res.status(400).json({ "message": `El usuario ${dispositivo.login_user} ya existe en la lista de usuarios.` })
         }
 
@@ -248,11 +256,12 @@ controller.postUser = async (req, res) => {
     createInstanceForClient(clienteId, identificacionCliente, instancia)
 
     await client.query('COMMIT')
+    transactionActive = false
     console.log(identificacion, nombre, telefono, dispositivos)
 
     res.status(200).send({ "message": 'Cliente registrado correctamente.' })
   } catch (err) {
-    await client.query('ROLLBACK')
+    await rollbackIfActive()
     console.error({ "message": 'Error al registrar cliente:', err })
     res.status(500).send({ "message": 'Error al registrar cliente.' })
   } finally {
@@ -503,6 +512,13 @@ const convertirFechaFormato = (fecha) => {
 
 controller.updateUser = async (req, res) => {
   const client = await pool.connect()
+  let transactionActive = false
+  const rollbackIfActive = async () => {
+    if (!transactionActive) return false
+    transactionActive = false
+    await client.query('ROLLBACK')
+    return true
+  }
   try {
     const { id } = req.params
     const { dispositivos, ...edit } = req.body
@@ -510,12 +526,13 @@ controller.updateUser = async (req, res) => {
     console.log(dispositivos, edit)
 
     await client.query('BEGIN')
+    transactionActive = true
 
     const getUserQuery = `SELECT nombre, telefono, est_financiero, suscripcion, fecha_corte, type_graph FROM cliente WHERE id=$1`
     const currentUser = await client.query(getUserQuery, [id])
 
     if (currentUser.rows.length === 0) {
-      await client.query('ROLLBACK')
+      await rollbackIfActive()
       return res.status(404).json({ message: 'Usuario no encontrado.' })
     }
 
@@ -567,7 +584,7 @@ controller.updateUser = async (req, res) => {
             const clienteResult = await client.query(getClienteNameQuery, [existingUser.rows[0].id_cliente])
             const clienteNombre = clienteResult.rows[0].nombre
 
-            await client.query('ROLLBACK')
+            await rollbackIfActive()
             return res.status(200).json({ message: `El nombre de usuario '${dispositivo.login_user}' ya existe en el cliente: '${clienteNombre}'.` })
           }
 
@@ -582,9 +599,10 @@ controller.updateUser = async (req, res) => {
     }
 
     await client.query('COMMIT')
+    transactionActive = false
     res.status(200).json({ message: 'Datos del usuario y dispositivos actualizados correctamente.' })
   } catch (err) {
-    await client.query('ROLLBACK')
+    await rollbackIfActive()
     console.error(err)
     res.status(500).json({ message: 'Error al editar los datos del usuario y dispositivos.' })
   } finally {

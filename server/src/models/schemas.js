@@ -68,23 +68,40 @@ async function connectToClientSchema(identificacion, nombre_cliente, instance) {
     const clienteValues = [identificacion, nombre_cliente]
     const clienteResult = await client.query(clienteQuery, clienteValues)
 
-    if (clienteResult.rows.length === 0) throw new Error('Cliente no encontrado o instancia incorrecta.')
+    const schemaCandidates = []
+    if (instance) schemaCandidates.push(instance)
 
-    const clientSchema = clienteResult.rows[0].instancia
-    console.log('clienteResult' + clientSchema)
+    if (clienteResult.rows.length > 0) {
+      const candidate = clienteResult.rows[0]?.instancia
+      if (candidate) schemaCandidates.push(candidate)
+    } else if (!instance) {
+      console.warn(`Instancia no encontrada para el cliente ${identificacion} - ${nombre_cliente}`)
+    }
 
-    await client.query(`SET search_path TO "${clientSchema}"`)
-    console.log(`Cliente '${identificacion}' conectado a su schema '${clientSchema}'.`)
+    schemaCandidates.push(identificacion)
 
-    const tablesQuery = `
-      SELECT table_name
-      FROM information_schema.tables
-      WHERE table_schema = $1
-    `
+    let schemaToUse = null
+    for (const candidate of schemaCandidates) {
+      if (!candidate) continue
+      const existsResult = await client.query(
+        `SELECT 1 FROM information_schema.schemata WHERE schema_name = $1 LIMIT 1`,
+        [candidate]
+      )
+      if (existsResult.rowCount > 0) {
+        schemaToUse = candidate
+        break
+      }
+    }
 
-    const tablesResult = await client.query(tablesQuery, [clientSchema])
-    const ventaQuery   = `SELECT * FROM "${clientSchema}".ventas`
-    const ventaResult  = await client.query(ventaQuery)
+    if (!schemaToUse) {
+      throw new Error(`No se encontró un esquema válido para el cliente ${identificacion}`)
+    }
+
+    const safeSchema = schemaToUse.replace(/"/g, '""')
+    await client.query(`SET search_path TO "${safeSchema}"`)
+    console.log(`Cliente '${identificacion}' conectado a su schema '${schemaToUse}'.`)
+
+    await client.query('SELECT 1 FROM ventas LIMIT 1')
   } catch (error) {
     console.error('Error al conectar al cliente a su schema:', error)
   } finally {
