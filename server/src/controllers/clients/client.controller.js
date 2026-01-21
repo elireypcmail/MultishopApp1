@@ -277,7 +277,7 @@ controller.loginUser = async (req, res) => {
     client = await pool.connect()
 
     const dispositivoQuery = `
-      SELECT id_cliente, clave 
+      SELECT id ,id_cliente, clave 
       FROM dispositivo 
       WHERE login_user = $1
     `
@@ -287,7 +287,7 @@ controller.loginUser = async (req, res) => {
     if (dispositivoResult.rows.length === 0) return res.status(404).json({ message: "Este usuario no existe." })
 
     const dispositivoValido = dispositivoResult.rows[0]
-    const { id_cliente: userId, clave: claveDispositivo } = dispositivoValido
+    const { id : idDispositivo , id_cliente: userId, clave: claveDispositivo } = dispositivoValido
 
     if (clave !== claveDispositivo) {
       await services.registrarAuditoria(userId, 'Intento de inicio de sesión fallido', login_user, { claveIntentada: clave })
@@ -408,6 +408,7 @@ controller.loginUser = async (req, res) => {
         return res.status(200).send({
           tokenCode: token,
           identificacion,
+          userId: idDispositivo,
           type_graph,
           type_comp,
           message: `Su suscripción esta en periodo de Prorroga. Por favor realice la renovación. Contáctenos`,
@@ -446,6 +447,7 @@ controller.loginUser = async (req, res) => {
       return res.status(200).send({
         tokenCode: token,
         identificacion,
+        userId: idDispositivo,
         type_graph,
         type_comp,
         message: `Su suscripción esta en periodo de Prorroga. Por favor realice la renovación. Contáctenos`,
@@ -474,6 +476,7 @@ controller.loginUser = async (req, res) => {
         tokenCode: token,
         identificacion,
         type_graph,
+        userId: idDispositivo,
         type_comp
       })
     }

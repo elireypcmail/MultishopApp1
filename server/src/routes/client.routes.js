@@ -1,5 +1,6 @@
 import { Router }     from 'express'
 import controller     from '../controllers/clients/client.controller.js'
+import controllerCode from '../controllers/clients/code.controller.js'
 import controllerNoti from '../controllers/clients/notify.controller.js'
 import services       from '../services/user.services.js'
 import service        from '../services/twilio.services.js'
@@ -26,6 +27,13 @@ clientRouter.delete(_var.DELETE_USER,   controller.deleteUser)
 clientRouter.delete(_var.DELETE_DEVICE, controller.deleteDevice)
 clientRouter.post(_var.LAST_SINCRO, controller.getDateSincro)
 clientRouter.get(_var.GET_PARAMETERS, controller.getParameters)
+
+clientRouter.post(_var.GENERATE_CODE, controllerCode.generateCode)
+clientRouter.put(_var.VERIFY_CODE, controllerCode.verifyCode)
+clientRouter.put(_var.VALIDATE_CODE, controllerCode.validateCode)
+clientRouter.put(_var.DISABLE_CODE, controllerCode.disableCode)
+
+
 
 clientRouter.post("/api/getMonthlyAverage", services.getAuditoriaPromedio)
 

@@ -2,22 +2,47 @@ import pool from "./db.connect.js"
 
 const db = pool
 
+// Crear schema y tablas iniciales del cliente
 async function createSchema(identificacion) {
   const connection = await db.connect()
   try {
     const schemaName = `${identificacion}`
 
+    // Crear schema
     await connection.query(`CREATE SCHEMA IF NOT EXISTS "${schemaName}"`)
 
+    // Crear rol si no existe
     const { rowCount } = await connection.query(
       `SELECT 1 FROM pg_roles WHERE rolname = $1`,
       [`${schemaName}_user`]
     )
     if (rowCount === 0) await connection.query(`CREATE ROLE "${schemaName}_user"`)
 
+    // Dar permisos
     await connection.query(`GRANT ALL ON SCHEMA "${schemaName}" TO "${schemaName}_user"`)
 
     console.log(`Esquema '${schemaName}' creado exitosamente.`)
+
+    // Crear tablas movimientos y tokenuso
+    const createTablesQuery = `
+      CREATE TABLE IF NOT EXISTS "${schemaName}".movimientos (
+        id SERIAL PRIMARY KEY,
+        id_user INT NOT NULL,
+        codigo VARCHAR(50) NOT NULL,
+        status INT NOT NULL, -- 0 = Usado, 1 = En uso
+        fecha TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS "${schemaName}".tokenuso (
+        id SERIAL PRIMARY KEY,
+        id_user INT NOT NULL,
+        codigo VARCHAR(50) NOT NULL,
+        fecha TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+    `
+    await connection.query(createTablesQuery)
+    console.log(`Tablas 'movimientos' y 'tokenuso' creadas en el esquema '${schemaName}'.`)
+
   } catch (err) {
     console.error('Error al crear el esquema del cliente:', err)
     throw err
@@ -26,19 +51,21 @@ async function createSchema(identificacion) {
   }
 }
 
+// Eliminar schema y rol del cliente
 async function deleteSchema(clientId) {
-  console.log(clientId)
   const connection = await db.connect()
   try {
     const clientQuery  = `SELECT identificacion FROM cliente WHERE id = $1`
     const clientResult = await connection.query(clientQuery, [clientId])
 
-    if (clientResult.rows.length === 0) throw new Error(`No se encontró ningún cliente con el ID ${clientId}`) 
+    if (clientResult.rows.length === 0)
+      throw new Error(`No se encontró ningún cliente con el ID ${clientId}`) 
 
     const identificacionCliente = clientResult.rows[0].identificacion
 
     await connection.query(`DROP SCHEMA IF EXISTS "${identificacionCliente}" CASCADE`)
     await connection.query(`DROP ROLE IF EXISTS "${identificacionCliente}_user"`)
+    console.log(`Schema y rol del cliente '${identificacionCliente}' eliminados.`)
   } catch (err) {
     console.error('Error al eliminar el schema del cliente:', err)
     throw err
@@ -47,12 +74,10 @@ async function deleteSchema(clientId) {
   }
 }
 
+// Conectar al schema de un cliente
 async function connectToClientSchema(identificacion, nombre_cliente, instance) {
   const client = await db.connect()
   try {
-    console.log(identificacion)
-    console.log(nombre_cliente)
-
     const clienteQuery = `
       SELECT instancia
       FROM instancia
@@ -70,7 +95,6 @@ async function connectToClientSchema(identificacion, nombre_cliente, instance) {
 
     const schemaCandidates = []
     if (instance) schemaCandidates.push(instance)
-
     if (clienteResult.rows.length > 0) {
       const candidate = clienteResult.rows[0]?.instancia
       if (candidate) schemaCandidates.push(candidate)
@@ -101,6 +125,7 @@ async function connectToClientSchema(identificacion, nombre_cliente, instance) {
     await client.query(`SET search_path TO "${safeSchema}"`)
     console.log(`Cliente '${identificacion}' conectado a su schema '${schemaToUse}'.`)
 
+    // Prueba: seleccionar algo
     await client.query('SELECT 1 FROM ventas LIMIT 1')
   } catch (error) {
     console.error('Error al conectar al cliente a su schema:', error)
@@ -114,6 +139,7 @@ async function connectToClientSchema(identificacion, nombre_cliente, instance) {
   }
 }
 
+// Crear tablas genéricas dentro de un schema
 async function createTableInSchema(nombreCliente, nombreTabla) {
   try {
     const query = `
@@ -154,6 +180,7 @@ async function createTableInSchema(nombreCliente, nombreTabla) {
           nom_fab_bs character varying(240) COLLATE pg_catalog."default" NOT NULL DEFAULT ''::character varying,
           totalventa_fab_bs numeric(25,2) NOT NULL DEFAULT 0,
           unidades_fab_bs numeric(25,2) NOT NULL DEFAULT 0,
+          unidades_art_bs numeric(25,2) NOT NULL DEFAULT 0,
           totalcompra numeric(25,2) NOT NULL DEFAULT 0,
           codemp character varying(20) NOT NULL DEFAULT ''::character varying,
           nomemp character varying(240) NOT NULL DEFAULT ''::character varying,

@@ -511,29 +511,78 @@ graphController.filterData = async (req, res) => {
   }
 }
 
-const getTopKPIs = async (nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi) => {
-  const tableName = `"${nombreCliente}"."${nombreTabla}"`
-  const filtro = determineFilterType(fechaInicio, fechaFin)
+const getTopKPIs = async (nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi, criterio) => {
+  const tableName = `"${nombreCliente}"."${nombreTabla}"`;
+  const filtro = determineFilterType(fechaInicio, fechaFin);
 
-  let query = ''
-  let groupByClause = ''
-  let limitClause = ''
+  let query = '';
+  let groupByClause = '';
+  let limitClause = '';
 
   switch (filtro) {
     case 'dias':
-      groupByClause = 'fecha'
-      limitClause = 'LIMIT 10'
-      break
+      groupByClause = 'fecha';
+      limitClause = 'LIMIT 10';
+      break;
     case 'semanas':
-      groupByClause = "DATE_TRUNC('week', fecha)"
-      limitClause = 'LIMIT 10'
-      break
+      groupByClause = "DATE_TRUNC('week', fecha)";
+      limitClause = 'LIMIT 10';
+      break;
     case 'meses':
-      groupByClause = "DATE_TRUNC('month', fecha)"
-      limitClause = 'LIMIT 10'
-      break
+      groupByClause = "DATE_TRUNC('month', fecha)";
+      limitClause = 'LIMIT 10';
+      break;
   }
 
+  // KPIs que usan criterio
+  const kpisConCriterio = ['ProductosTOP', 'LaboratorioConMasVentas'];
+
+  if (kpisConCriterio.includes(kpi)) {
+    switch (kpi) {
+      case 'LaboratorioConMasVentas':
+        query = `
+          SELECT 
+            codemp, 
+            nomemp, 
+            nom_fab_bs,
+            SUM(totalventa_fab_bs) AS total_ventas,
+            SUM(unidades_fab_bs) AS total_unidades
+          FROM ${tableName}
+          WHERE fecha BETWEEN $1 AND $2
+          GROUP BY nom_fab_bs, codemp, nomemp
+        `;
+        break;
+
+      case 'ProductosTOP':
+        query = `
+          SELECT 
+            cod_art_bs, 
+            nom_art_bs, 
+            codemp, 
+            nomemp,
+            SUM(totalventa_bs_art) AS total_ventas,
+            SUM(unidades_art_bs) AS total_unidades
+          FROM ${tableName}
+          WHERE fecha BETWEEN $1 AND $2
+          GROUP BY cod_art_bs, nom_art_bs, codemp, nomemp
+        `;
+        break;
+    }
+
+    const result = await pool.query(query, [fechaInicio, fechaFin]);
+    console.log(result.rows)
+    const limite = obtenerLimiteSegunFiltro(fechaInicio, fechaFin, kpi);
+    const topValoresVentas = obtenerTopValoresVentas(result.rows, limite, kpi, criterio);
+
+    // Para KPIs con criterio, usar fechaInicio como referencia
+    topValoresVentas.forEach(item => {
+      item.fecha = new Date(fechaInicio).toISOString();
+    });
+
+    return topValoresVentas;
+  }
+
+  // KPIs generales (todos los demás)
   switch (kpi) {
     case 'DiaMasExitoso':
       query = `
@@ -553,8 +602,7 @@ const getTopKPIs = async (nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi
         GROUP BY id
         ORDER BY codemp, total_ventas DESC
       `;
-      console.log(query)
-      break
+      break;
 
     case 'VentaMasExitosa':
       query = `
@@ -571,7 +619,7 @@ const getTopKPIs = async (nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi
         GROUP BY id
         ORDER BY codemp, total_ventas DESC
       `;
-      break
+      break;
 
     case 'CajerosConMasVentas':
       query = `
@@ -591,88 +639,69 @@ const getTopKPIs = async (nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi
         FROM RankedCajeros
         WHERE row_num <= 10
         ORDER BY codemp, total_ventas DESC;
-      `
-      break
-      
-
-    case 'FabricantesConMasVentas':
-      query = `
-      WITH RankedFabricantes AS (
-        SELECT
-          codemp, 
-          nomemp, 
-          nom_fab_bs, 
-          SUM(totalventa_fab_bs) AS total_ventas, 
-          SUM(unidades_fab_bs) AS unidades_vendidas,
-          ROW_NUMBER() OVER (PARTITION BY codemp ORDER BY SUM(totalventa_fab_bs) DESC) AS row_num
-        FROM ${tableName}
-        WHERE fecha BETWEEN $1 AND $2
-        GROUP BY codemp, nomemp, nom_fab_bs
-      )
-      SELECT codemp, nomemp, nom_fab_bs, total_ventas, unidades_vendidas
-      FROM RankedFabricantes
-      WHERE row_num <= 10
-      ORDER BY codemp, total_ventas DESC;
-      `
-      break
-
-    case 'ProductosTOP':
-      query = `
-      SELECT cod_art_bs, nom_art_bs, SUM(totalventa_bs_art) AS total_ventas, codemp, nomemp
-      FROM ${tableName}
-      WHERE fecha BETWEEN $1 AND $2
-      GROUP BY cod_art_bs, nom_art_bs, codemp, nomemp
-      ORDER BY nomemp, total_ventas DESC
-    `
-
-      break  
+      `;
+      break;
 
     case 'Inventario':
       query = `
-        SELECT id, ${groupByClause} AS periodo, cantidad_und_inv , total_usdca_inv, total_usdcp_inv, total_bsca_inv, total_bscp_inv, codemp, nomemp
+        SELECT 
+          id, 
+          ${groupByClause} AS periodo, 
+          cantidad_und_inv, 
+          total_usdca_inv, 
+          total_usdcp_inv, 
+          total_bsca_inv, 
+          total_bscp_inv, 
+          codemp, 
+          nomemp
         FROM ${tableName}
         WHERE fecha BETWEEN $1 AND $2
-        GROUP BY id, periodo, cantidad_und_inv , total_usdca_inv, total_usdcp_inv, total_bsca_inv, total_bscp_inv, codemp, nomemp
-        ORDER BY periodo, nomemp DESC
-      `
-      break
+        GROUP BY id, periodo, cantidad_und_inv, total_usdca_inv, total_usdcp_inv, total_bsca_inv, total_bscp_inv, codemp, nomemp
+        ORDER BY periodo DESC, nomemp DESC
+      `;
+      break;
 
-      case 'flujoDeCaja':
-        query = `
-          SELECT DISTINCT ON (codemp)  
-              codemp,
-              nomemp,
-              SUM(totusd) AS totusd, 
-              SUM(totcop) AS totcop, 
-              SUM(totbs) AS totbs
-          FROM ${tableName}
-          WHERE fecha BETWEEN $1 AND $2
-          GROUP BY codemp, nomemp
-          ORDER BY codemp
-        `
-        break
+    case 'flujoDeCaja':
+      query = `
+        SELECT DISTINCT ON (codemp)  
+            codemp,
+            nomemp,
+            SUM(totusd) AS totusd, 
+            SUM(totcop) AS totcop, 
+            SUM(totbs) AS totbs
+        FROM ${tableName}
+        WHERE fecha BETWEEN $1 AND $2
+        GROUP BY codemp, nomemp
+        ORDER BY codemp
+      `;
+      break;
 
     default:
-      return { error: 'KPI no reconocido' }
+      return { error: 'KPI no reconocido' };
   }
 
-  const result = await pool.query(query, [fechaInicio, fechaFin])
-  const limite = obtenerLimiteSegunFiltro(fechaInicio, fechaFin, kpi)
-  const topValoresVentas = obtenerTopValoresVentas(result.rows, limite, kpi)
-  const dateKPIs = await obtenerFechaKPI(topValoresVentas, tableName)
+  const result = await pool.query(query, [fechaInicio, fechaFin]);
+  const limite = obtenerLimiteSegunFiltro(fechaInicio, fechaFin, kpi);
+  const topValoresVentas = obtenerTopValoresVentas(result.rows, limite, kpi);
+
+  // Obtener fechas correctas
+  const dateKPIs = await obtenerFechaKPI(topValoresVentas, tableName);
 
   topValoresVentas.forEach((item, index) => {
     delete item.periodo;
-    const localDate = new Date(dateKPIs[index].fecha);  // Convertir la fecha UTC a local
-    item.fecha = localDate.toISOString();  // Formatear la fecha al formato ISO 8601
-  })
-  
 
-  // Ordenar por fecha descendente en caso de ser necesario
-  topValoresVentas.sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
+    // Asignar fecha
+    const localDate = new Date(dateKPIs[index].fecha);
+    item.fecha = localDate.toISOString();
 
-  return topValoresVentas
-}
+    // Para Inventario, total_unidades = cantidad_und_inv
+    if (kpi === 'Inventario') {
+      item.total_unidades = parseFloat(item.cantidad_und_inv);
+    }
+  });
+
+  return topValoresVentas;
+};
 
 const obtenerLimiteSegunFiltro = (fechaInicio, fechaFin, kpi) => {
   const startDate = new Date(fechaInicio)
@@ -680,7 +709,7 @@ const obtenerLimiteSegunFiltro = (fechaInicio, fechaFin, kpi) => {
   const diasDiff = (endDate - startDate) / (1000 * 60 * 60 * 24)
   let limite = diasDiff + 1
 
-  if (kpi == "CajerosConMasVentas" || kpi == "FabricantesConMasVentas" || kpi == "ProductosTOP" || kpi == "Inventario" || kpi == "flujoDeCaja" || kpi == "DiaMasExitoso" || kpi == "VentaMasExitosa") {
+  if (kpi == "CajerosConMasVentas" || kpi == "LaboratorioConMasVentas" || kpi == "ProductosTOP" || kpi == "Inventario" || kpi == "flujoDeCaja" || kpi == "DiaMasExitoso" || kpi == "VentaMasExitosa") {
     limite= 100
     return limite
   }
@@ -715,36 +744,57 @@ const obtenerFechaKPI = async (data, tableName) => {
   return kpiWithDates
 }
 
-const obtenerTopValoresVentas = (resultados, limite, kpi) => {
+// const obtenerTopValoresVentas = (resultados, limite, kpi) => {
+//   if (!resultados || resultados.length === 0) return []
+
+//   const filasConValores = resultados.map(row => ({
+//     total_ventas: parseFloat(row.total_ventas), 
+//     ...row 
+//   }))
+
+//   // console.log('Filas:', filasConValores)
+
+//   const filasOrdenadas = filasConValores.sort((a, b) => b.total_ventas - a.total_ventas)
+
+//   return (kpi === 'Inventario' || kpi === 'ProductosTOP') ? filasOrdenadas : filasOrdenadas.slice(0, limite);
+// }
+
+const obtenerTopValoresVentas = (resultados, limite, kpi, criterio) => {
   if (!resultados || resultados.length === 0) return []
 
-  const filasConValores = resultados.map(row => ({
-    total_ventas: parseFloat(row.total_ventas), 
-    ...row 
-  }))
-
-  // console.log('Filas:', filasConValores)
-
-  const filasOrdenadas = filasConValores.sort((a, b) => b.total_ventas - a.total_ventas)
-
-  return (kpi === 'Inventario' || kpi === 'ProductosTOP') ? filasOrdenadas : filasOrdenadas.slice(0, limite);
+  return resultados
+    .map(row => ({
+      ...row,
+      total_ventas: parseFloat(row.total_ventas || 0),
+      total_unidades: parseFloat(row.total_unidades || 0)
+    }))
+    .sort((a, b) => {
+      if (kpi === 'ProductosTOP' || kpi === 'LaboratorioConMasVentas') {
+        return criterio === 'unidades'
+          ? b.total_unidades - a.total_unidades
+          : b.total_ventas - a.total_ventas;
+      } else {
+        return b.total_ventas - a.total_ventas;
+      }
+    })
+    .slice(0, limite);
 }
 
 graphController.getCustomKPI = async (req, res) => {
   try {
-    const { nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi, typeCompanies } = req.body
+    const { nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi, typeCompanies, criterio } = req.body
 
     console.log("Valores top")
 
-    console.log(nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi, typeCompanies)
+    console.log(nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi, typeCompanies, criterio)
 
-    const customKPIs = ['DiaMasExitoso', 'VentaMasExitosa', 'CajerosConMasVentas', 'FabricantesConMasVentas', 'ProductosTOP', 'Inventario', 'flujoDeCaja']
+    const customKPIs = ['DiaMasExitoso', 'VentaMasExitosa', 'CajerosConMasVentas', 'LaboratorioConMasVentas', 'ProductosTOP', 'Inventario', 'flujoDeCaja']
     if (!customKPIs.includes(kpi)) {
       return res.status(400).json({ error: 'KPI no reconocido para cálculo personalizado' })
     }
 
-    let data = await getTopKPIs(nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi)
-    // console.log(data)
+    let data = await getTopKPIs(nombreCliente, nombreTabla, fechaInicio, fechaFin, kpi, criterio)
+    console.log(data)
 
     if (data.length === 0) {
       return res.status(404).json({ error: 'No se encontraron datos para el rango de fechas proporcionado' })
