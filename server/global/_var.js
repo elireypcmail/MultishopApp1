@@ -24,24 +24,24 @@ const _var = {
 
   // ROUTES
   // - Clients
-  GET_ALL_USER:  process.env.GET_ALL_USER,
-  GET_ONE_USER:  process.env.GET_ONE_USER,
-  GET_FALSE_US:  process.env.GET_FALSE,
-  GET_NOTIFY:    process.env.GET_NOTIFY,
-  GET_ALL_MOVE:  process.env.GET_ALL_MOVE,
-  MOVES_BY_DATE: process.env.GET_MOVE_DATE,
-  FIND_BY_DATE:  process.env.FIND_BY_DATE,
-  FILTER_CLIENT: process.env.FILTER_USERS,
-  VERIFY_TOKEN:  process.env.VERIFY_TOKEN,
-  CODE_CLIENT:   process.env.CODE_USER,
-  CREATE_USER:   process.env.CREATE_USER,
-  LOGIN_USER:    process.env.LOGIN_USER,
-  UPDATE_USER:   process.env.UPDATE_USER,
-  DELETE_USER:   process.env.DELETE_USER,
-  DELETE_DEVICE: process.env.DELETE_DEVICE,
-  RENOVAR_FECHA: process.env.RENOVAR_FECHA,
-  PUT_ESTATE:    process.env.CAMBIAR_ESTAD,
-  LAST_SINCRO:   process.env.LAST_SINCRO,
+  GET_ALL_USER:     process.env.GET_ALL_USER,
+  GET_ONE_USER:     process.env.GET_ONE_USER,
+  GET_FALSE_US:     process.env.GET_FALSE,
+  GET_NOTIFY:       process.env.GET_NOTIFY,
+  GET_ALL_MOVE:     process.env.GET_ALL_MOVE,
+  MOVES_BY_DATE:    process.env.GET_MOVE_DATE,
+  FIND_BY_DATE:     process.env.FIND_BY_DATE,
+  FILTER_CLIENT:    process.env.FILTER_USERS,
+  VERIFY_TOKEN:     process.env.VERIFY_TOKEN,
+  CODE_CLIENT:      process.env.CODE_USER,
+  CREATE_USER:      process.env.CREATE_USER,
+  LOGIN_USER:       process.env.LOGIN_USER,
+  UPDATE_USER:      process.env.UPDATE_USER,
+  DELETE_USER:      process.env.DELETE_USER,
+  DELETE_DEVICE:    process.env.DELETE_DEVICE,
+  RENOVAR_FECHA:    process.env.RENOVAR_FECHA,
+  PUT_ESTATE:       process.env.CAMBIAR_ESTAD,
+  LAST_SINCRO:      process.env.LAST_SINCRO,
   GET_PARAMETERS:   process.env.GET_PARAMETERS,
 
   // - Users
@@ -61,6 +61,12 @@ const _var = {
   EMAIL_ORIGIN: process.env.EMAIL_ORIGIN,
   EMAIL_PASS:   process.env.EMAIL_PASS,
   EMAIL_RECIPIENT: process.env.EMAIL_RECIPIENT,
+
+  // CODES
+  GENERATE_CODE: process.env.GENERATE_CODE,
+  VERIFY_CODE: process.env.VERIFY_CODE,
+  VALIDATE_CODE: process.env.VALIDATE_CODE,
+  DISABLE_CODE: process.env.DISABLE_CODE,
 }
 
 export default _var
