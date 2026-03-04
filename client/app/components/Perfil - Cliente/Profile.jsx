@@ -1,32 +1,30 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { setCookie, removeCookie }     from '@g/cookies'
-import toast, { Toaster }              from 'react-hot-toast'
-import { useRouter }                   from 'next/router'
-import { useDisclosure }               from '@nextui-org/react'
-import { getUser }                     from '@api/Get'
-import { renovarFechaCorte }           from '@api/Post'
-import { deleteClient }                from '@api/Delete'
-import { updateUser }                  from '@api/Put'
-import Image                           from 'next/image'
-import logo                            from '@p/multi2.png'
-import ModalDev                        from '../Dispositivos/Modal'
-import ModalMov                        from '../Movimientos/Movements'
-import MovNotify                       from '../Notificaciones/MovNotify'
-import { format, parse }               from 'date-fns'
-import { 
-  Profile, 
-  Delete, 
-  Copy, 
-  BarGraph, 
-  CircularGraph, 
-  LineGraph 
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { setCookie, removeCookie } from '@g/cookies'
+import { sileo } from "sileo"
+import { useRouter } from 'next/router'
+import { useDisclosure } from '@nextui-org/react'
+import { useUser, useRenovarFechaCorte, useDeleteClient, useUpdateUser } from '@g/queries'
+import Image from 'next/image'
+import logo from '@p/multi2.png'
+import ModalDev from '../Dispositivos/Modal'
+import ModalMov from '../Movimientos/Movements'
+import MovNotify from '../Notificaciones/MovNotify'
+import { format, parse } from 'date-fns'
+import {
+  Profile,
+  Delete,
+  Copy,
+  BarGraph,
+  CircularGraph,
+  LineGraph
 } from '../Icons'
 import {
   getDaysDifference,
   parseDateFromDDMMYYYY,
 } from '@g/dateComparison'
+import { isBcryptHash } from '../../../pages/utils'
 
 export default function UserProfile({ data }) {
   const [userData, setUserData] = useState(data)
@@ -42,8 +40,8 @@ export default function UserProfile({ data }) {
   let p = parseDateFromDDMMYYYY(data?.fecha_corte)
   let m = getDaysDifference(p)
 
-  const notifySucces = (msg) => { toast.success(msg) }
-  const notifyError  = (msg) => { toast.error(msg) }
+  const notifySucces = (msg) => { sileo.success({ title: msg }) }
+  const notifyError = (msg) => { sileo.error({ title: msg }) }
 
   const [filas, setFilas] = useState([
     { telefono: '', mac: '', niv_auth: '', clave: '' },
@@ -59,10 +57,52 @@ export default function UserProfile({ data }) {
   const { userId } = router.query
 
   const id = userId
+  const { data: userResponse, isLoading: isUserLoading, refetch } = useUser(id, { enabled: !!id })
+  const renovarFechaMutation = useRenovarFechaCorte()
+  const deleteClientMutation = useDeleteClient()
+  const updateUserMutation = useUpdateUser()
+
+  useEffect(() => {
+    if (!userResponse || userResponse.status !== 200 || !userResponse.data?.data) return
+
+    const dataResponse = userResponse.data.data
+    const profile = {
+      id: dataResponse?.id,
+      identificacion: dataResponse?.identificacion,
+      nombre: dataResponse?.nombre,
+      telefono: dataResponse?.telefono,
+      instancia: dataResponse?.instancia,
+      est_financiero: dataResponse?.est_financiero,
+      suscripcion: dataResponse?.suscripcion,
+      fecha_corte: dataResponse?.fecha_corte,
+      dispositivos: dataResponse?.dispositivos,
+      type_graph: dataResponse?.type_graph || 'Torta',
+    }
+
+    const Json = JSON.stringify(profile)
+    setCookie('profile', Json)
+    setUserData(dataResponse)
+    setFilas(
+      dataResponse.dispositivos?.map((e) => {
+        const isBcrypt = isBcryptHash(e.clave)
+        const currentPassword = !isBcrypt ? e.clave : undefined
+        return {
+          id: e.id,
+          login_user: e.login_user,
+          clave: currentPassword,
+          currentPassword: e.clave || undefined,
+        }
+      }),
+    )
+    setGraphType(dataResponse?.type_graph || 'Torta')
+  }, [userResponse])
+
+  const fetchUserData = useCallback(async () => {
+    await refetch()
+  }, [refetch])
 
   useEffect(() => {
     if (id) {
-      fetchUserData(id)
       setValid(typeof m != 'boolean' && m > 0 ? true : false)
     }
 
@@ -76,43 +116,11 @@ export default function UserProfile({ data }) {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
     }
-  }, [id])
-
-  const fetchUserData = async (id) => {
-    try {
-      const response = await getUser(id)
-      if (response && response.data && response.status === 200) {
-        const data = response.data.data
-        const profile = {
-          id: data?.id,
-          identificacion: data?.identificacion,
-          nombre: data?.nombre,
-          telefono: data?.telefono,
-          instancia: data?.instancia,
-          est_financiero: data?.est_financiero,
-          suscripcion: data?.suscripcion,
-          fecha_corte: data?.fecha_corte,
-          dispositivos: data?.dispositivos,
-          type_graph: data?.type_graph || 'Torta',
-        }
-
-        const Json = JSON.stringify(profile)
-        setCookie('profile', Json)
-
-        setUserData(response.data.data)
-        setFilas(response.data.data.dispositivos)
-        setGraphType(data?.type_graph || 'Torta')
-      } else {
-        console.error('Error al obtener los datos del usuario:', response)
-      }
-    } catch (error) {
-      console.error('Error al obtener los datos del usuario:', error)
-    }
-  }
+  }, [id, fetchUserData, m])
 
   const eliminarCliente = async () => {
     try {
-      const result = await deleteClient(id)
+      const result = await deleteClientMutation.mutateAsync(String(id))
       if (result.status === 200) {
         removeCookie('profile')
         notifySucces('Se ha eliminado el cliente correctamente')
@@ -131,16 +139,6 @@ export default function UserProfile({ data }) {
       ...prevUserData,
       dispositivos: nuevosDispositivos,
     }))
-  }
-
-  const agregarDispositivo = () => {
-    const nuevosDispositivos = [...filas, { telefono: '', mac: '', niv_auth: '', clave: '' }]
-    handleDispositivosChange(nuevosDispositivos)
-  }
-
-  const eliminarFila = (index) => {
-    const nuevasFilas = filas.filter((_, idx) => idx !== index)
-    handleDispositivosChange(nuevasFilas)
   }
 
   const copiarContenido = async () => {
@@ -187,9 +185,9 @@ export default function UserProfile({ data }) {
         dispositivos: filas,
         type_graph: graphType,
       }
-      
-      const response = await updateUser(userData.id, updatedUserData)
-      
+
+      const response = await updateUserMutation.mutateAsync({ id: userData.id, data: updatedUserData })
+
       if (response && response.status === 200 && response.data.message === 'Datos del usuario y dispositivos actualizados correctamente.') {
         notifySucces('Datos actualizados correctamente')
         setUserData(updatedUserData)
@@ -233,45 +231,44 @@ export default function UserProfile({ data }) {
   return (
     <>
       <div className="main">
-        <Toaster position="top-right" reverseOrder={true} duration={5000} />
         <div className="data">
           <div className="profile">
-          <div className='pro'>
-            <div className="name flex items-center">
-              <Profile />
-              <span className='us-pro ml-2'>{userData ? userData?.nombre : 'Cargando...'}</span>
-              <div className="relative ml-2" ref={dropdownRef}>
-                <button
-                  onClick={toggleDropdown}
-                  className="text-white font-medium rounded-lg text-sm px-3 py-2.5 text-center inline-flex items-center"
-                  type="button"
-                >
-                  {renderGraphIcon()}
-                </button>
-                {isDropdownOpen && (
-                  <div className="z-10 absolute left-0 mt-2 bg-[#fcfcfccf] divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
-                    <ul className="py-2 px-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownRightEndButton">
-                      {graphOptions.map((option) => (
-                        <li key={option.type}>
-                          <button
-                            onClick={() => handleGraphTypeChange(option.type)}
-                            className="flex items-center w-full px-4 py-2 hover:bg-[rgba(209,213,219,0.31)] dark:hover:bg-gray-600 dark:hover:text-white"
-                          >
-                            <option.icon className="mr-3 h-5 w-5" />
-                            {option.type}
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+            <div className='pro'>
+              <div className="name flex items-center">
+                <Profile />
+                <span className='us-pro ml-2'>{userData ? userData?.nombre : 'Cargando...'}</span>
+                <div className="relative ml-2" ref={dropdownRef}>
+                  <button
+                    onClick={toggleDropdown}
+                    className="text-white font-medium rounded-lg text-sm px-3 py-2.5 text-center inline-flex items-center"
+                    type="button"
+                  >
+                    {renderGraphIcon()}
+                  </button>
+                  {isDropdownOpen && (
+                    <div className="z-10 absolute left-0 mt-2 bg-[#fcfcfccf] divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
+                      <ul className="py-2 px-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownRightEndButton">
+                        {graphOptions.map((option) => (
+                          <li key={option.type}>
+                            <button
+                              onClick={() => handleGraphTypeChange(option.type)}
+                              className="flex items-center w-full px-4 py-2 hover:bg-[rgba(209,213,219,0.31)] dark:hover:bg-gray-600 dark:hover:text-white"
+                            >
+                              <option.icon className="mr-3 h-5 w-5" />
+                              {option.type}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
               </div>
+              <button className='del' onClick={eliminarCliente}>
+                <span className='delete'>Eliminar</span>
+                <Delete />
+              </button>
             </div>
-            <button className='del' onClick={eliminarCliente}>
-              <span className='delete'>Eliminar</span>
-              <Delete />
-            </button>
-          </div>
 
             <div className='us'>
               <form action="" className='form-us'>
@@ -279,32 +276,32 @@ export default function UserProfile({ data }) {
                   <div className="user1">
                     <span className='us1'>
                       <label className='labels'>Identificación</label>
-                      <input 
-                        className='us2' 
-                        type="text" 
-                        name="identificacion" 
-                        value={userData ? userData?.identificacion : ''} 
-                        onChange={handleInputChange} 
+                      <input
+                        className='us2'
+                        type="text"
+                        name="identificacion"
+                        value={userData ? userData?.identificacion : ''}
+                        onChange={handleInputChange}
                       />
                     </span>
                     <span className='us1'>
                       <label className='labels'>Nombre</label>
-                      <input 
-                        className='us2' 
-                        type="text" 
-                        name="nombre" 
-                        value={userData ? userData?.nombre : ''} 
-                        onChange={handleInputChange} 
+                      <input
+                        className='us2'
+                        type="text"
+                        name="nombre"
+                        value={userData ? userData?.nombre : ''}
+                        onChange={handleInputChange}
                       />
                     </span>
                     <span className='us1'>
                       <label className='labels'>Telefono</label>
-                      <input 
-                        className='us2' 
-                        type="tel" 
-                        name="telefono" 
-                        value={userData ? userData?.telefono : ''} 
-                        onChange={handleInputChange} 
+                      <input
+                        className='us2'
+                        type="tel"
+                        name="telefono"
+                        value={userData ? userData?.telefono : ''}
+                        onChange={handleInputChange}
                       />
                     </span>
                     <span className='us1'>
@@ -312,7 +309,7 @@ export default function UserProfile({ data }) {
                       <select
                         className="us2"
                         name="est_financiero"
-                        value={ selectedOptions ? selectedOptions?.est_financiero : '' }
+                        value={selectedOptions ? selectedOptions?.est_financiero : ''}
                         onChange={handleSelectChange}
                       >
                         <option value="">Seleccione</option>
@@ -327,11 +324,11 @@ export default function UserProfile({ data }) {
                       <label className='labels'>Dirección de instancia</label>
                       <div className="input-with-icon">
                         <input
-                          className='us2' 
-                          type="text" 
-                          id='copy' 
-                          value={userData ? userData?.identificacion : ''} 
-                          readOnly 
+                          className='us2'
+                          type="text"
+                          id='copy'
+                          value={userData ? userData?.identificacion : ''}
+                          readOnly
                         />
                         <button type='button' className='copy' onClick={copiarContenido}>
                           <Copy />
@@ -343,7 +340,7 @@ export default function UserProfile({ data }) {
                       <select
                         className="us2"
                         name="suscripcion"
-                        value={ selectedOptions ? selectedOptions?.suscripcion : ''}
+                        value={selectedOptions ? selectedOptions?.suscripcion : ''}
                         onChange={handleSelectChange}
                       >
                         <option value="">Seleccione</option>
@@ -357,12 +354,12 @@ export default function UserProfile({ data }) {
                     <span className='us1'>
                       <label className='labels'>Fecha de corte de la suscripción</label>
                       <div className='flex gap-[10px] items-start'>
-                        <input 
+                        <input
                           className='us2 w-full'
                           type="date"
                           name="fecha_corte"
                           value={userData?.fecha_corte ? format(parse(userData.fecha_corte, 'dd/MM/yyyy', new Date()), 'yyyy-MM-dd') : ''}
-                          onChange={handleInputChange} 
+                          onChange={handleInputChange}
                         />
                         {valid && (
                           <button
@@ -370,7 +367,7 @@ export default function UserProfile({ data }) {
                             className='bg-[#146C94] text-white h-[55px] px-[12px] rounded-[5px]'
                             onClick={async (e) => {
                               e.preventDefault()
-                              const r = await renovarFechaCorte(data.id, data.fecha_corte)
+                              const r = await renovarFechaMutation.mutateAsync({ id: data.id, date: data.fecha_corte })
                               if (r.status) {
                                 let u = { ...userData }
                                 u['est_financiero'] = 'Activo'
@@ -379,7 +376,7 @@ export default function UserProfile({ data }) {
                                   est_financiero: 'Activo',
                                 }));
                                 let n = r.newDate.toString()
-                                let [y,m,d] = n.split('-').map(Number)
+                                let [y, m, d] = n.split('-').map(Number)
                                 u['fecha_corte'] = `${d}/${m}/${y}`
                                 setUserData(u)
                                 setValid(false)
@@ -402,6 +399,7 @@ export default function UserProfile({ data }) {
                         onClose={onCloseDev}
                         dispositivos={filas}
                         onChange={handleDispositivosChange}
+                        getDevices={fetchUserData}
                       />
                     </span>
                   </div>

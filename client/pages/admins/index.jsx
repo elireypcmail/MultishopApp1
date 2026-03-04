@@ -1,7 +1,7 @@
 import DataAdmin     from "@c/Admin/DataAdmin"
-import { getCookie } from "@g/cookies"
 import Navbar        from "@c/Navbar"
 import Menu          from "@c/Menu"
+import { requireAdminSession } from "@g/ssrGuards"
 
 export default function RegisterPage({ data }) {
   return(
@@ -24,21 +24,5 @@ export default function RegisterPage({ data }) {
 }
 
 export const getServerSideProps = async ({ req }) => {
-  const adminCookie = getCookie('Admins', req)
-  
-  let data = null
-
-  if (adminCookie) {
-    try {
-      data = adminCookie
-    } catch (error) {
-      console.error('Error al analizar la cookie como JSON:', error)
-    }
-  }
-
-  return {
-    props: {
-      data: data
-    }
-  }
+  return requireAdminSession({ req })
 }

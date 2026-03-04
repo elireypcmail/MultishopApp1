@@ -1,10 +1,11 @@
-import AdminProfile  from "@c/Admin/ProfileAdmin"
+import AdminProfile from "@c/Admin/ProfileAdmin"
 import { getCookie } from "@g/cookies"
-import Navbar        from "@c/Navbar"
-import Menu          from "@c/Menu"
+import Navbar from "@c/Navbar"
+import Menu from "@c/Menu"
+import { requireAdminSession } from "@g/ssrGuards"
 
-export default function AdminsProfile({ datapro, data } : any) {
-  return(
+export default function AdminsProfile({ datapro, data }: any) {
+  return (
     <>
       <div className='body'>
         <div className="container">
@@ -24,35 +25,23 @@ export default function AdminsProfile({ datapro, data } : any) {
 }
 
 export const getServerSideProps = async ({ req }: any) => {
-  const profileCookie = getCookie('profileAdmin', req)
-  const adminCookie = getCookie('Admins', req)
+  return requireAdminSession({ req }, async (adminEmail) => {
+    const profileCookie = getCookie('profileAdmin', req)
 
-  if (!adminCookie) {
-    return {
-      redirect: {
-        destination: '/',
-        permanent: false,
-      },
-    }
-  }
-  
-  let data = null
-  let datapro = null
 
-  if (profileCookie && adminCookie) {
-    try {
-      const decodedCookie = decodeURIComponent(profileCookie)
-      datapro = JSON.parse(decodedCookie)
-      data = adminCookie
-    } catch (error) {
-      console.error('Error al analizar la cookie como JSON:', error)
+    if (profileCookie) {
+      try {
+        const decodedCookie = decodeURIComponent(profileCookie)
+        const datapro = decodedCookie ? JSON.parse(decodedCookie) : null
+        return {
+          datapro: datapro,
+        }
+      } catch (error) {
+        console.error('Error al analizar la cookie como JSON:', error)
+        return {
+          datapro: null,
+        }
+      }
     }
-  }
-
-  return {
-    props: {
-      datapro: datapro,
-      data: data
-    }
-  }
+  })
 }

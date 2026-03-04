@@ -1,7 +1,7 @@
 import DataHome from "@c/Registro - Cliente/DataHome"
-import { getCookie } from "@g/cookies"
 import Navbar   from "@c/Navbar"
 import Menu     from "@c/Menu"
+import { requireAdminSession } from "@g/ssrGuards"
 
 export default function HomePage({ data }) {
   return (
@@ -24,30 +24,5 @@ export default function HomePage({ data }) {
 }
 
 export const getServerSideProps = async ({ req }) => {
-  const adminCookie = getCookie('Admins', req)
-
-  if (!adminCookie) {
-    return {
-      redirect: {
-        destination: '/',
-        permanent: false,
-      },
-    }
-  }
-  
-  let data = null
-
-  if (adminCookie) {
-    try {
-      data = adminCookie
-    } catch (error) {
-      console.error('Error al analizar la cookie como JSON:', error)
-    }
-  }
-
-  return {
-    props: {
-      data: data
-    }
-  }
+  return requireAdminSession({ req })
 }

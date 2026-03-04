@@ -1,26 +1,13 @@
-import { 
-  Modal, 
-  ModalContent, 
-  ModalHeader, 
-  ModalBody, 
-  ModalFooter 
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter
 } from "@nextui-org/react"
-import { useState } from "react"
 import DevicesTable from "./Devices"
 
-export default function ModalDev({ isOpen, onClose, dispositivos, onChange }) {
-  const [dispositivo, setDispositivo] = useState({ login_user: '', clave: '' })
-
-  const handleChange = (index, e) => {
-    if (e && e.target) {
-      const { name, value } = e.target
-      const nuevosDispositivos = [...dispositivos]
-      nuevosDispositivos[index] = { ...nuevosDispositivos[index], [name]: value }
-      onChange(nuevosDispositivos)
-    } else {
-      console.error('Evento no definido correctamente:', e)
-    }
-  }
+export default function ModalDev({ isOpen, onClose, dispositivos, onChange, getDevices }) {
 
   const agregarDispositivo = () => {
     const nuevosDispositivos = [...dispositivos, { login_user: '', clave: '' }]
@@ -39,7 +26,7 @@ export default function ModalDev({ isOpen, onClose, dispositivos, onChange }) {
       <ModalContent>
         <ModalHeader className="flex flex-col gap-1 text-base ti">Lista de usuarios</ModalHeader>
         <ModalBody>
-        <DevicesTable dispositivos={dispositivos} onChange={(newDispositivos) => onChange(newDispositivos)} />
+          <DevicesTable dispositivos={dispositivos} onChange={(newDispositivos) => onChange(newDispositivos)} getDevices={getDevices} />
         </ModalBody>
         <ModalFooter className="flex justify-between">
           <button

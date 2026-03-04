@@ -1,14 +1,15 @@
-import { useState } from "react"
 import { RemoveDevice } from "../Icons"
 import { useRouter } from "next/router"
-import { updateUser } from "@api/Put"
-import { deleteDevice } from '@api/Delete'
-import toast from 'react-hot-toast'
+import { sileo } from "sileo"
+import { useUpdateUser, useDeleteDevice } from "@g/queries"
 
-export default function TableDev({ dispositivos, onChange }) {
+export default function TableDev({ dispositivos, onChange, getDevices }) {
   const router = useRouter()
-  const notifySuccess = (msg) => { toast.success(msg) }
-  const notifyError = (msg) => { toast.error(msg) }
+  const notifySuccess = (msg) => { sileo.success({ title: msg }) }
+  const notifyError = (msg) => { sileo.error({ title: msg }) }
+
+  const updateUserMutation = useUpdateUser()
+  const deleteDeviceMutation = useDeleteDevice()
 
   const { userId } = router.query
 
@@ -21,7 +22,7 @@ export default function TableDev({ dispositivos, onChange }) {
 
   const eliminarDispositivo = async (index) => {
     const dispositivo = dispositivos[index]
-    
+
     // Si los campos están en blanco, simplemente elimina la fila sin llamar a la API
     if (!dispositivo.login_user && !dispositivo.clave) {
       const nuevosDispositivos = dispositivos.filter((_, idx) => idx !== index)
@@ -33,7 +34,7 @@ export default function TableDev({ dispositivos, onChange }) {
     // Si hay un login_user, procede con la eliminación normal
     if (dispositivo.login_user) {
       try {
-        await deleteDevice(dispositivo.login_user)
+        await deleteDeviceMutation.mutateAsync(dispositivo.login_user)
         notifySuccess('Usuario eliminado')
         const nuevosDispositivos = dispositivos.filter((_, idx) => idx !== index)
         onChange(nuevosDispositivos)
@@ -52,18 +53,17 @@ export default function TableDev({ dispositivos, onChange }) {
   const onSave = async () => {
     try {
       // Filtrar dispositivos vacíos antes de enviar
-      const dispositivosValidos = dispositivos.filter(d => d.login_user || d.clave)
-      const response = await updateUser(userId, { dispositivos: dispositivosValidos })
+      const dispositivosValidos = dispositivos.filter(d => d.login_user).map(d => ({ id: d.id, login_user: d.login_user, clave: d.clave || undefined }))
+      const response = await updateUserMutation.mutateAsync({ id: String(userId), data: { dispositivos: dispositivosValidos } })
       if (response && response.status === 200 && response.data.message === 'Datos del usuario y dispositivos actualizados correctamente.') {
         notifySuccess('Usuarios guardados correctamente')
-        // Actualizar la lista de dispositivos para eliminar las filas vacías
-        onChange(dispositivosValidos)
+        getDevices()
       } else if (response && response.data.message && response.data.message.includes('ya existe')) {
         notifyError(`Error: ${response.data.message}`)
-        
+
         const existingLoginUser = response.data.message.split("'")[1]
         const existingDeviceIndex = dispositivos.findIndex(d => d.login_user === existingLoginUser)
-        
+
         if (existingDeviceIndex !== -1) {
           setTimeout(() => {
             const nuevosDispositivos = [...dispositivos]
@@ -72,7 +72,7 @@ export default function TableDev({ dispositivos, onChange }) {
           }, 1000)
         }
       } else {
-        notifyError('Error al guardar los usuarios')
+        notifyError(response?.data?.message || 'Error al guardar los usuarios')
       }
     } catch (error) {
       console.error('Error al guardar los usuarios:', error)
@@ -109,6 +109,7 @@ export default function TableDev({ dispositivos, onChange }) {
                   className="block w-full p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-xs focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                   type="text"
                   name="clave"
+                  placeholder={!!dispositivo.currentPassword ? "********" : "No tiene clave"}
                   value={dispositivo.clave}
                   onChange={(e) => handleChange(e, index)}
                 />

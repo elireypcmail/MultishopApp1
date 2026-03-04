@@ -1,29 +1,36 @@
 import instance from '@g/api'
-import v        from '@g/_var'
 
 async function deleteClient(id) {
   try {
-    const res =  await instance.delete(`${v.DEL_CLIENT}/${id}`)
+    const res =  await instance.delete(`/clients/${id}`)
     return res
-  } catch (err) { console.error(err) }
+  } catch (err) { 
+    if(err?.response){
+      return {data: err?.response?.data}
+    }
+  }
 }
 
 const deleteDevice = async (login_user) => {
-  console.log(login_user)
   try {
-    const res = await instance.delete(`${v.DEL_DEVICE}/${login_user}`)
+    const res = await instance.delete(`/clients/device/${login_user}`)
     return res
   } catch (err) {
-    console.error('Error al eliminar el dispositivo:', err)
+    if(err?.response){
+      return {data: err?.response?.data}
+    }
   }
 }
 
 async function deleteAdmin(id) {
-  console.log(id);
   try {
-    const res = await instance.delete(`${v.DEL_ADMIN}/${id}`)
+    const res = await instance.delete(`/users/${id}`)
     return res
-  } catch (err) { console.error(err) }
+  } catch (err) { 
+    if(err?.response){
+      return {data: err?.response?.data}
+    }
+  }
 }
 
 export { deleteClient, deleteAdmin, deleteDevice }

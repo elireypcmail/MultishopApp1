@@ -1,19 +1,20 @@
 import { useState } from "react"
-import toast, { Toaster } from 'react-hot-toast'
+import { sileo } from "sileo"
 import Loading from "../Loading"
-import { registroAdmin } from '@api/Post'
+import { useRegistrarAdmin } from "@g/queries"
 
 export default function AdminTable({ onClose, addAdmin }) {
   const [admin, setAdmin] = useState({
     username: "",
     email: "",
-    password: ""
+    password: undefined
   })
   const [loading, setLoading] = useState(false)
   const [emailError, setEmailError] = useState('')
 
-  const notifySucces = (msg) => { toast.success(msg) }
-  const notifyError = (msg) => { toast.error(msg) }
+  const notifySucces = (msg) => { sileo.success({ title: msg }) }
+  const notifyError = (msg) => { sileo.error({ title: msg }) }
+  const registrarAdmin = useRegistrarAdmin()
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -28,25 +29,23 @@ export default function AdminTable({ onClose, addAdmin }) {
     setLoading(true)
 
     try {
-      let res = await registroAdmin(admin)
-      if (res.status == 200) {
+      let res = await registrarAdmin.mutateAsync(admin)
+      if (res.status == 201) {
         if (res.data.message == 'El correo electrónico ya está registrado') {
           notifyError('Este correo ya existe')
         }
         if (res.data.message == 'Usuario creado correctamente') {
           notifySucces('Admin registrado exitosamente')
-          addAdmin({ ...admin, id: res.data.id }) // Asumiendo que el backend devuelve el ID del nuevo admin
-          setTimeout(() => {
-            onClose()
-          }, 2000)
-        } 
-      } else { 
-        notifyError('Ha ocurrido un error al crear el administrador') 
+          addAdmin({ ...admin, id: res.data.data.id }) // Asumiendo que el backend devuelve el ID del nuevo admin
+          onClose()
+        }
+      } else {
+        notifyError('Ha ocurrido un error al crear el administrador')
       }
 
       limpiarCampos()
-    } catch (err) { 
-      console.error(err) 
+    } catch (err) {
+      console.error(err)
     } finally {
       setTimeout(() => {
         setLoading(false)
@@ -58,68 +57,67 @@ export default function AdminTable({ onClose, addAdmin }) {
     setAdmin({
       username: '',
       email: '',
-      password: ''
+      password: undefined
     })
   }
 
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) { setEmailError('Ingrese un correo electrónico válido') } 
+    if (!emailRegex.test(email)) { setEmailError('Ingrese un correo electrónico válido') }
     else { setEmailError('') }
   }
 
   return (
     <>
-      { loading && <Loading /> }
+      {loading && <Loading />}
       <div className="search-head">
-        <Toaster position="top-right" reverseOrder={true} duration={5000} />
         <h1 className="cli">Registro de Administradores</h1>
       </div>
-        <form onSubmit={newUser} className="form-admin">
-          <span className="spans">
-            <label className="titles">Nombre</label>
-            <input
-              type="text"
-              className="input2"
-              name="username"
-              value={admin.username}
-              onChange={handleChange}
-              placeholder="Nombre"
-              required
-            />
-          </span>
+      <form onSubmit={newUser} className="form-admin">
+        <span className="spans">
+          <label className="titles">Nombre</label>
+          <input
+            type="text"
+            className="input2"
+            name="username"
+            value={admin.username}
+            onChange={handleChange}
+            placeholder="Nombre"
+            required
+          />
+        </span>
 
-          <span className="spans">
-            <label className="titles">Email</label>
-            <input
-              type="text"
-              className="input2"
-              name="email"
-              value={admin.email}
-              onChange={handleChange}
-              placeholder="Email"
-              required
-            />
-            { emailError && <p className="text-red-500 text-sm">{emailError}</p> }
-          </span>
+        <span className="spans">
+          <label className="titles">Email</label>
+          <input
+            type="text"
+            className="input2"
+            name="email"
+            value={admin.email}
+            onChange={handleChange}
+            placeholder="Email"
+            required
+          />
+          {emailError && <p className="text-red-500 text-sm">{emailError}</p>}
+        </span>
 
-          <span className="spans">
-            <label className="titles">Clave</label>
-            <input
-              type="text"
-              className="input2"
-              name="password"
-              value={admin.password}
-              onChange={handleChange}
-              placeholder="Clave"
-              required
-            />
-          </span>
+        <span className="spans">
+          <label className="titles">Clave</label>
+          <input
+            type="text"
+            className="input2"
+            name="password"
+            placeholder="********"
+            value={admin.password}
+            onChange={handleChange}
+            required
+          />
+        </span>
 
-          <div className="btn-ad">
-            <button type="submit" className="btns">Crear nuevo usuario</button>
-          </div>
-        </form>
+        <div className="btn-ad">
+          <button type="submit" className="btns">Crear nuevo usuario</button>
+        </div>
+      </form>
     </>
   )
 }

@@ -1,15 +1,14 @@
-import { useState, useEffect } from "react"
-import toast, {Toaster}        from 'react-hot-toast'
-import Loading                 from "../Loading"
-import { loginAdmin }          from '@api/Post'
-import { setCookie }           from '@g/cookies'
-import { Customer }            from "../Icons"
-import { useRouter }           from "next/router"
-import Image                   from "next/image"
-import logo                    from '@p/multi2.png'
+import { useState } from "react"
+import { sileo } from "sileo"
+import Loading from "../Loading"
+import { useLoginAdmin } from '@g/queries'
+import { Customer } from "../Icons"
+import { useRouter } from "next/router"
+import Image from "next/image"
+import logo from '@p/multi2.png'
+import { useSession } from "@g/session"
 
 export default function Login() {
-  const [redirect, setRedirect] = useState(false)
   const [username, setUsername] = useState({
     email: '',
     password: ''
@@ -18,10 +17,11 @@ export default function Login() {
   const [emailError, setEmailError] = useState('')
 
   const { push } = useRouter()
-  useEffect(() => { if (redirect) push('/home') }, [redirect, push])
+  const { login } = useSession()
+  const loginMutation = useLoginAdmin()
 
-  const notifySucces = (msg) => { toast.success(msg) }
-  const notifyError  = (msg) => { toast.error(msg) }
+  const notifySucces = (msg) => { sileo.success({ title: msg }) }
+  const notifyError = (msg) => { sileo.error({ title: msg }) }
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -34,26 +34,22 @@ export default function Login() {
   const loginUser = async (e) => {
     e.preventDefault()
     setLoading(true)
-
     try {
-      let res = await loginAdmin(username)
-      if (res.status == 200) {
-        if (res.data.message == 'Sesión iniciada correctamente') {
-          const email = res.data.data.email 
-          setCookie('Admins', email)
-          localStorage.setItem('email', res.data.data.email)
+      const { status, data } = await loginMutation.mutateAsync(username)
+      if (status == 200) {
+        if (data.message == 'Sesión iniciada correctamente') {
+          const email = data.data.email
+          const token = data.tokenCode
+          login(email, token)
           notifySucces('Inicio de sesión exitoso')
-          setRedirect(true)
-        } else { notifyError(res.data.message) }
-      } else { notifyError('Ha ocurrido un error en el inicio de sesión') }
-
+          push('/home')
+        } else { notifyError(data.message) }
+      } else {
+        notifyError(data.message)
+      }
       limpiarCampos()
-    } catch (err) { 
-      console.error(err) 
     } finally {
-      setTimeout(() => {
-        setLoading(false)
-      }, 2000)
+      setLoading(false)
     }
   }
 
@@ -66,17 +62,16 @@ export default function Login() {
 
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) { setEmailError('Ingrese un correo electrónico válido') } 
+    if (!emailRegex.test(email)) { setEmailError('Ingrese un correo electrónico válido') }
     else { setEmailError('') }
   }
 
-  return(
+  return (
     <>
       {loading && <Loading />}
-      <Toaster position="top-right" reverseOrder={true} duration={5000}/>
       <div className="login">
         <div className="nv">
-          <Image className="Logo2" src={ logo } alt="Logo de multishop" priority />
+          <Image className="Logo2" src={logo} alt="Logo de multishop" priority />
         </div>
 
         <div className="customer2">
@@ -86,22 +81,22 @@ export default function Login() {
             </div>
             <div className="form-cusL">
               <form className="form-cusL2" action="" onSubmit={loginUser}>
-                <input 
-                  className="input-container" 
-                  type="email" 
+                <input
+                  className="input-container"
+                  type="email"
                   placeholder="Correo"
-                  name="email" 
-                  value={username.email} 
+                  name="email"
+                  value={username.email}
                   onChange={handleChange}
                 />
-                { emailError && <p className="text-red-500 text-sm">{emailError}</p> }
-                <input 
-                  className="cusL" 
-                  type="password" 
+                {emailError && <p className="text-red-500 text-sm">{emailError}</p>}
+                <input
+                  className="cusL"
+                  type="password"
                   placeholder="Contraseña"
                   name="password"
-                  value={username.password} 
-                  onChange={handleChange} 
+                  value={username.password}
+                  onChange={handleChange}
                 />
                 <button className="btn-cusL" type="submit">Iniciar Sesión</button>
               </form>
@@ -111,7 +106,7 @@ export default function Login() {
 
         <div className="multi footer">
           <span>Powered by</span>
-          <Image className="mul img" src={ logo } alt="Logo de multishop" priority />
+          <Image className="mul img" src={logo} alt="Logo de multishop" priority />
         </div>
       </div>
     </>

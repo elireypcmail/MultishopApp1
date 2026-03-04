@@ -1,11 +1,10 @@
 import { useState } from 'react'
-import { registroCliente } from "@api/Post"
-import toast, { Toaster } from 'react-hot-toast'
+import { useRegistrarCliente } from "@g/queries"
+import { sileo } from "sileo"
 import { useDisclosure } from "@nextui-org/react"
 import Loading from "../Loading"
-import ModalDev from "../Dispositivos/Modal"
 
-export default function FormClient({}) {
+export default function FormClient({ }) {
   const { isOpen, onOpen, onClose } = useDisclosure()
   const [cliente, setCliente] = useState({
     identificacion: "",
@@ -20,8 +19,9 @@ export default function FormClient({}) {
   const [telError, setTelError] = useState('')
   const [nombreError, setNombreError] = useState('')
 
-  const notifySuccess = (msg) => { toast.success(msg) }
-  const notifyError = (msg) => { toast.error(msg) }
+  const notifySuccess = (msg) => { sileo.success({ title: msg }) }
+  const notifyError = (msg) => { sileo.error({ title: msg }) }
+  const registrarCliente = useRegistrarCliente()
 
   const validarIdentificacion = (value) => {
     const regex = /^[Vv]\d*$/
@@ -42,20 +42,20 @@ export default function FormClient({}) {
   }
 
   const validarNombre = (value) => {
-    setCliente({ ...cliente, nombre: value.toUpperCase() }) 
+    setCliente({ ...cliente, nombre: value.toUpperCase() })
   }
 
   const handleChange = (e) => {
     const { name, value } = e.target
     let updatedValue = value
-  
+
     if (name === 'identificacion') {
       updatedValue = value.toLowerCase()
       validarIdentificacion(updatedValue)
     }
-  
+
     setCliente({ ...cliente, [name]: updatedValue })
-  
+
     switch (name) {
       case 'telefono':
         validarTelefono(value)
@@ -67,7 +67,7 @@ export default function FormClient({}) {
         break
     }
   }
-  
+
 
   const handleDispositivosChange = (dispositivos) => {
     setCliente({ ...cliente, dispositivos: dispositivos })
@@ -85,10 +85,7 @@ export default function FormClient({}) {
     }
 
     setLoading(true)
-
-    let res = await registroCliente(cliente)
-    console.log(res)
-    
+    const res = await registrarCliente.mutateAsync(cliente)
     try {
       if (res.success) {
         notifySuccess('Cliente y dispositivos registrados correctamente')
@@ -126,7 +123,6 @@ export default function FormClient({}) {
   return (
     <>
       {loading && <Loading />}
-      <Toaster position="top-right" reverseOrder={true} duration={5000} />
       <form onSubmit={newClient} action="" className="form">
         <div className="create">
           <div className="one">

@@ -1,38 +1,26 @@
 import { Search } from '../Icons'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
-import { getNotifyClient } from '@api/Get'
-import { filterNotify } from '@api/Post'
+import { useNotifyClient } from '@g/queries'
 
 export default function TableNotify() {
-  const [ notify, setNotify ] = useState([])
-  const [filter, setFilter] = useState({ inicio: '', fin: '' })
-  const [loading, setLoading] = useState(false)
+  const [filter, setFilter] = useState({ start: '', end: '' })
+  const [debouncedFilter, setDebouncedFilter] = useState(filter)
+  useEffect(() => {
+    if (filter.start.length === 10 && filter.end.length === 10) {
+      const timer = setTimeout(() => {
+        setDebouncedFilter(filter)
+      }, 500)
+      return () => clearTimeout(timer)
+    }
+  }, [filter])
 
   const router = useRouter()
   const { userId } = router.query
   const id = userId
-  const user = parseInt(userId)
 
-  useEffect(() => {
-    if (id) {
-      loadNotify(id)
-    }
-  }, [id])
+  const { data } = useNotifyClient(id, debouncedFilter, { enabled: !!id })
 
-  const loadNotify = async (id) => {
-    try {
-      setLoading(true)
-      const response = await getNotifyClient(id)
-      if (response.status == 200) {
-        setNotify(response.data.data)
-      } else {
-        console.log('ha ocurrido un error al cargar las notificaciones')
-      }
-    } catch (error) {
-      console.error('Error al cargar los usuarios:', error)
-    }
-  }
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -40,25 +28,11 @@ export default function TableNotify() {
   }
 
   const handleSearch = async () => {
-    try {
-      setLoading(true)
-      if (!filter.inicio || !filter.fin) {
-        console.error('Las fechas de inicio y fin son requeridas.')
-        setLoading(false)
-        return
-      }
-  
-      const response = await filterNotify({ userId: id, inicio: filter.inicio, fin: filter.fin })
-      if (response.status === 200) {
-        setNotifications(response.data.data)
-      } else {
-        console.error('Error al filtrar las notificaciones por fecha:', response.statusText)
-      }
-    } catch (error) {
-      console.error('Error al filtrar las notificaciones por fecha:', error)
-      setLoading(false)
-    } 
-  }  
+    if (!filter.start || !filter.end) {
+      console.error('Las fechas de inicio y fin son requeridas.')
+      return
+    }
+  }
 
   return (
     <>
@@ -69,8 +43,8 @@ export default function TableNotify() {
             className="search-inicio"
             type="text"
             placeholder="año-mes-dia"
-            name="inicio"
-            value={filter.inicio}
+            name="start"
+            value={filter.start}
             onChange={handleInputChange}
           />
           <span className='separator'>/</span>
@@ -78,8 +52,8 @@ export default function TableNotify() {
             className="search-fin"
             type="text"
             placeholder="año-mes-dia"
-            name="fin"
-            value={filter.fin}
+            name="end"
+            value={filter.end}
             onChange={handleInputChange}
           />
           <button className="search" type="button" onClick={handleSearch}>
@@ -107,26 +81,26 @@ export default function TableNotify() {
             </tr>
           </thead>
           <tbody>
-          {
-            notify.map((noti) => {
-              const fechaCompleta = new Date(noti?.fecha)
+            {
+              data?.data?.data?.map((noti) => {
+                const fechaCompleta = new Date(noti?.fecha)
 
-              return (<tr
-                key={noti.id}
-                className="bg-white hover:bg-gray-50 cursor-pointer"
-              >
-                <td className="px-6 py-4">{noti.notify_type}</td>
-                <td className="px-6 py-4">{noti.id_dispositivo}</td>
-                <td className="px-6 py-4">{fechaCompleta.toLocaleDateString()}</td>
-                <td className="px-6 py-4">
+                return (<tr
+                  key={noti.id}
+                  className="bg-white hover:bg-gray-50 cursor-pointer"
+                >
+                  <td className="px-6 py-4">{noti.notify_type}</td>
+                  <td className="px-6 py-4">{noti.id_dispositivo}</td>
+                  <td className="px-6 py-4">{fechaCompleta.toLocaleDateString()}</td>
+                  <td className="px-6 py-4">
                     {new Date(noti?.fecha).toLocaleTimeString('es-ES', {
                       hour: 'numeric',
                       minute: '2-digit',
                       hour12: true
                     }).replace('.', '')}
                   </td>
-              </tr>)
-            })}
+                </tr>)
+              })}
           </tbody>
         </table>
       </div>

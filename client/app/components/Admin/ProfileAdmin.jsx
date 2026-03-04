@@ -3,78 +3,83 @@
 import { Profile, Delete } from '../Icons'
 import { useState, useEffect } from 'react'
 import { setCookie, removeCookie } from '@g/cookies'
-import toast, { Toaster } from 'react-hot-toast'
+import { sileo } from "sileo"
 import { useRouter } from 'next/router'
-import { getAdmin, getAdminByEmail } from '@api/Get'
-import { deleteAdmin } from '@api/Delete'
-import { updateAdmin } from '@api/Put'
+import { useAdmin, useAdminByEmail, useDeleteAdmin, useUpdateAdmin } from '@g/queries'
 import Image from 'next/image'
 import logo from '@p/multi2.png'
+import { isBcryptHash } from '../../../pages/utils'
 
 export default function AdminProfile({ data }) {
-  const [userData, setUserData] = useState(data)
+  const [userData, setUserData] = useState(() => ({
+    username: '',
+    email: '',
+    password: '',
+    ...data,
+  }))
   const [isLoading, setIsLoading] = useState(true)
 
-  const notifySuccess = (msg) => { toast.success(msg) }
-  const notifyError = (msg) => { toast.error(msg) }
+  const notifySuccess = (msg) => { sileo.success({ title: msg }) }
+  const notifyError = (msg) => { sileo.error({ title: msg }) }
 
   const router = useRouter()
   const { id, email } = router.query
+  const { data: adminById } = useAdmin(id, { enabled: !!id })
+  const { data: adminByEmailData } = useAdminByEmail(email, { enabled: !!email && !id })
+  const deleteAdminMutation = useDeleteAdmin()
+  const updateAdminMutation = useUpdateAdmin()
 
   useEffect(() => {
-    if (id || email) {
-      fetchUserData()
+    if (!id && !email) {
+      setIsLoading(false)
+      return
+    }
+
+    const response = id ? adminById : adminByEmailData
+    if (!response) return
+
+    if (response && response.data && response.status === 200) {
+      const data = response.data.data
+      const profileAdmin = {
+        id: data.id,
+        username: data.username,
+        email: data.email,
+        password: data.password,
+      }
+
+      const Json = JSON.stringify(profileAdmin)
+      setCookie('profileAdmin', Json)
+
+      const isBcrypt = isBcryptHash(data.password)
+      const currentPassword = !isBcrypt ? data.password : undefined
+
+      setUserData({
+        id: data.id,
+        username: data.username,
+        email: data.email,
+        password: currentPassword,
+      })
     } else {
-      setIsLoading(false)
-    }
-  }, [id, email])
-
-  const fetchUserData = async () => {
-    setIsLoading(true)
-    try {
-      let response
-      if (id) {
-        response = await getAdmin(id)
-      } else if (email) {
-        response = await getAdminByEmail(email)
-      }
-
-      if (response && response.data && response.status === 200) {
-        const data = response.data.data
-        const profileAdmin = {
-          id: data.id,
-          username: data.username,
-          email: data.email,
-          password: data.password
-        }
-
-        const Json = JSON.stringify(profileAdmin)
-        setCookie('profileAdmin', Json)
-
-        setUserData(data)
-      } else {
-        console.error('Error al obtener los datos del administrador:', response)
-        notifyError('Error al obtener los datos del administrador')
-      }
-    } catch (error) {
-      console.error('Error al obtener los datos del administrador:', error)
+      console.error('Error al obtener los datos del administrador:', response)
       notifyError('Error al obtener los datos del administrador')
-    } finally {
-      setIsLoading(false)
     }
-  }
+
+    setIsLoading(false)
+  }, [id, email, adminById, adminByEmailData])
+
+
 
   const eliminarAdmin = async () => {
     try {
-      const result = await deleteAdmin(userData.id)
+      const result = await deleteAdminMutation.mutateAsync(userData.id)
       if (result) {
         removeCookie('Admin')
         notifySuccess('Se ha eliminado el administrador correctamente')
         router.push('/admins')
-      } else { 
-        notifyError('Ha ocurrido un error al eliminar este administrador') 
+      } else {
+        notifyError('Ha ocurrido un error al eliminar este administrador')
       }
-    } catch (err) { 
+    } catch (err) {
       console.error(err)
       notifyError('Error al eliminar el administrador')
     }
@@ -91,7 +96,10 @@ export default function AdminProfile({ data }) {
   const handleSave = async () => {
     try {
       const updatedUserData = { ...userData }
-      const response = await updateAdmin(userData.id, updatedUserData)
+      if (!updatedUserData.password?.trim()) {
+        delete updatedUserData.password
+      }
+      const response = await updateAdminMutation.mutateAsync({ id: userData.id, data: updatedUserData })
       if (response && response.status === 200) {
         notifySuccess('Datos actualizados correctamente')
       } else {
@@ -110,7 +118,6 @@ export default function AdminProfile({ data }) {
   return (
     <>
       <div className="main">
-        <Toaster position="top-right" reverseOrder={true} duration={5000} />
         <div className="data">
           <div className="profile">
             <div className='pro'>
@@ -154,7 +161,8 @@ export default function AdminProfile({ data }) {
                         className='us3'
                         type="text"
                         name="password"
-                        value={userData?.password || ''}
+                        placeholder="********"
+                        value={userData?.password ?? ''}
                         onChange={handleInputChange}
                       />
                     </span>

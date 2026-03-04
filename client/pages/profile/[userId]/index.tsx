@@ -1,22 +1,42 @@
+'use client'
 import UserProfile   from "@c/Perfil - Cliente/Profile"
 import { getCookie } from "@g/cookies"
 import Navbar        from "@c/Navbar"
 import Menu          from "@c/Menu"
 import { getUser }   from '@api/Get'
+import { requireAdminSession } from "@g/ssrGuards"
+import { useCallback, useEffect, useState } from "react"
+import { useParams } from "next/navigation"
+import { useRouter } from "next/router"
 
-export default function ClientProfile({ datapro, data } : any) {
+export default function ClientProfile({ data } : any) {
+  const router = useRouter();
+  const {userId}=router.query
+  const [user, setUser]=useState<{id:string}|undefined>(undefined);
+  
+  const getUserData=useCallback(async ()=>{
+    if(userId){
+      const result =await getUser(userId)
+      setUser(result?.data?.data);
+    }
+  },[userId]);
+
+  useEffect(()=>{
+    getUserData();
+  }, [getUserData])
+
   return(
     <>
       <div className='body'>
         <div className="container">
-          <div className="navbar">
+          {/* <div className="navbar">
             <Navbar data={data} />
-          </div>
+          </div> */}
           <div className="menu">
             <Menu />
           </div>
           <div className='main'>
-            { datapro?.id && <UserProfile data={datapro} /> }
+            { user?.id && <UserProfile data={user} /> }
           </div>
         </div>
       </div>
@@ -24,39 +44,3 @@ export default function ClientProfile({ datapro, data } : any) {
   )
 }
 
-export const getServerSideProps = async ({ req, params }: any) => {
-  const { userId } = params
-  const user = await getUser(userId)
-  
-  const profileCookie = getCookie('profile', req)
-  const adminCookie = getCookie('Admins', req)
-
-  if (!adminCookie) {
-    return {
-      redirect: {
-        destination: '/',
-        permanent: false,
-      },
-    }
-  }
-  
-  let data = null
-  let datapro = null
-
-  if (profileCookie && adminCookie) {
-    try {
-      const decodedCookie = decodeURIComponent(profileCookie)
-      datapro = JSON.parse(decodedCookie)
-      data = adminCookie
-    } catch (error) {
-      console.error('Error al analizar la cookie como JSON:', error)
-    }
-  }
-
-  return {
-    props: {
-      datapro: user?.data?.data,
-      data: data
-    }
-  }
-}

@@ -1,11 +1,11 @@
-import { registroAdmin }   from "@api/Post"
-import { useRouter }       from "next/router"
-import toast, {Toaster}    from 'react-hot-toast'
+import { useRouter } from "next/router"
+import { sileo } from "sileo"
+import { useRegistrarAdmin } from "@g/queries"
 import { Customer, Arrow } from "../Icons"
-import { useState }        from "react"
-import Loading             from "../Loading"
-import Image               from "next/image"
-import logo                from '@p/multi2.png'
+import { useState } from "react"
+import Loading from "../Loading"
+import Image from "next/image"
+import logo from '@p/multi2.png'
 
 export default function Register() {
   const [names, setNames] = useState({
@@ -17,9 +17,10 @@ export default function Register() {
   const [emailError, setEmailError] = useState('')
 
   const { push } = useRouter()
+  const registrarAdmin = useRegistrarAdmin()
 
-  const notifySucces = (msg) => { toast.success(msg) }
-  const notifyError  = (msg) => { toast.error(msg) }
+  const notifySucces = (msg) => { sileo.success({ title: msg }) }
+  const notifyError = (msg) => { sileo.error({ title: msg }) }
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -34,19 +35,19 @@ export default function Register() {
     setLoading(true)
 
     try {
-      let res = await registroAdmin(names)
+      let res = await registrarAdmin.mutateAsync(names)
       if (res.status == 200) {
         if (res.status == 200 && res.data.message == 'El correo electrónico ya está registrado') {
           notifyError('Este correo ya existe')
         }
         if (res.data.message == 'Usuario creado correctamente') {
           notifySucces('Admin registrado exitosamente')
-        } 
+        }
       } else { notifyError('Ha ocurrido un error al crear el administrador') }
 
       limpiarCampos()
-    } catch (err) { 
-      console.error(err) 
+    } catch (err) {
+      console.error(err)
     } finally {
       setTimeout(() => {
         setLoading(false)
@@ -64,15 +65,14 @@ export default function Register() {
 
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) { setEmailError('Ingrese un correo electrónico válido') } 
+    if (!emailRegex.test(email)) { setEmailError('Ingrese un correo electrónico válido') }
     else { setEmailError('') }
   }
 
-  return(
+  return (
     <>
       {loading && <Loading />}
       <div className="data">
-      <Toaster position="top-right" reverseOrder={true} duration={5000}/>
         <div className="reg">
           <div className="customer">
             <i className="icon">
@@ -81,30 +81,30 @@ export default function Register() {
             </i>
             <div className="form-cus">
               <form className="form-cus2" action="" onSubmit={newUser}>
-                <input 
-                  className="cus" 
-                  type="text" 
-                  placeholder="Nombre" 
-                  name="name" 
-                  value={names.name} 
-                  onChange={handleChange} 
+                <input
+                  className="cus"
+                  type="text"
+                  placeholder="Nombre"
+                  name="name"
+                  value={names.name}
+                  onChange={handleChange}
                 />
-                <input 
-                  className="cust" 
-                  type="email" 
-                  placeholder="Correo" 
-                  name="email" 
-                  value={names.email} 
-                  onChange={handleChange} 
+                <input
+                  className="cust"
+                  type="email"
+                  placeholder="Correo"
+                  name="email"
+                  value={names.email}
+                  onChange={handleChange}
                 />
-                { emailError && <p className="text-red-500 text-sm">{emailError}</p> }
-                <input 
-                  className="cus cos" 
-                  type="password" 
-                  placeholder="Contraseña" 
-                  name="password" 
-                  value={names.password} 
-                  onChange={handleChange} 
+                {emailError && <p className="text-red-500 text-sm">{emailError}</p>}
+                <input
+                  className="cus cos"
+                  type="password"
+                  placeholder="Contraseña"
+                  name="password"
+                  value={names.password}
+                  onChange={handleChange}
                 />
                 <button className="btn-cus" type="submit">Registrar</button>
               </form>
@@ -114,7 +114,7 @@ export default function Register() {
         </div>
         <div className="multi">
           <span>Powered by</span>
-          <Image className="mul" src={ logo } alt="Logo de multishop" priority />
+          <Image className="mul" src={logo} alt="Logo de multishop" priority />
         </div>
       </div>
     </>

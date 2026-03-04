@@ -1,28 +1,36 @@
-import { useState }  from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
-import { Search }    from '../Icons'
-import UserTable     from './UserTable'
-import Image         from 'next/image'
-import logo          from '@p/multi2.png'
-import { filtrarClientesPorLetra } from '@api/Post'
+import { Search } from '../Icons'
+import UserTable from './UserTable'
+import Image from 'next/image'
+import logo from '@p/multi2.png'
+import { useUsers } from '@g/queries'
+import { sileo } from 'sileo'
 
 export default function DataClient() {
   const [filter, setFilter] = useState({
     letra: ''
   })
-  const [searchResults, setSearchResults] = useState([])
+  const [debouncedFilter, setDebouncedFilter] = useState(filter.letra)
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedFilter(filter.letra)
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [filter.letra])
   const router = useRouter()
-  
+
+  const { data, isLoading } = useUsers(debouncedFilter, {
+    onError: (error) => {
+      const errorMessage = error.response?.data?.message || "Error al obtener los clientes"
+      sileo.error({ title: errorMessage || "Error al obtener los clientes" })
+    }
+  })
+
   const handleInputChange = async (e) => {
     const { value } = e.target
     setFilter({ letra: value })
-    
-    try {
-      const results = await filtrarClientesPorLetra(value)
-      setSearchResults([...results.data.data])
-    } catch (error) {
-      console.error('Error al realizar la búsqueda:', error)
-    }
   }
 
   return (
@@ -46,7 +54,7 @@ export default function DataClient() {
             </form>
           </div>
 
-          <UserTable searchResults={[...searchResults]} />
+          <UserTable searchResults={data} isLoading={isLoading} />
 
           <button
             type="button"

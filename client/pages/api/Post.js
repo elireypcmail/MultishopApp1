@@ -1,67 +1,65 @@
 import instance from '@g/api'
-import v from '@g/_var'
 
-async function renovarFechaCorte (id, date) {
-  console.log(id)
+async function renovarFechaCorte(id, date) {
   try {
-    const res = await instance.post(`${v.RENOVARDATE}`, { userId: id, corte: date })
+    const res = await instance.post('/clients/renew-date', { userId: id, corte: date })
     return res.data
   } catch (err) {
-    console.log(err)
+    if (err?.response) {
+      return { data: err?.response?.data }
+    }
   }
 }
 
 async function registroCliente(data) {
   try {
-    const res = await instance.post(`${v.REGISTRO_C}`, data)
-    return { success: true, data: res.data } 
-  } catch (err) { 
-    console.error(err)
+    const res = await instance.post('/clients/register', data)
+    return { success: true, data: res.data }
+  } catch (err) {
+    if (err?.response) {
+      return { data: err?.response?.data, success: false, error: err }
+    }
     return { success: false, error: err }
   }
 }
 
 async function registroAdmin(data) {
   try {
-    const res = await instance.post(`${v.REGISTRO_A}`, data)
+    const res = await instance.post('/users/register', data)
     return res
-  } catch (err) { console.error(err) }
+  } catch (err) {
+    if (err?.response) {
+      return { data: err?.response?.data }
+    }
+  }
 }
 
 async function loginAdmin(data) {
   try {
-    const res = await instance.post(`${v.LOGIN_ADMIN}`, data)
+    const res = await instance.post('/users/login', data)
     return res
-  } catch (err) { console.error(err) }
+  } catch (err) {
+    if (err?.response) {
+      return { data: err?.response.data }
+    }
+  }
 }
 
 async function filtrarClientesPorLetra(letra) {
   try {
-    const res = await instance.post(`${v.FILTER_CLI}`, {letra})
+    const res = await instance.post('/clients/filter', { letra })
     return res
-  } catch (err) { console.error(err) }
+  } catch (err) {
+    if (err?.response) {
+      return { data: err?.response?.data }
+    }
+  }
 }
 
-async function filterNotify(fecha) {
-  try {
-    const res = await instance.post(`/find`, fecha)
-    return res
-  } catch (err) { console.error(err) }
-}
-
-async function filterMove(fecha) {
-  try {
-    const res = await instance.post(`/date/move`, fecha)
-    return res
-  } catch (err) { console.error(err) }
-}
-
-export { 
+export {
   registroCliente,
   registroAdmin,
   loginAdmin,
   filtrarClientesPorLetra,
-  filterNotify,
-  filterMove,
   renovarFechaCorte,
 }

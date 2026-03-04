@@ -1,20 +1,19 @@
 import Image from 'next/image'
 import { useState } from 'react'
 import { useRouter } from 'next/router'
-import { removeCookie } from '@g/cookies'
 import admin from '@p/admin-svgrepo-com.png'
-import { Admin } from './Icons'
 import barra from '@p/menu-hamburger-svgrepo-com.png'
-import { getCookie } from '@g/cookies'
 import MenuToggle from './MenuToggle'
 import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Button } from "@nextui-org/react"
+import { useSession } from '@g/session'
 
 export default function Navbar({ data }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const router = useRouter()
+  const { adminEmail, logout } = useSession()
 
   function Logout() {
-    removeCookie('Admins')
+    logout()
     router.push('/')
   }
 
@@ -35,8 +34,7 @@ export default function Navbar({ data }) {
 
   const handleAction = (key, req) => {
     if (key === "profile") {
-      const email = localStorage.getItem('email')
-      router.push(`/admin/${email}`)
+      if (adminEmail) router.push(`/admin/${adminEmail}`)
     } else if (key === "logout") {
       Logout()
     }

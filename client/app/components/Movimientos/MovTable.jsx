@@ -1,39 +1,26 @@
 import { Search } from "../Icons"
 import { useState, useEffect } from "react"
-import { getMove } from "@api/Get"
-import { filterMove } from "@api/Post"  
+import { useMoves } from "@g/queries"
 import { useRouter } from "next/router"
 
 export default function MovTable({ data }) {
-  const [move, setMove] = useState([])
-  const [filter, setFilter] = useState({ inicio: '', fin: '' })
-  const [loading, setLoading] = useState(false)
+  const [filter, setFilter] = useState({ start: '', end: '' })
+
+  const [debouncedFilter, setDebouncedFilter] = useState(filter)
+  useEffect(() => {
+    if (filter.start.length === 10 && filter.end.length === 10) {
+      const timer = setTimeout(() => {
+        setDebouncedFilter(filter)
+      }, 500)
+      return () => clearTimeout(timer)
+    }
+  }, [filter])
 
   const router = useRouter()
   const { userId } = router.query
   const id = userId
 
-  useEffect(() => {
-    if (id) {
-      loadMove(id)
-    }
-  }, [id])
-
-  const loadMove = async (id) => {
-    try {
-      setLoading(true)
-      const response = await getMove(id)
-      if (response.status === 200) {
-        setMove(response.data.data)
-      } else {
-        console.error('Ha ocurrido un error al cargar los movimientos')
-      }
-    } catch (error) {
-      console.error('Error al cargar los movimientos:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+  const { data: movesResponse } = useMoves(id, debouncedFilter, { enabled: !!id })
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -41,23 +28,9 @@ export default function MovTable({ data }) {
   }
 
   const handleSearch = async () => {
-    try {
-      setLoading(true)
-      if (!filter.inicio || !filter.fin) {
-        console.error('Las fechas de inicio y fin son requeridas.')
-        setLoading(false)
-        return
-      }
-      const response = await filterMove({ id, inicio: filter.inicio, fin: filter.fin })
-      if (response.status === 200) {
-        setMove(response.data.data)
-      } else {
-        console.error('Error al filtrar los movimientos por fecha:', response.statusText)
-      }
-    } catch (error) {
-      console.error('Error al filtrar los movimientos por fecha:', error)
-    } finally {
-      setLoading(false)
+    if (!filter.inicio || !filter.fin) {
+      console.error('Las fechas de inicio y fin son requeridas.')
+      return
     }
   }
 
@@ -81,8 +54,8 @@ export default function MovTable({ data }) {
             className="search-inicio"
             type="text"
             placeholder="año-mes-dia"
-            name="inicio"
-            value={filter.inicio}
+            name="start"
+            value={filter.start}
             onChange={handleInputChange}
           />
           <span className='separator'>/</span>
@@ -90,8 +63,8 @@ export default function MovTable({ data }) {
             className="search-fin"
             type="text"
             placeholder="año-mes-dia"
-            name="fin"
-            value={filter.fin}
+            name="end"
+            value={filter.end}
             onChange={handleInputChange}
           />
           <button className="search" type="button" onClick={handleSearch}>
@@ -112,7 +85,7 @@ export default function MovTable({ data }) {
             </tr>
           </thead>
           <tbody>
-            {move.map((move) => {
+            {movesResponse?.data?.data?.map((move) => {
               const fechaCompleta = new Date(move?.fecha)
               return (
                 <tr className="bg-white hover:bg-gray-50 cursor-pointer" key={move.id}>

@@ -2,6 +2,7 @@ import AdminProfile  from "@c/Admin/ProfileAdmin"
 import { getCookie } from "@g/cookies"
 import Navbar        from "@c/Navbar"
 import Menu          from "@c/Menu"
+import { requireAdminSession } from "@g/ssrGuards"
 
 export default function AdminsProfile({ datapro, data } : any) {
   return(
@@ -24,35 +25,22 @@ export default function AdminsProfile({ datapro, data } : any) {
 }
 
 export const getServerSideProps = async ({ req }: any) => {
-  const profileCookie = getCookie('profileAdmin', req)
-  const adminCookie = getCookie('Admins', req)
+  return requireAdminSession({ req }, async (adminEmail) => {
+    const profileCookie = getCookie('profileAdmin', req)
 
-  if (!adminCookie) {
+    let datapro = null
+
+    if (profileCookie) {
+      try {
+        const decodedCookie = decodeURIComponent(profileCookie)
+        datapro = decodedCookie ? JSON.parse(decodedCookie) : null
+      } catch (error) {
+        console.error('Error al analizar la cookie como JSON:', error)
+      }
+    }
+
     return {
-      redirect: {
-        destination: '/',
-        permanent: false,
-      },
-    }
-  }
-  
-  let data = null
-  let datapro = null
-
-  if (profileCookie && adminCookie) {
-    try {
-      const decodedCookie = decodeURIComponent(profileCookie)
-      datapro = JSON.parse(decodedCookie)
-      data = adminCookie
-    } catch (error) {
-      console.error('Error al analizar la cookie como JSON:', error)
-    }
-  }
-
-  return {
-    props: {
       datapro: datapro,
-      data: data
     }
-  }
+  })
 }
