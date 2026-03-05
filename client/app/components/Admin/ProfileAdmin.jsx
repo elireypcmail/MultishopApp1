@@ -6,9 +6,9 @@ import { setCookie, removeCookie } from '@g/cookies'
 import { sileo } from "sileo"
 import { useRouter } from 'next/router'
 import { useAdmin, useAdminByEmail, useDeleteAdmin, useUpdateAdmin } from '@g/queries'
+import { isBcryptHash } from '@g/utils'
 import Image from 'next/image'
 import logo from '@p/multi2.png'
-import { isBcryptHash } from '../../../pages/utils'
 
 export default function AdminProfile({ data }) {
   const [userData, setUserData] = useState(() => ({
@@ -40,17 +40,17 @@ export default function AdminProfile({ data }) {
 
     if (response && response.data && response.status === 200) {
       const data = response.data.data
+      const isBcrypt = isBcryptHash(data.password)
       const profileAdmin = {
         id: data.id,
         username: data.username,
         email: data.email,
-        password: data.password,
+        password: isBcrypt ? "" : data.password,
       }
 
       const Json = JSON.stringify(profileAdmin)
       setCookie('profileAdmin', Json)
 
-      const isBcrypt = isBcryptHash(data.password)
       const currentPassword = !isBcrypt ? data.password : undefined
 
       setUserData({

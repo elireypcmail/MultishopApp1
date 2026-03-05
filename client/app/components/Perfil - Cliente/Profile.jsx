@@ -24,7 +24,7 @@ import {
   getDaysDifference,
   parseDateFromDDMMYYYY,
 } from '@g/dateComparison'
-import { isBcryptHash } from '../../../pages/utils'
+import { isBcryptHash } from '@g/utils'
 
 export default function UserProfile({ data }) {
   const [userData, setUserData] = useState(data)
