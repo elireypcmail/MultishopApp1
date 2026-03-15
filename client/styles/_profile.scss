@@ -10,7 +10,8 @@
   border: 1px solid rgba(0, 0, 0, 0.130);
   border-radius: 10px;
 
-  .us, .us-ad {
+  .us,
+  .us-ad {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -19,14 +20,14 @@
     padding: 8px;
     width: 90%;
 
-    .form-us2{
+    .form-us2 {
       width: 100%;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
     }
-  
+
     .forms1 {
       display: flex;
       align-items: center;
@@ -198,6 +199,13 @@
     width: 50%;
   }
 
+  .button2-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+
   .button1 {
     margin-left: 30px;
   }
@@ -224,13 +232,15 @@
     border-radius: 18px;
   }
 
-  .btn3, .btns3 {
+  .btn3,
+  .btns3 {
     margin-right: 15px;
     background: #5b5a5a;
     color: #dfebf0;
   }
 
-  .btn2, .btns2 {
+  .btn2,
+  .btns2 {
     background: rgba(20, 108, 148, 0.87);
     color: #dfebf0;
     margin-right: 9px;
@@ -289,18 +299,16 @@
   }
 }
 
-@media (min-width: 1024px) {
-
-}
+@media (min-width: 1024px) {}
 
 @media (max-width: 767px) {
   .profile {
     height: 195vh;
 
-    .us-ad{ 
-      height: 130vh; 
-    
-      .form-us2{
+    .us-ad {
+      height: 130vh;
+
+      .form-us2 {
         height: 110vh;
       }
     }
@@ -308,7 +316,8 @@
     .us {
       height: 160vh;
 
-      .form-us, .form-us2 {
+      .form-us,
+      .form-us2 {
         height: 70vh;
       }
     }
@@ -347,7 +356,8 @@
     align-items: center;
   }
 
-  .forms, .forms1 {
+  .forms,
+  .forms1 {
     .user1 {
       margin-top: 55px;
     }
@@ -371,14 +381,17 @@
       }
     }
 
-    .users1{ margin-bottom: 45px; }
+    .users1 {
+      margin-bottom: 45px;
+    }
 
     .user1,
     .user2,
     .users1 {
       width: 80%;
 
-      .us1, .use1 {
+      .us1,
+      .use1 {
         font-size: 23px;
 
         .btn4 {
@@ -391,13 +404,14 @@
           font-size: 28px;
         }
 
-        .labels2{
+        .labels2 {
           font-size: 31px;
           width: 100%;
         }
       }
 
-      .us2, .us3 {
+      .us2,
+      .us3 {
         height: 9.9vh;
         padding: 4px;
         padding-left: 25px;
@@ -408,15 +422,17 @@
     }
   }
 
-  .form-us .buttons{
+  .form-us .buttons {
     margin-top: 405px;
   }
 
-  .form-us .buttons, .form-us2 .buttons {
-    .buttons1{
+  .form-us .buttons,
+  .form-us2 .buttons {
+    .buttons1 {
       margin-top: 120px;
 
-      .btns2, .btns3{
+      .btns2,
+      .btns3 {
         width: 37%;
         height: 10vh;
         padding: 9px;
@@ -425,7 +441,8 @@
       }
     }
 
-    .button1, .buttons1 {
+    .button1,
+    .buttons1 {
 
       .btn2,
       .btn3 {

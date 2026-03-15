@@ -405,16 +405,58 @@ export default function UserProfile({ data }) {
                   </div>
                 </div>
 
-                <div className="buttons">
-                  <div className='button1'>
-                    <button type="button" className='btn2' onClick={handleSave}>Guardar</button>
-                    <button type="button" className='btn3' onClick={() => router.push('/client')}>Cerrar</button>
+                <div className="flex flex-wrap gap-3 justify-between items-center w-full mt-6 mb-5">
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      type="button"
+                      className="px-5 py-2.5 rounded-lg font-medium text-white bg-[#146C94] hover:bg-[#115a7a] transition-colors shadow-sm"
+                      onClick={handleSave}
+                    >
+                      Guardar
+                    </button>
+                    <button
+                      type="button"
+                      className="px-5 py-2.5 rounded-lg font-medium text-gray-700 bg-gray-200 hover:bg-gray-300 transition-colors border border-gray-300"
+                      onClick={() => router.push('/client')}
+                    >
+                      Cerrar
+                    </button>
                   </div>
-                  <div className="button2">
-                    <button type='button' className='btn5 b' onClick={onOpenMov}>Ver movimientos</button>
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      type="button"
+                      className="px-4 py-2.5 rounded-lg font-medium text-white bg-[#146C94] hover:bg-[#115a7a] transition-colors text-sm"
+                      onClick={onOpenMov}
+                    >
+                      Ver movimientos
+                    </button>
                     <ModalMov data={data} isOpen={isOpenMov} onClose={onCloseMov} />
-                    <button type='button' className='btn5' onClick={onOpenNot}>Ver notificaciones</button>
+                    <button
+                      type="button"
+                      className="px-4 py-2.5 rounded-lg font-medium text-white bg-[#146C94] hover:bg-[#115a7a] transition-colors text-sm"
+                      onClick={onOpenNot}
+                    >
+                      Ver notificaciones
+                    </button>
                     <MovNotify isOpen={isOpenNot} onClose={onCloseNot} />
+                    {userData?.identificacion && (
+                      <>
+                        <button
+                          type="button"
+                          className="px-4 py-2.5 rounded-lg font-medium text-[#146C94] bg-white border-2 border-[#146C94] hover:bg-[#146C94] hover:text-white transition-colors text-sm"
+                          onClick={() => push(`/profile/${id}/api-keys?schema=${encodeURIComponent(userData.identificacion)}`)}
+                        >
+                          API Keys
+                        </button>
+                        <button
+                          type="button"
+                          className="px-4 py-2.5 rounded-lg font-medium text-[#146C94] bg-white border-2 border-[#146C94] hover:bg-[#146C94] hover:text-white transition-colors text-sm"
+                          onClick={() => push(`/profile/${id}/jobs?schema=${encodeURIComponent(userData.identificacion)}`)}
+                        >
+                          Jobs
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
               </form>

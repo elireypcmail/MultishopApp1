@@ -56,10 +56,21 @@ async function filtrarClientesPorLetra(letra) {
   }
 }
 
+async function createApiKey(body) {
+  try {
+    const res = await instance.post('/users/api-keys', body)
+    return res
+  } catch (err) {
+    if (err?.response) return { data: err?.response?.data }
+    throw err
+  }
+}
+
 export {
   registroCliente,
   registroAdmin,
   loginAdmin,
   filtrarClientesPorLetra,
   renovarFechaCorte,
+  createApiKey,
 }

@@ -87,6 +87,52 @@ async function getMove(id, params = {}) {
   }
 }
 
+async function getApiKeys(schema) {
+  try {
+    const res = await instance.get('/users/api-keys', { params: { schema } })
+    return res
+  } catch (err) {
+    if (err?.response) return { data: err?.response?.data }
+    throw err
+  }
+}
+
+async function getApiKeyById(id, schema) {
+  try {
+    const res = await instance.get(`/users/api-keys/${id}`, { params: { schema } })
+    return res
+  } catch (err) {
+    if (err?.response) return { data: err?.response?.data }
+    throw err
+  }
+}
+
+async function getJobs(schema, params = {}) {
+  try {
+    const { page, limit, date_from, date_to } = params
+    const query = { schema }
+    if (page != null) query.page = page
+    if (limit != null) query.limit = limit
+    if (date_from) query.date_from = date_from
+    if (date_to) query.date_to = date_to
+    const res = await instance.get('/users/jobs', { params: query })
+    return res
+  } catch (err) {
+    if (err?.response) return { data: err?.response?.data }
+    throw err
+  }
+}
+
+async function getJobById(jobId, schema) {
+  try {
+    const res = await instance.get(`/users/jobs/${jobId}`, { params: { schema } })
+    return res
+  } catch (err) {
+    if (err?.response) return { data: err?.response?.data }
+    throw err
+  }
+}
+
 export {
   getUsers,
   getUser,
@@ -94,5 +140,9 @@ export {
   getAdmins,
   getAdmin,
   getAdminByEmail,
-  getMove
+  getMove,
+  getApiKeys,
+  getApiKeyById,
+  getJobs,
+  getJobById,
 }

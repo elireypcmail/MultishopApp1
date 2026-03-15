@@ -33,4 +33,14 @@ async function deleteAdmin(id) {
   }
 }
 
-export { deleteClient, deleteAdmin, deleteDevice }
+async function deleteApiKey(id, schema) {
+  try {
+    const res = await instance.delete(`/users/api-keys/${id}`, { params: { schema } })
+    return res
+  } catch (err) {
+    if (err?.response) return { data: err?.response?.data }
+    throw err
+  }
+}
+
+export { deleteClient, deleteAdmin, deleteDevice, deleteApiKey }

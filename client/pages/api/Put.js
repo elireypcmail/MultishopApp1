@@ -33,4 +33,14 @@ async function updateAdmin(id, data) {
    }
 }
 
-export { updateUser, updateAdmin, updateState }
+async function updateApiKey(id, data) {
+  try {
+    const res = await instance.patch(`/users/api-keys/${id}`, data)
+    return res
+  } catch (err) {
+    if (err?.response) return { data: err?.response?.data }
+    throw err
+  }
+}
+
+export { updateUser, updateAdmin, updateState, updateApiKey }
