@@ -110,7 +110,8 @@ async function getApiKeyById(id, schema) {
 async function getJobs(schema, params = {}) {
   try {
     const { page, limit, date_from, date_to } = params
-    const query = { schema }
+    const query = {}
+    if (schema) query.schema = schema
     if (page != null) query.page = page
     if (limit != null) query.limit = limit
     if (date_from) query.date_from = date_from
@@ -124,6 +125,7 @@ async function getJobs(schema, params = {}) {
 }
 
 async function getJobById(jobId, schema) {
+  console.log(jobId, schema)
   try {
     const res = await instance.get(`/users/jobs/${jobId}`, { params: { schema } })
     return res

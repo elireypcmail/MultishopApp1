@@ -125,7 +125,9 @@ function dateToISOTo(dateStr) {
 
 export default function JobsManager() {
   const router = useRouter()
-  const schema = typeof router.query.schema === 'string' ? router.query.schema : ''
+  const isGlobalView = router.pathname.startsWith('/imports')
+  const rawSchema = typeof router.query.schema === 'string' ? router.query.schema : ''
+  const schema = isGlobalView ? '' : rawSchema
   const [jobs, setJobs] = useState([])
   const [loading, setLoading] = useState(true)
   const [detailJob, setDetailJob] = useState(null)
@@ -138,7 +140,7 @@ export default function JobsManager() {
   const debounceRef = useRef(null)
 
   const fetchJobs = useCallback(async (pageNum = page, from = dateFrom, to = dateTo) => {
-    if (!schema) return
+    if (!schema && !isGlobalView) return
     setLoading(true)
     try {
       const params = { page: pageNum, limit: JOBS_PER_PAGE }
@@ -146,7 +148,7 @@ export default function JobsManager() {
       const isoTo = dateToISOTo(to)
       if (isoFrom) params.date_from = isoFrom
       if (isoTo) params.date_to = isoTo
-      const res = await getJobs(schema, params)
+      const res = await getJobs(schema || undefined, params)
       if (res?.data?.jobs) setJobs(Array.isArray(res.data.jobs) ? res.data.jobs : [])
       else if (res?.data?.data) setJobs(Array.isArray(res.data.data) ? res.data.data : [])
       else setJobs([])
@@ -158,7 +160,7 @@ export default function JobsManager() {
     } finally {
       setLoading(false)
     }
-  }, [schema, page, dateFrom, dateTo])
+  }, [schema, isGlobalView, page, dateFrom, dateTo])
 
   useEffect(() => {
     fetchJobs()
@@ -167,7 +169,7 @@ export default function JobsManager() {
 
   // Debounce: al cambiar fecha, ejecutar filtro tras FILTER_DEBOUNCE_MS (solo si hay al menos una fecha para no duplicar carga inicial)
   useEffect(() => {
-    if (!schema) return
+    if (!schema && !isGlobalView) return
     if (debounceRef.current) clearTimeout(debounceRef.current)
     const hasFilter = !!dateFrom || !!dateTo
     if (!hasFilter) return
@@ -200,10 +202,10 @@ export default function JobsManager() {
   }
 
   // Socket.IO: conectar tras un pequeño retraso para evitar desconexión durante carga/hidratación
-  const schemaRef = useRef(schema)
+  //const schemaRef = useRef(schema)
   const detailRef = useRef({ detailOpen, detailJob })
   const mountedRef = useRef(true)
-  schemaRef.current = schema
+  //schemaRef.current = schema
   detailRef.current = { detailOpen, detailJob }
 
   useEffect(() => {
@@ -212,7 +214,7 @@ export default function JobsManager() {
   }, [])
 
   useEffect(() => {
-    if (typeof window === 'undefined' || !schema) return
+    if (typeof window === 'undefined') return
 
     let socket
     let delayId
@@ -235,7 +237,7 @@ export default function JobsManager() {
           if (mountedRef.current) setLiveBadge(false)
         })
         socket.on('job-update', (payload) => {
-          if (payload?.schema !== schemaRef.current) return
+          if (schema && payload?.schema !== schema) return
           if (!mountedRef.current) return
           setJobs((prev) => {
             const list = [...prev]
@@ -251,6 +253,7 @@ export default function JobsManager() {
           }
         })
       } catch (err) {
+
         console.warn('Socket.IO no disponible:', err)
       }
     }
@@ -269,7 +272,7 @@ export default function JobsManager() {
 
   const openDetail = async (job) => {
     try {
-      const res = await getJobById(job.jobId || job.id, schema)
+      const res = await getJobById(job.jobId || job.id, schema || job.schema)
       const data = res?.data?.data || res?.data
       setDetailJob(data || job)
       setDetailOpen(true)
@@ -282,20 +285,6 @@ export default function JobsManager() {
   const modalOverlay = 'fixed inset-0 bg-black/50 flex items-center justify-center z-[1000]'
   const modalContent = 'bg-white rounded-xl shadow-xl p-6 max-w-[90vw] max-h-[90vh] overflow-auto mx-4'
 
-  if (!schema) {
-    return (
-      <div className="jobs-page flex flex-col flex-1 min-h-0 m-[30px] rounded-2xl bg-white p-6 overflow-auto box-border">
-        <p className="text-gray-500 mb-4">Falta el parámetro schema (identificación). Vuelve al perfil del cliente.</p>
-        <button
-          type="button"
-          className="inline-flex items-center px-4 py-2 text-sm text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg border border-gray-300 w-fit"
-          onClick={() => router.push(`/profile/${router.query.userId}`)}
-        >
-          ← Atrás
-        </button>
-      </div>
-    )
-  }
 
   return (
     <div className="jobs-page flex flex-col flex-1 min-h-0 m-[30px] rounded-2xl bg-white p-6 overflow-auto box-border">
@@ -369,21 +358,48 @@ export default function JobsManager() {
             const fileName = job.file_path ? String(job.file_path).split(/[/\\]/).pop() : '—'
             return (
               <li
-                key={job.jobId || job.id}
+                key={`${job.jobId || job.id}-${job.schema}`}
                 className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm w-full"
               >
                 <div className="flex flex-wrap items-center gap-2 gap-y-2 mb-2">
                   <span className="font-bold text-gray-900">#{job.jobId ?? job.id ?? '—'}</span>
                   <span className={statusPillClasses(job.status)}>
-                    {(job.status || '').toLowerCase() === 'completed' ? '✓ ' : ''}{statusLabel(job.status)}
+                    {(job.status || '').toLowerCase() === 'completed' ? '✓ ' : ''}
+                    {statusLabel(job.status)}
+                    {(job.status || '').toLowerCase() === 'processing' && (
+                      <svg
+                        className="w-3.5 h-3.5 animate-spin ml-1 text-blue-700"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                        />
+                      </svg>
+                    )}
                   </span>
                   <span className="text-sm text-gray-600">{fileName}</span>
+                  {job.schema && (
+                    <span className="text-[11px] px-2 py-0.5 rounded-md bg-gray-100 text-gray-700 font-medium">
+                      {job.schema}
+                    </span>
+                  )}
                   <span
-                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium ${
-                      isApiKeyJob(job)
-                        ? 'bg-violet-100 text-violet-800'
-                        : 'bg-gray-100 text-gray-600'
-                    }`}
+                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium ${isApiKeyJob(job)
+                      ? 'bg-violet-100 text-violet-800'
+                      : 'bg-gray-100 text-gray-600'
+                      }`}
                     title={isApiKeyJob(job) ? 'Lanzado por API key' : 'Lanzado por admin'}
                   >
                     {isApiKeyJob(job) ? (

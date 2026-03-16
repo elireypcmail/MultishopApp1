@@ -47,6 +47,10 @@ export default function MenuToggle({ isMenuOpen, setIsMenuOpen }) {
               <i className="i mr-2"><Clients2 /></i>
               Clientes
             </li>
+            <li className="lis text-white rounded flex items-center p-2 hover:bg-gray-700 cursor-pointer" id="lis" onClick={() => { router.push('/imports'); closeMenu(); }}>
+              <i className="i mr-2"><Clients2 /></i>
+              Importaciones
+            </li>
             <li className="lis text-white rounded flex items-center p-2 hover:bg-gray-700 cursor-pointer" id="lis" onClick={() => { router.push('/admins'); closeMenu(); }}>
               <i className="i mr-2"><User2 /></i>
               Usuarios

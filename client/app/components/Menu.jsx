@@ -20,6 +20,10 @@ export default function Menu() {
               <i><Clients /></i>
               Clientes
             </li>
+            <li className="li" onClick={() => router.push('/imports')}>
+              <i><Clients /></i>
+              Importaciones
+            </li>
             <li className="li" onClick={() => router.push('/admins')}>
               <i><User /></i>
               Usuarios
