@@ -1,9 +1,9 @@
-import config from '../controllers/clients/twilio.config.js'
-import twilio from 'twilio'
-import _var   from '../../global/_var.js'
-import pool   from '../models/db.connect.js'
+//import config from '../controllers/clients/twilio.config.js'
+//import twilio from 'twilio'
+import _var from '../../global/_var.js'
+import pool from '../models/db.connect.js'
 
-const client = twilio(config.accountSid, config.authToken, config.verifyServiceSid)
+//const client = twilio(config.accountSid, config.authToken, config.verifyServiceSid)
 
 const service = {}
 let message =
@@ -11,13 +11,13 @@ let message =
   service.sendVerificationCode = async (phoneNumber, verificationCode) => {
     //console.log(verificationCode)
     try {
-      const message = await client.messages.create({
-        body: `Tu código de verificación es: ${verificationCode}`,
-        from: _var.FROM,
-        to: phoneNumber
-      })
-
-      console.log(`Mensaje de verificación enviado a ${phoneNumber} con SID: ${message.sid}`)
+      //const message = await client.messages.create({
+      //  body: `Tu código de verificación es: ${verificationCode}`,
+      //  from: _var.FROM,
+      //  to: phoneNumber
+      //})
+      console.log('Twlio no esta disponible')
+      //console.log(`Mensaje de verificación enviado a ${phoneNumber} con SID: ${message.sid}`)
     } catch (error) {
       console.error('Error al enviar el mensaje de verificación:', error)
     }
@@ -50,7 +50,7 @@ service.verificarNumeroTelefono = async (numeroTelefono) => {
 
 service.saveVerification = async (userId, phoneNumber, verificationCode) => {
   try {
-    const client = await pool.connect()
+    const clientdb = await pool.connect()
 
     const insertQuery = `
       INSERT INTO verificacion_code (userId, telefono, code)
@@ -59,10 +59,10 @@ service.saveVerification = async (userId, phoneNumber, verificationCode) => {
     `
     const insertValues = [userId, phoneNumber, verificationCode]
 
-    const { rows }       = await client.query(insertQuery, insertValues)
+    const { rows } = await clientdb.query(insertQuery, insertValues)
     const verificationId = rows[0].id
 
-    client.release()
+    clientdb.release()
     return verificationId
   } catch (err) {
     console.error('Error al guardar el código de verificación', err)
@@ -71,7 +71,7 @@ service.saveVerification = async (userId, phoneNumber, verificationCode) => {
 
 service.compareVerificationCode = async (enteredCode) => {
   try {
-    const client = await pool.connect()
+    const clientdb = await pool.connect()
 
     const selectQuery = `
       SELECT code
@@ -79,14 +79,14 @@ service.compareVerificationCode = async (enteredCode) => {
       WHERE code = $1
     `
     const selectValues = [enteredCode]
-    const { rows } = await client.query(selectQuery, selectValues)
+    const { rows } = await clientdb.query(selectQuery, selectValues)
     console.log(rows[0].code)
 
-    if (rows.length === 0) { message = { msg: 'No se encontró ningún código de verificación coincidente.'} }
+    if (rows.length === 0) { message = { msg: 'No se encontró ningún código de verificación coincidente.' } }
 
     const storedCode = rows[0].code
 
-    client.release()
+    clientdb.release()
 
     const isMatch = enteredCode === storedCode
     if (isMatch) {
@@ -109,16 +109,16 @@ service.compareVerificationCode = async (enteredCode) => {
 
 service.saveVerificationCode = async (userId, telefono, verificationCode) => {
   try {
-    const client = await pool.connect()
+    const clientdb = await pool.connect()
     const insertQuery = `
       INSERT INTO vericacion_code (userid, telefono, code)
       VALUES ($1, $2, $3)
       RETURNING id
     `
-    const insertValues   = [userId, telefono, verificationCode]
-    const { rows }       = await client.query(insertQuery, insertValues)
+    const insertValues = [userId, telefono, verificationCode]
+    const { rows } = await clientdb.query(insertQuery, insertValues)
     const verificationId = rows[0].id
-    client.release()
+    clientdb.release()
     return verificationId
   } catch (error) {
     console.error('Error al guardar el código de verificación en la base de datos:', error)
@@ -128,7 +128,7 @@ service.saveVerificationCode = async (userId, telefono, verificationCode) => {
 
 service.compareVerificationCodes = async (enteredCode) => {
   try {
-    const client = await pool.connect()
+    const clientdb = await pool.connect()
     const selectQuery = `
       SELECT code
       FROM vericacion_code
@@ -136,9 +136,9 @@ service.compareVerificationCodes = async (enteredCode) => {
       LIMIT 1
     `
     const selectValues = [enteredCode]
-    const { rows }     = await client.query(selectQuery, selectValues)
-    const storedCode   = rows[0].code
-    client.release()
+    const { rows } = await clientdb.query(selectQuery, selectValues)
+    const storedCode = rows[0].code
+    clientdb.release()
     return storedCode === enteredCode
   } catch (error) {
     console.error('Error al comparar el código de verificación:', error)

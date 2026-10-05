@@ -1,11 +1,11 @@
-import jwt  from 'jsonwebtoken'
+import jwt from 'jsonwebtoken'
 import pool from '../models/db.connect.js'
 import _var from '../../global/_var.js'
-import nodemailer from 'nodemailer'
-import bcrypt from 'bcrypt'
+//import nodemailer from 'nodemailer'
+//import bcrypt from 'bcrypt'
 
 const services = {}
-let message    = {}
+//let message = {}
 
 services.generarToken = async (userId, tieneSuscripcion, dispositivo, tiempoSuscripcionEnDias, diasRestantes, diasRestantesProrroga) => {
   try {
@@ -39,7 +39,7 @@ services.almacenarToken = async (userId, token) => {
   try {
     const db = await pool.connect()
 
-    await db.query( 'INSERT INTO suscripcion (idUser, token) VALUES ($1, $2)', [userId, token] )
+    await db.query('INSERT INTO suscripcion (idUser, token) VALUES ($1, $2)', [userId, token])
 
     db.release()
   } catch (err) {
@@ -58,8 +58,8 @@ services.verifyToken = (req, res, next) => {
     if (!token) return res.status(401).send({ message: 'Token no proporcionado' })
 
     const startBackgroundProcess = (expireEn) => {
-      const intervalId      = setInterval(() => {
-        const currentTime   = Date.now()
+      const intervalId = setInterval(() => {
+        const currentTime = Date.now()
         const remainingTime = expireEn - currentTime
         const remainingDays = Math.floor(remainingTime / (1000 * 60 * 60 * 24))
       }, 60000)
@@ -73,8 +73,8 @@ services.verifyToken = (req, res, next) => {
         return res.status(401).send({ message: 'Token inválido' })
       }
 
-      const expireEn     = decodedToken.expiraEn
-      const expireDate   = new Date(expireEn * 1000)
+      const expireEn = decodedToken.expiraEn
+      const expireDate = new Date(expireEn * 1000)
       const tiempoActual = Date.now()
 
       const intervalId = startBackgroundProcess(expireDate)
@@ -95,7 +95,7 @@ services.verifyToken = (req, res, next) => {
 }
 
 services.formatTime = (totalSeconds) => {
-  const hours   = Math.floor(totalSeconds / 3600)
+  const hours = Math.floor(totalSeconds / 3600)
   const minutes = Math.floor((totalSeconds % 3600) / 60)
 
   const formattedTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
@@ -121,7 +121,7 @@ services.registrarAuditoria = async (id_usuario, accion, id_dispositivo = null, 
 
 services.getAuditoria = async (req, res) => {
   const { id } = req.params
-  
+
   try {
     const query = `
       SELECT * FROM auditoria
@@ -149,12 +149,12 @@ services.getAuditoriaDate = async (req, res) => {
       AND fecha BETWEEN $2 AND $3
       ORDER BY fecha DESC
     `
-    const movimientosValue  = [ id, inicio, fin ]
+    const movimientosValue = [id, inicio, fin]
     const movimientosResult = await client.query(movimientosQuery, movimientosValue)
-    const movimientos       = movimientosResult.rows
+    const movimientos = movimientosResult.rows
 
-    if (movimientos.length === 0) return  res.status(404).json({ "message": "No se encontraron movimientos con esa fecha."})
-    
+    if (movimientos.length === 0) return res.status(404).json({ "message": "No se encontraron movimientos con esa fecha." })
+
     res.status(200).json({ "userId": id, "data": movimientos })
 
     client.release()
@@ -182,7 +182,7 @@ services.getAuditoriaPromedio = async (req, res) => {
     if (result.rows.length === 0 || result.rows[0].average === null) {
       return res.status(404).json({ message: 'No hay datos disponibles para las fechas proporcionadas.' })
     }
-    
+
     res.json({ average: result.rows[0].average })
 
     client.release()
@@ -194,7 +194,7 @@ services.getAuditoriaPromedio = async (req, res) => {
 
 services.sendEmail = async (title, text) => {
   try {
-    const client = await pool.connect();
+    /*const client = await pool.connect();
 
     const credencialesQuery = `SELECT nombre_credencial, codigo FROM credenciales;`;
     const credencialesResult = await client.query(credencialesQuery);
@@ -246,7 +246,8 @@ services.sendEmail = async (title, text) => {
       }
       console.log('Correo enviado: %s', info.messageId);
     });
-
+*/
+    console.log('Email no disponible')
   } catch (error) {
     console.error("Error executing query:", error);
   }
